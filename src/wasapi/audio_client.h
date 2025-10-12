@@ -31,8 +31,12 @@ public:
     // 开始音频捕获
     bool Start();
 
+
     // 停止音频捕获
     bool Stop();
+
+    // 处理音频样本（接口占位）
+    bool ProcessAudioSample(BYTE* pData, UINT32 numFrames);
 
 private:
     Microsoft::WRL::ComPtr<IMMDevice> device_;

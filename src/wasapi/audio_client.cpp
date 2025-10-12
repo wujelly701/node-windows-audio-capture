@@ -1,3 +1,9 @@
+// 处理音频样本（接口占位）
+bool AudioClient::ProcessAudioSample(BYTE* pData, UINT32 numFrames) {
+    // TODO: 实际样本处理逻辑
+    // 占位实现，返回 true
+    return true;
+}
 // 停止音频捕获
 bool AudioClient::Stop() {
     if (!audioClient_) return false;

@@ -1,0 +1,200 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }} with Node.js ${{ matrix.node }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        node: [18, 20, 22]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'npm'
+      
+      - name: Install system dependencies (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+      
+      - name: Install system dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install python@3.11
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build native addon
+        run: npm run build --if-present || node-gyp rebuild
+        env:
+          npm_config_build_from_source: true
+      
+      - name: Run tests
+        run: npm test
+        continue-on-error: true
+      
+      - name: Run linter
+        run: npm run lint --if-present
+        continue-on-error: true
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-${{ matrix.os }}-node${{ matrix.node }}
+          path: |
+            build/
+            !build/**/*.obj
+            !build/**/*.o
+          retention-days: 7
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.os }}-node${{ matrix.node }}
+          path: |
+            coverage/
+            test-results/
+          retention-days: 7
+      
+      - name: Upload npm logs on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: npm-logs-${{ matrix.os }}-node${{ matrix.node }}
+          path: |
+            npm-debug.log*
+            yarn-error.log*
+          retention-days: 7
+
+  build-summary:
+    name: Build Summary
+    runs-on: ubuntu-latest
+    needs: build
+    if: always()
+    
+    steps:
+      - name: Check build status
+        run: |
+          echo "Build workflow completed"
+          echo "Check individual job results above"
+      
+      - name: Report status
+        if: needs.build.result == 'failure'
+        run: |
+          echo "::error::One or more build jobs failed"
+          exit 1
+
+  # Windows-specific extended tests
+  windows-extended:
+    name: Windows Extended Tests
+    runs-on: windows-latest
+    needs: build
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build native addon
+        run: npm run build --if-present || node-gyp rebuild
+      
+      - name: Test WASAPI functionality (Windows only)
+        run: |
+          node -e "const addon = require('./build/Release/node_windows_audio_capture.node'); console.log('Addon loaded successfully');"
+        continue-on-error: true
+      
+      - name: Test process enumeration
+        run: |
+          node -e "const addon = require('./build/Release/node_windows_audio_capture.node'); const processes = addon.enumerateProcesses(); console.log('Found', processes.length, 'processes');"
+        continue-on-error: true
+
+  # Code quality checks
+  quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run ESLint
+        run: npm run lint --if-present
+        continue-on-error: true
+      
+      - name: Check formatting
+        run: npm run format:check --if-present
+        continue-on-error: true
+      
+      - name: Type checking
+        run: npm run type-check --if-present
+        continue-on-error: true
+      
+      - name: Dependency audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+  # Security scanning
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+        continue-on-error: true
+      
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+        continue-on-error: true

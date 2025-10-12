@@ -17,4 +17,5 @@ private:
     Napi::Value Start(const Napi::CallbackInfo& info);
     Napi::Value Stop(const Napi::CallbackInfo& info);
     Napi::Value StartCapture(const Napi::CallbackInfo& info);
+    Napi::Value StopCapture(const Napi::CallbackInfo& info);
 };

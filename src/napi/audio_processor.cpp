@@ -7,10 +7,15 @@ Napi::Object AudioProcessor::Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "AudioProcessor", {
         InstanceMethod("start", &AudioProcessor::Start),
         InstanceMethod("stop", &AudioProcessor::Stop),
-        InstanceMethod("startCapture", &AudioProcessor::StartCapture)
+        InstanceMethod("startCapture", &AudioProcessor::StartCapture),
+        InstanceMethod("stopCapture", &AudioProcessor::StopCapture)
     });
     exports.Set("AudioProcessor", func);
     return exports;
+}
+Napi::Value AudioProcessor::StopCapture(const Napi::CallbackInfo& info) {
+    thread_->Stop();
+    return info.Env().Undefined();
 }
 Napi::Value AudioProcessor::StartCapture(const Napi::CallbackInfo& info) {
     thread_->Start();

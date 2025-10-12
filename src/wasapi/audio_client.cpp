@@ -1,3 +1,9 @@
+// 停止音频捕获
+bool AudioClient::Stop() {
+    if (!audioClient_) return false;
+    HRESULT hr = audioClient_->Stop();
+    return SUCCEEDED(hr);
+}
 // 开始音频捕获
 bool AudioClient::Start() {
     if (!audioClient_) return false;

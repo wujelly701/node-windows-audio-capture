@@ -27,8 +27,12 @@ public:
     // 设置事件句柄
     bool SetEventHandle(HANDLE hEvent);
 
+
     // 开始音频捕获
     bool Start();
+
+    // 停止音频捕获
+    bool Stop();
 
 private:
     Microsoft::WRL::ComPtr<IMMDevice> device_;

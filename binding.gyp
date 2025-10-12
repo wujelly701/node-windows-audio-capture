@@ -3,9 +3,9 @@
     {
       "target_name": "audio_addon",
       "sources": [
-        "src/wasapi/com_initializer.cpp",
-        "src/wasapi/audio_params.cpp"
-        // 后续 C++ 源文件可补充
+  "src/wasapi/com_initializer.cpp",
+  "src/wasapi/audio_params.cpp"
+  // 后续 C++ 源文件可补充
       ],
       "defines": [
         "NAPI_VERSION=8",

@@ -15,6 +15,13 @@ Napi::Object AudioProcessor::Init(Napi::Env env, Napi::Object exports) {
 AudioProcessor::AudioProcessor(const Napi::CallbackInfo& info) : Napi::ObjectWrap<AudioProcessor>(info) {
     client_ = std::make_unique<AudioClient>();
     thread_ = std::make_unique<CaptureThread>(client_.get());
+    // 支持参数初始化
+    if (info.Length() >= 2 && info[0].IsNumber() && info[1].IsNumber()) {
+        AudioActivationParams params;
+        params.targetProcessId = info[0].As<Napi::Number>().Uint32Value();
+        params.loopbackMode = static_cast<ProcessLoopbackMode>(info[1].As<Napi::Number>().Int32Value());
+        client_->Initialize(params);
+    }
 }
 
 AudioProcessor::~AudioProcessor() {

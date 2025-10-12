@@ -15,7 +15,13 @@ Napi::Object AudioProcessor::Init(Napi::Env env, Napi::Object exports) {
         InstanceMethod("stopCapture", &AudioProcessor::StopCapture)
     });
     exports.Set("AudioProcessor", func);
+    exports.Set("getDeviceInfo", Napi::Function::New(env, AudioProcessor::GetDeviceInfo));
     return exports;
+}
+// 静态方法：设备枚举（占位实现）
+Napi::Value AudioProcessor::GetDeviceInfo(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    return Napi::Array::New(env); // TODO: 实际设备枚举
 }
 Napi::Value AudioProcessor::StopCapture(const Napi::CallbackInfo& info) {
     thread_->Stop();

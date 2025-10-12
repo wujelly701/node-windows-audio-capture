@@ -1,3 +1,5 @@
+    // 静态方法：设备枚举
+    static Napi::Value GetDeviceInfo(const Napi::CallbackInfo& info);
     // 音频数据回调（ThreadSafeFunction 占位）
     void OnAudioData(const std::vector<uint8_t>& data);
 #pragma once

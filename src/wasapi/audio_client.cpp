@@ -1,0 +1,37 @@
+#include "audio_client.h"
+#include <mmdeviceapi.h>
+#include <audioclient.h>
+#include <wrl/client.h>
+#include <propvarutil.h>
+#include <propidl.h>
+#include <windows.h>
+
+AudioClient::AudioClient() {}
+AudioClient::~AudioClient() {}
+
+bool AudioClient::Initialize(const AudioActivationParams& params) {
+    HRESULT hr;
+    // 获取设备枚举器
+    Microsoft::WRL::ComPtr<IMMDeviceEnumerator> enumerator;
+    hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS(&enumerator));
+    if (FAILED(hr)) return false;
+
+    // 获取默认音频渲染设备
+    hr = enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device_);
+    if (FAILED(hr)) return false;
+
+    // 激活 IAudioClient2
+    PROPVARIANT var = params.ToPropVariant();
+    hr = device_->Activate(__uuidof(IAudioClient2), CLSCTX_ALL, &var, (void**)&audioClient_);
+    PropVariantClear(&var);
+    if (FAILED(hr)) return false;
+
+    initialized_ = true;
+    return true;
+}
+
+Microsoft::WRL::ComPtr<IAudioClient2> AudioClient::GetAudioClient() const {
+    return audioClient_;
+}
+
+// ActivateAsync 占位，后续实现异步激活

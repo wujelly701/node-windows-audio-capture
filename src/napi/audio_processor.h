@@ -1,3 +1,5 @@
+    // 音频数据回调（ThreadSafeFunction 占位）
+    void OnAudioData(const std::vector<uint8_t>& data);
 #pragma once
 #include <napi.h>
 #include <memory>

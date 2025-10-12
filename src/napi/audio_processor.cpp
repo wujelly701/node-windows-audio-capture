@@ -1,3 +1,7 @@
+// 音频数据回调（ThreadSafeFunction 占位）
+void AudioProcessor::OnAudioData(const std::vector<uint8_t>& data) {
+    // TODO: 使用 Napi::ThreadSafeFunction 向 JS 层回调音频数据
+}
 #include "audio_processor.h"
 #include <napi.h>
 #include "wasapi/capture_thread.h"

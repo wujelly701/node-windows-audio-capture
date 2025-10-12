@@ -35,3 +35,14 @@ Microsoft::WRL::ComPtr<IAudioClient2> AudioClient::GetAudioClient() const {
 }
 
 // ActivateAsync 占位，后续实现异步激活
+// 激活完成回调接口
+void AudioClient::ActivateCompleted(HRESULT hr, Microsoft::WRL::ComPtr<IAudioClient2> client) {
+    if (SUCCEEDED(hr) && client) {
+        audioClient_ = client;
+        initialized_ = true;
+        // 可扩展：通知外部/事件回调
+    } else {
+        initialized_ = false;
+        // 可扩展：错误处理/通知
+    }
+}

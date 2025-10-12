@@ -50,3 +50,10 @@ void AudioClient::ActivateCompleted(HRESULT hr, Microsoft::WRL::ComPtr<IAudioCli
         // 可扩展：错误处理/通知
     }
 }
+
+// 设置事件句柄
+bool AudioClient::SetEventHandle(HANDLE hEvent) {
+    if (!audioClient_) return false;
+    HRESULT hr = audioClient_->SetEventHandle(hEvent);
+    return SUCCEEDED(hr);
+}

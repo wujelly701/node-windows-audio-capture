@@ -16,11 +16,15 @@ public:
     // 获取底层 IAudioClient2 指针
     Microsoft::WRL::ComPtr<IAudioClient2> GetAudioClient() const;
 
+
     // 查询是否已初始化
     bool IsInitialized() const;
 
     // 激活完成回调
     void ActivateCompleted(HRESULT hr, Microsoft::WRL::ComPtr<IAudioClient2> client);
+
+    // 设置事件句柄
+    bool SetEventHandle(HANDLE hEvent);
 
 private:
     Microsoft::WRL::ComPtr<IMMDevice> device_;

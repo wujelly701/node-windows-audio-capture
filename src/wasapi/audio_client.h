@@ -23,8 +23,12 @@ public:
     // 激活完成回调
     void ActivateCompleted(HRESULT hr, Microsoft::WRL::ComPtr<IAudioClient2> client);
 
+
     // 设置事件句柄
     bool SetEventHandle(HANDLE hEvent);
+
+    // 开始音频捕获
+    bool Start();
 
 private:
     Microsoft::WRL::ComPtr<IMMDevice> device_;

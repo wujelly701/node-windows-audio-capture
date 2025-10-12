@@ -1,3 +1,9 @@
+// 开始音频捕获
+bool AudioClient::Start() {
+    if (!audioClient_) return false;
+    HRESULT hr = audioClient_->Start();
+    return SUCCEEDED(hr);
+}
 #include "audio_client.h"
 #include <mmdeviceapi.h>
 #include <audioclient.h>

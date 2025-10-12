@@ -1,0 +1,263 @@
+name: Prebuild Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag version (e.g., v1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  prebuild:
+    name: Prebuild for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Windows builds
+          - os: windows-latest
+            arch: x64
+            platform: win32
+          - os: windows-latest
+            arch: arm64
+            platform: win32
+          
+          # macOS builds
+          - os: macos-latest
+            arch: x64
+            platform: darwin
+          - os: macos-latest
+            arch: arm64
+            platform: darwin
+          
+          # Linux builds
+          - os: ubuntu-latest
+            arch: x64
+            platform: linux
+          - os: ubuntu-latest
+            arch: arm64
+            platform: linux
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      
+      - name: Install system dependencies (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential
+      
+      - name: Install system dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install python@3.11
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install prebuildify
+        run: npm install -g prebuildify
+      
+      - name: Run prebuild script
+        run: node scripts/prebuild.js
+        env:
+          VERBOSE: true
+      
+      - name: Verify prebuilds
+        run: |
+          ls -R prebuilds
+        shell: bash
+      
+      - name: Upload prebuilds
+        uses: actions/upload-artifact@v4
+        with:
+          name: prebuilds-${{ matrix.platform }}-${{ matrix.arch }}
+          path: prebuilds/
+          retention-days: 30
+      
+      - name: Upload to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: prebuilds/**/*.node
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Electron-specific prebuilds
+  prebuild-electron:
+    name: Prebuild for Electron ${{ matrix.electron }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        electron: ['27.0.0', '28.0.0', '29.0.0']
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install prebuildify
+        run: npm install -g prebuildify
+      
+      - name: Run prebuild for Electron
+        run: node scripts/prebuild.js
+        env:
+          ELECTRON_VERSION: ${{ matrix.electron }}
+          VERBOSE: true
+      
+      - name: Upload Electron prebuilds
+        uses: actions/upload-artifact@v4
+        with:
+          name: prebuilds-electron-${{ matrix.electron }}-${{ matrix.os }}
+          path: prebuilds/
+          retention-days: 30
+
+  # Create release package
+  package:
+    name: Create Release Package
+    runs-on: ubuntu-latest
+    needs: [prebuild, prebuild-electron]
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org'
+      
+      - name: Download all prebuilds
+        uses: actions/download-artifact@v4
+        with:
+          path: all-prebuilds
+      
+      - name: Organize prebuilds
+        run: |
+          mkdir -p prebuilds
+          cp -r all-prebuilds/prebuilds-*/* prebuilds/ || true
+          ls -R prebuilds
+      
+      - name: Install dependencies
+        run: npm ci --production
+      
+      - name: Create tarball
+        run: |
+          tar -czf node-windows-audio-capture-prebuilds.tar.gz prebuilds/
+          zip -r node-windows-audio-capture-prebuilds.zip prebuilds/
+      
+      - name: Upload release package
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            node-windows-audio-capture-prebuilds.tar.gz
+            node-windows-audio-capture-prebuilds.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Publish to npm
+        if: "!contains(github.ref, 'beta') && !contains(github.ref, 'alpha')"
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        continue-on-error: true
+
+  # Verify prebuilds
+  verify:
+    name: Verify Prebuilds
+    runs-on: ${{ matrix.os }}
+    needs: prebuild
+    
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        node: [18, 20, 22]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      
+      - name: Download prebuilds
+        uses: actions/download-artifact@v4
+        with:
+          pattern: prebuilds-*
+          path: prebuilds-download
+      
+      - name: Organize prebuilds
+        run: |
+          mkdir -p prebuilds
+          cp -r prebuilds-download/prebuilds-*/* prebuilds/ || true
+        shell: bash
+      
+      - name: Install dependencies
+        run: npm ci --production
+      
+      - name: Test prebuild loading
+        run: |
+          node -e "const addon = require('./lib/index.js'); console.log('Addon loaded successfully'); console.log('Version:', addon.version);"
+        continue-on-error: true
+
+  # Update release notes
+  release-notes:
+    name: Update Release Notes
+    runs-on: ubuntu-latest
+    needs: [prebuild, prebuild-electron]
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Generate changelog
+        id: changelog
+        run: |
+          git log $(git describe --tags --abbrev=0 HEAD^)..HEAD --pretty=format:"- %s (%h)" > CHANGELOG_CURRENT.md
+          cat CHANGELOG_CURRENT.md
+      
+      - name: Update release
+        uses: softprops/action-gh-release@v1
+        with:
+          body_path: CHANGELOG_CURRENT.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

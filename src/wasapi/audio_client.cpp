@@ -113,6 +113,14 @@ bool AudioClient::Start() {
 // 停止音频捕获
 bool AudioClient::Stop() {
     if (!audioClient_) return false;
+    
+    // v2.1: 恢复静音状态（如果正在管理）
+    if (sessionManager_ && filterOptions_.muteOtherProcesses) {
+        DEBUG_LOG("[AudioClient] Stop called, restoring mute states...\n");
+        sessionManager_->RestoreMuteStates();
+        filterOptions_.muteOtherProcesses = false;  // 重置标志
+    }
+    
     HRESULT hr = audioClient_->Stop();
     return SUCCEEDED(hr);
 }

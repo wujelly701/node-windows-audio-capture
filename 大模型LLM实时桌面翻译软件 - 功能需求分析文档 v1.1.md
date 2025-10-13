@@ -94,21 +94,20 @@
 **支持的音频源类型**：
 
 1. **🎤 麦克风音频**（外部输入）
-2. **🖥️ 应用程序窗口**（系统音频输出）
-3. **🌐 浏览器标签页**（特定网页音频）
+2. **🖥️ 应用程序窗口**（系统音频输出，包括浏览器）
 
 **音频源选择策略**：
 
-| 音频源类型 | 选择方式 | 使用场景 |
-|-----------|---------|---------|
-| 麦克风 | 自动使用系统默认麦克风 | 现场翻译、语音输入 |
-| 应用窗口 | OBS式窗口选择器 | 桌面应用（PotPlayer、Zoom等）|
-| 浏览器标签页 | 标签页列表选择器 | 网页视频（YouTube、B站等）|
+| 音频源类型 | 选择方式 | 使用场景 | 技术实现 |
+|-----------|---------|---------|---------|
+| 麦克风 | 自动使用系统默认麦克风 | 现场翻译、语音输入 | Web Audio API |
+| 应用窗口 | OBS式窗口选择器 | 所有应用（包括浏览器、播放器、会议软件）| node-windows-audio-capture v2.1 |
 
 **设计原则**：
 - **简化优先**：麦克风默认使用系统设备，无需用户选择
-- **精准捕获**：应用和浏览器支持精确选择，避免混音
-- **可视化**：提供实时预览，确保捕获正确
+- **统一捕获**：浏览器音频与其他应用统一处理，通过进程 PID 捕获
+- **精准隔离**：使用 `node-windows-audio-capture` v2.1 动态静音控制，自动隔离非目标进程
+- **可视化**：提供实时预览和音频波形，确保捕获正确
 
 ---
 
@@ -195,13 +194,8 @@ async function getDefaultMicrophone() {
 │  ┌─────────────────────────────────────────────────┐   │
 │  │ ⦿ 应用程序音频                                   │   │
 │  │   捕获选定应用程序的音频输出                     │   │
-│  │   (如 PotPlayer、网易云音乐、Zoom等)             │   │
-│  └─────────────────────────────────────────────────┘   │
-│                                                         │
-│  ┌─────────────────────────────────────────────────┐   │
-│  │ ○ 浏览器标签页音频                               │   │
-│  │   捕获浏览器特定标签页的音频                     │   │
-│  │   (YouTube、Bilibili、Netflix等)                │   │
+│  │   (浏览器、PotPlayer、网易云音乐、Zoom等)        │   │
+│  │   ✨ 使用 v2.1 动态静音控制，90%+ 音频纯度      │   │
 │  └─────────────────────────────────────────────────┘   │
 │                                                         │
 │  ┌─────────────────────────────────────────────────┐   │
@@ -212,8 +206,7 @@ async function getDefaultMicrophone() {
 ├─────────────────────────────────────────────────────────┤
 │  🎯 选择音频源                                           │
 │                                                         │
-│  💡 可视化选择器：点击下方按钮，然后点击屏幕上要捕获的  │
-│     应用程序窗口或浏览器标签页。                        │
+│  💡 可视化选择器：点击下方按钮，然后选择要捕获的应用窗口│
 │                                                         │
 │  ┌──────────────────────────────────────────────────┐  │
 │  │  当前选择：地球超声波 - LibreTV播放器 - Chrome   │  │
@@ -244,7 +237,7 @@ async function getDefaultMicrophone() {
 ┌─────────────────────────────────────────────────────────┐
 │  选择应用程序/窗口              [🔍 搜索框]        ✕   │
 ├─────────────────────────────────────────────────────────┤
-│  📑 列表模式  ⦿ 浏览器标签页  🎨 十字准星              │
+│  📑 列表模式  🎨 十字准星模式                           │
 │                                                         │
 │  [🔍 搜索窗口或进程名称...]      🔄 刷新  🖼️ 预览开/关 │
 │                                                         │
@@ -338,122 +331,7 @@ async function enumerateWindows() {
 
 ---
 
-**模式2: ⦿ 浏览器标签页模式**
-
-**功能特点**：
-- 专门针对浏览器标签页优化
-- 按浏览器分组显示（Chrome、Edge、Firefox等）
-- 只显示正在播放音频的标签页（可选显示全部）
-
-**标签页信息**：
-- **网站图标**：Favicon
-- **标签页标题**：完整标题
-- **URL地址**：完整URL
-- **音频状态**：🔊 正在播放 / 🔇 已静音 / ⏸️ 已暂停
-- **浏览器类型**：Chrome / Edge / Firefox
-
-**界面布局**：
-
-```markdown
-┌──────────────────────────────────────────────┐
-│ 🌐 浏览器标签页选择器                        │
-├──────────────────────────────────────────────┤
-│ 浏览器: [全部 ▼]  状态: [正在播放 ▼]        │
-│ [🔍 搜索标签页...]                           │
-├──────────────────────────────────────────────┤
-│                                              │
-│ 📱 Google Chrome (5个标签页)                │
-│ ┌──────────────────────────────────────┐   │
-│ │ 🔊 YouTube - Python教程第1集          │   │
-│ │    https://youtube.com/watch?v=xxx   │   │
-│ │    [选择此标签页]                    │   │
-│ └──────────────────────────────────────┘   │
-│                                              │
-│ ┌──────────────────────────────────────┐   │
-│ │ 🔊 Bilibili - 音乐直播间              │   │
-│ │    https://live.bilibili.com/12345   │   │
-│ │    [选择此标签页]                    │   │
-│ └──────────────────────────────────────┘   │
-│                                              │
-│ ┌──────────────────────────────────────┐   │
-│ │ 🔇 GitHub - Project (静音)            │   │
-│ │    https://github.com/xxx            │   │
-│ │    [选择此标签页]                    │   │
-│ └──────────────────────────────────────┘   │
-│                                              │
-│ 📱 Microsoft Edge (2个标签页)               │
-│ ┌──────────────────────────────────────┐   │
-│ │ 🔊 Netflix - 黑镜 S01E01              │   │
-│ │    https://netflix.com/watch/...     │   │
-│ │    [选择此标签页]                    │   │
-│ └──────────────────────────────────────┘   │
-│                                              │
-└──────────────────────────────────────────────┘
-```
-
-**技术实现（Chrome扩展）**：
-
-```javascript
-// Chrome Extension - 获取所有标签页
-chrome.tabs.query({}, (tabs) => {
-  const audioTabs = tabs.filter(tab => tab.audible);
-  
-  audioTabs.forEach(tab => {
-    console.log(`标签页: ${tab.title}`);
-    console.log(`URL: ${tab.url}`);
-    console.log(`音频状态: ${tab.audible ? '播放中' : '静音'}`);
-  });
-  
-  // 发送到桌面应用
-  sendToDesktopApp(audioTabs);
-});
-
-// 捕获特定标签页音频
-function captureTabAudio(tabId) {
-  chrome.tabCapture.capture({
-    audio: true,
-    video: false
-  }, (stream) => {
-    if (stream) {
-      console.log('✅ 标签页音频捕获成功');
-      // 将音频流发送到桌面应用处理
-      sendAudioStreamToApp(stream, tabId);
-    }
-  });
-}
-```
-
-**浏览器扩展安装流程**：
-
-```markdown
-1. 用户首次选择"浏览器标签页"模式
-   ↓
-2. 系统检测是否已安装浏览器扩展
-   ↓
-3. 如未安装，引导用户安装：
-   ┌────────────────────────────────┐
-   │ 需要安装浏览器扩展              │
-   ├────────────────────────────────┤
-   │ 为了捕获浏览器标签页音频，      │
-   │ 需要安装配套的浏览器扩展。      │
-   │                                │
-   │ 支持的浏览器:                  │
-   │  • Google Chrome               │
-   │  • Microsoft Edge              │
-   │  • Firefox (即将支持)          │
-   │                                │
-   │ [自动打开Chrome扩展商店]        │
-   │ [查看安装教程]                 │
-   └────────────────────────────────┘
-   ↓
-4. 用户安装扩展后，自动检测并连接
-   ↓
-5. 显示标签页列表供用户选择
-```
-
----
-
-**模式3: 🎨 十字准星模式（高级用户）**
+**模式2: 🎨 十字准星模式（高级用户）**
 
 **功能特点**：
 - 最直观的选择方式，直接点击屏幕上的窗口
@@ -601,7 +479,140 @@ function highlightWindow(window) {
 
 ---
 
-#### 2.1.4 音频预览与测试
+#### 2.1.4 音频捕获技术实现
+
+**使用 node-windows-audio-capture v2.1 实现**：
+
+本项目使用自主开发的 `node-windows-audio-capture` Node.js 原生插件，提供高性能、低延迟的音频捕获功能。
+
+**核心特性**：
+- ✅ **基于 WASAPI Loopback** - Windows 官方音频捕获 API
+- ✅ **动态静音控制 v2.1** - 自动隔离非目标进程，音频纯度 90%+
+- ✅ **进程级捕获** - 精准捕获指定进程（PID）的音频
+- ✅ **允许/阻止列表** - 灵活控制哪些进程被静音
+- ✅ **低延迟** - < 100ms 延迟
+- ✅ **EventEmitter 架构** - 基于事件的异步回调
+
+**代码示例**：
+
+```javascript
+const { AudioProcessor, enumerateProcesses } = require('node-windows-audio-capture');
+
+// 1. 枚举所有音频进程
+const processes = enumerateProcesses();
+console.log('可用音频进程:', processes);
+// 输出: [{ pid: 12345, name: 'chrome.exe' }, ...]
+
+// 2. 查找目标进程（如 Chrome 浏览器）
+const chromeProcess = processes.find(p => 
+  p.name.toLowerCase().includes('chrome')
+);
+
+// 3. 创建音频处理器
+const processor = new AudioProcessor({
+    processId: chromeProcess.pid,
+    callback: (audioData) => {
+        // audioData: Buffer，包含 PCM 音频数据
+        console.log(`捕获音频: ${audioData.length} 字节`);
+        
+        // 发送到翻译引擎
+        sendToTranslationEngine(audioData);
+    }
+});
+
+// 4. 启动并配置静音控制
+processor.start();
+
+// ⚡ v2.1 核心功能：自动静音其他进程
+processor.setMuteOtherProcesses(true);
+
+// 可选：设置允许列表（保留系统声音）
+const systemAudio = processes.find(p => p.name === 'audiodg.exe');
+if (systemAudio) {
+    processor.setAllowList([systemAudio.pid]);
+}
+
+// 5. 开始捕获
+processor.startCapture();
+
+// 6. 停止时自动恢复所有静音状态
+processor.stopCapture();
+processor.stop();  // 自动调用 RestoreMuteStates()
+```
+
+**动态静音控制原理**：
+
+```markdown
+用户选择 Chrome (PID: 12345)
+    ↓
+启用 setMuteOtherProcesses(true)
+    ↓
+系统枚举所有音频会话:
+  - PotPlayer.exe (PID: 6789) → 静音 🔇
+  - Zoom.exe (PID: 54321) → 静音 🔇
+  - chrome.exe (PID: 12345) → 保持原状 🔊
+  - audiodg.exe (PID: 999) → 允许列表，保持原状 🔊
+    ↓
+音频纯度: 90%+ ✅
+    ↓
+停止捕获时自动恢复所有进程的原始静音状态
+```
+
+**多进程应用支持（如 Chrome）**：
+
+Chrome 等应用使用多进程架构，音频可能由不同的子进程播放。v2.1 自动保护所有同名进程：
+
+```javascript
+// 自动保护所有 Chrome 进程
+const chromeProcesses = processes.filter(p => 
+    p.name.toLowerCase() === 'chrome.exe'
+);
+const chromePids = chromeProcesses.map(p => p.pid);
+
+processor.setAllowList(chromePids);  // 保护所有 Chrome 进程
+processor.setMuteOtherProcesses(true);
+```
+
+**错误处理**：
+
+```javascript
+processor.on('error', (error) => {
+    console.error('音频捕获错误:', error);
+    
+    // 错误类型判断
+    if (error.code === 'PROCESS_NOT_FOUND') {
+        showNotification('目标进程已关闭，请重新选择');
+    } else if (error.code === 'AUDIO_DEVICE_ERROR') {
+        showNotification('音频设备错误，请检查系统音频设置');
+    }
+    
+    // 停止捕获
+    processor.stop();
+});
+```
+
+**性能监控**：
+
+```javascript
+// 监控音频捕获状态
+let packetsCount = 0;
+let totalBytes = 0;
+
+processor.on('data', (audioData) => {
+    packetsCount++;
+    totalBytes += audioData.length;
+    
+    // 每秒统计一次
+    if (packetsCount % 100 === 0) {
+        const kbps = (totalBytes / 1024).toFixed(2);
+        console.log(`捕获统计: ${packetsCount} 包, ${kbps} KB`);
+    }
+});
+```
+
+---
+
+#### 2.1.5 音频预览与测试
 
 **实时音频波形预览**：
 
@@ -4587,9 +4598,9 @@ class ErrorHandler {
 │  │  • Linux: X11 + PulseAudio                    │ │
 │  └────────────────────────────────────────────────┘ │
 │  ┌────────────────────────────────────────────────┐ │
-│  │ 音频捕获模块 (Native Addon)                    │ │
-│  │  • 窗口音频: WASAPI Loopback                  │ │
-│  │  • 浏览器标签页: Chrome Extension            │ │
+│  │ 音频捕获模块 (node-windows-audio-capture v2.1)│ │
+│  │  • 应用窗口: WASAPI Loopback (进程级捕获)     │ │
+│  │  • 动态静音: 自动隔离非目标进程 (90%+ 纯度)  │ │
 │  │  • 麦克风: getUserMedia API                   │ │
 │  └────────────────────────────────────────────────┘ │
 │  ┌────────────────────────────────────────────────┐ │
@@ -5431,11 +5442,11 @@ module.exports = {
 
 **目标**：功能完善，提升用户体验
 
-**Week 17-18: 浏览器标签页支持**
-- 📅 Chrome扩展开发
-- 📅 标签页枚举和音频捕获
-- 📅 扩展与桌面应用通信
-- 📅 标签页选择器UI
+**Week 17-18: 音频捕获优化**
+- 📅 多进程应用支持优化（Chrome、Edge等）
+- 📅 允许/阻止列表 UI 配置
+- 📅 音频源实时监控和统计
+- 📅 异常处理和自动恢复
 
 **Week 19-20: 多引擎支持**
 - 📅 OpenAI Realtime API（一体化）
@@ -5471,7 +5482,8 @@ module.exports = {
 
 **Beta验收标准**：
 - ✅ 支持Windows/macOS/Linux三平台
-- ✅ 支持浏览器标签页捕获
+- ✅ 支持所有应用窗口音频捕获（包括浏览器）
+- ✅ 动态静音控制，音频纯度 90%+
 - ✅ 支持3种以上翻译引擎
 - ✅ 会话管理功能完善
 - ✅ 完成100+用户公测

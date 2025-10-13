@@ -937,7 +937,7 @@ npm run lint
 ## 📮 联系方式
 
 - **Issues**: [GitHub Issues](https://github.com/wujelly701/node-windows-audio-capture/issues)
-- **Email**: wujelly701@example.com
+- **Email**: wujelly701@gmail.com
 
 ## 🗺️ 路线图
 

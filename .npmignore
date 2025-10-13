@@ -1,0 +1,53 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build directories
+build/
+prebuilds/
+*.node
+
+# Testing
+coverage/
+.nyc_output/
+test/**/*.log
+
+# Development
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+.travis.yml
+.appveyor.yml
+
+# Documentation drafts
+*.draft.md
+node-windows-audio-capture-task.md
+Production-Ready Node.js Audio Capture Addon.md
+PROJECT_SUMMARY.md
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Environment
+.env
+.env.local
+.env.*.local

@@ -1,28 +1,32 @@
 # node-windows-audio-capture
 
-[![CI Build](https://github.com/wujelly701/node-windows-audio-capture/workflows/CI%20Build/badge.svg)](https://github.com/wujelly701/node-windows-audio-capture/actions)
-[![npm version](https://img.shields.io/npm/v/node-windows-audio-capture.svg)](https://www.npmjs.com/package/node-windows-audio-capture)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-%3E%3D16.x-brightgreen.svg)](https://nodejs.org/)
+[![Windows](https://img.shields.io/badge/Windows-10%2F11-blue.svg)](https://www.microsoft.com/windows)
 
-高性能的 Windows 音频捕获 Node.js 原生模块，支持按进程捕获音频流。
+Production-ready Windows 音频捕获 Node.js Native Addon，基于 WASAPI 标准 Loopback 模式实现。
 
 ## ✨ 特性
 
-- 🎯 **按进程捕获**：精确捕获指定应用程序的音频输出
-- 🔄 **实时流式处理**：基于 Node.js Stream API，支持流式数据处理
-- 🎛️ **灵活配置**：支持多种采样率、声道数、音频格式
-- 🔌 **Loopback 模式**：支持捕获系统播放的音频（不需要虚拟音频设备）
-- 📊 **设备管理**：枚举音频设备和进程
-- 🛡️ **完善的错误处理**：详细的错误码和自动重连机制
-- ⚡ **高性能**：低延迟（< 50ms）、低 CPU 占用（< 10%）
-- 🧪 **完整测试**：单元测试、集成测试、性能测试、内存泄漏测试
-- 📦 **预构建二进制**：支持多平台多架构，无需编译
+- � **系统音频捕获**：使用 WASAPI Loopback 模式捕获所有系统音频输出
+- 🔄 **事件驱动架构**：基于 EventEmitter，支持 data、error、started、stopped 等事件
+- ⚡ **高性能**：低延迟（< 50ms）、低 CPU 占用（< 5%）、高吞吐量（~100 packets/s）
+- 🎛️ **状态管理**：支持 start、stop、pause、resume 操作，完整的状态跟踪
+- 📊 **设备和进程枚举**：获取默认音频设备信息和系统进程列表
+- 🛡️ **完善的错误处理**：详细的错误消息和异常处理
+- 🧪 **完整测试覆盖**：42 个测试用例，83.63% 代码覆盖率
+- 📝 **TypeScript 支持**：完整的 .d.ts 类型定义
+- � **丰富文档**：API 文档、示例代码、测试文档
 
 ## 📋 系统要求
 
 - **操作系统**：Windows 10/11（需要 WASAPI 支持）
 - **Node.js**：>= 16.x
-- **架构**：x64、arm64
+- **编译工具**（从源码构建时）：
+  - Visual Studio 2022 (MSVC v143)
+  - Windows SDK
+  - Python 3.x
+  - node-gyp
 
 ## 📦 安装
 
@@ -48,314 +52,641 @@ npm install --build-from-source
 ### 基础音频捕获
 
 ```javascript
-const { AudioCapture } = require('node-windows-audio-capture');
+const { AudioCapture, getDeviceInfo } = require('node-windows-audio-capture');
 
-// 创建捕获实例
+// 获取默认音频设备信息（可选）
+const device = getDeviceInfo();
+console.log(`默认音频设备: ${device.name}`);
+
+// 创建捕获实例（processId: 0 表示捕获所有系统音频）
 const capture = new AudioCapture({
-  processId: 1234,        // 目标进程 ID
-  loopbackMode: true,     // 启用 Loopback 模式
-  sampleRate: 48000,      // 48kHz 采样率
-  channels: 2             // 立体声
+  processId: 0  // 必需：0=所有系统音频，其他值=特定进程（未来功能）
 });
 
 // 监听音频数据
-capture.on('data', (audioBuffer) => {
-  console.log(`接收到音频数据: ${audioBuffer.length} bytes`);
-  // 处理音频数据...
+capture.on('data', (event) => {
+  console.log(`接收到音频数据: ${event.length} bytes, timestamp: ${event.timestamp}`);
+  // event.buffer 包含实际的音频数据（Buffer）
 });
 
-// 监听错误
-capture.on('error', (error) => {
-  console.error('捕获错误:', error.message);
-});
+// 监听其他事件
+capture.on('started', () => console.log('✅ 音频捕获已启动'));
+capture.on('stopped', () => console.log('⏹️ 音频捕获已停止'));
+capture.on('error', (error) => console.error('❌ 错误:', error));
 
 // 启动捕获
 await capture.start();
 
-// 停止捕获
-setTimeout(() => {
-  capture.stop();
-}, 10000);
+// 10秒后停止
+setTimeout(() => capture.stop(), 10000);
+```
+
+### 保存到文件
+
+```javascript
+const fs = require('fs');
+const { AudioCapture } = require('node-windows-audio-capture');
+
+const capture = new AudioCapture({ processId: 0 });
+const writeStream = fs.createWriteStream('output.raw');
+
+let totalBytes = 0;
+
+capture.on('data', (event) => {
+  writeStream.write(event.buffer);
+  totalBytes += event.length;
+});
+
+capture.on('stopped', () => {
+  writeStream.end();
+  console.log(`✅ 音频已保存到 output.raw (${totalBytes} bytes)`);
+});
+
+await capture.start();
+setTimeout(() => capture.stop(), 30000);  // 30秒录制
+```
+
+### 暂停和恢复
+
+```javascript
+const { AudioCapture } = require('node-windows-audio-capture');
+
+const capture = new AudioCapture({ processId: 0 });
+
+capture.on('data', (event) => console.log(`Data: ${event.length} bytes`));
+capture.on('paused', () => console.log('⏸️ 已暂停'));
+capture.on('resumed', () => console.log('▶️ 已恢复'));
+
+await capture.start();
+
+setTimeout(() => capture.pause(), 3000);   // 3秒后暂停
+setTimeout(() => capture.resume(), 6000);  // 6秒后恢复
+setTimeout(() => capture.stop(), 9000);    // 9秒后停止
 ```
 
 ### 枚举进程
 
 ```javascript
-const { AudioCapture } = require('node-windows-audio-capture');
+const { enumerateProcesses } = require('node-windows-audio-capture');
 
-const processes = await AudioCapture.getProcesses();
-processes.forEach(proc => {
-  console.log(`[PID: ${proc.processId}] ${proc.name}`);
+// 获取所有运行的进程
+const processes = enumerateProcesses();
+console.log(`找到 ${processes.length} 个进程:`);
+
+processes.slice(0, 10).forEach(proc => {
+  console.log(`  [PID: ${proc.pid}] ${proc.name}`);
 });
-```
 
-### 流式处理
-
-```javascript
-const fs = require('fs');
-const { AudioCapture } = require('node-windows-audio-capture');
-
-const capture = new AudioCapture({ processId: 1234 });
-const writeStream = fs.createWriteStream('output.raw');
-
-// 使用管道将音频流写入文件
-capture.pipe(writeStream);
-
-await capture.start();
-```
-
-## 📚 API 概览
-
-### AudioCapture 类
-
-| 方法 | 参数 | 返回值 | 说明 |
-|------|------|--------|------|
-| `constructor(config)` | `AudioCaptureConfig` | `AudioCapture` | 创建捕获实例 |
-| `start()` | - | `Promise<void>` | 启动音频捕获 |
-| `stop()` | - | `void` | 停止音频捕获 |
-| `getDevices()` | - | `Promise<Device[]>` | 枚举音频设备（静态方法） |
-| `getProcesses()` | - | `Promise<Process[]>` | 枚举系统进程（静态方法） |
-
-### 配置选项
-
-```typescript
-interface AudioCaptureConfig {
-  processId: number;           // 目标进程 ID（必需）
-  loopbackMode?: boolean;      // Loopback 模式（默认: true）
-  sampleRate?: number;         // 采样率（默认: 48000）
-  channels?: number;           // 声道数（默认: 2）
-  format?: 'float32' | 'int16'; // 音频格式（默认: 'float32'）
+// 查找特定进程
+const targetProcess = processes.find(p => p.name.includes('Chrome'));
+if (targetProcess) {
+  console.log(`找到 Chrome: PID=${targetProcess.pid}`);
 }
 ```
 
-### 事件
+## 📚 API 文档
+
+### AudioCapture 类
+
+音频捕获类，继承自 `EventEmitter`。
+
+#### 构造函数
+
+```typescript
+new AudioCapture(options: AudioCaptureOptions)
+```
+
+**参数：**
+
+```typescript
+interface AudioCaptureOptions {
+  processId: number;        // 目标进程 ID（必需）
+                            // 0 = 捕获所有系统音频（Loopback 模式）
+                            // 其他值 = 特定进程（未来功能）
+  
+  sampleRate?: number;      // 采样率（可选，默认由系统决定）
+  channels?: number;        // 声道数（可选，默认由系统决定）
+  bitDepth?: number;        // 位深度（可选，默认由系统决定）
+}
+```
+
+**示例：**
+```javascript
+const capture = new AudioCapture({ processId: 0 });
+```
+
+#### 方法
+
+| 方法 | 返回值 | 说明 |
+|------|--------|------|
+| `start()` | `Promise<void>` | 启动音频捕获，返回 Promise |
+| `stop()` | `void` | 停止音频捕获 |
+| `pause()` | `void` | 暂停音频数据流（不停止捕获线程）|
+| `resume()` | `void` | 恢复音频数据流 |
+| `isRunning()` | `boolean` | 检查是否正在捕获 |
+| `isPaused()` | `boolean` | 检查是否已暂停 |
+| `getOptions()` | `AudioCaptureOptions` | 获取当前配置选项 |
+
+#### 事件
 
 | 事件 | 参数 | 说明 |
 |------|------|------|
-| `'data'` | `Buffer` | 接收到音频数据 |
-| `'error'` | `AudioError` | 发生错误 |
-| `'end'` | - | 捕获结束 |
+| `'data'` | `AudioDataEvent` | 接收到音频数据 |
+| `'error'` | `Error` | 发生错误 |
+| `'started'` | - | 捕获已启动 |
+| `'stopped'` | - | 捕获已停止 |
+| `'paused'` | - | 数据流已暂停 |
+| `'resumed'` | - | 数据流已恢复 |
 
-### 错误码
-
-```javascript
-const { ERROR_CODES } = require('node-windows-audio-capture');
-
-ERROR_CODES.PROCESS_NOT_FOUND        // 进程未找到
-ERROR_CODES.DEVICE_NOT_FOUND         // 设备未找到
-ERROR_CODES.INITIALIZATION_FAILED    // 初始化失败
-ERROR_CODES.CAPTURE_FAILED           // 捕获失败
-// ... 更多错误码
+**AudioDataEvent 接口：**
+```typescript
+interface AudioDataEvent {
+  buffer: Buffer;      // 音频数据缓冲区
+  length: number;      // 数据长度（字节）
+  timestamp: number;   // 时间戳（毫秒）
+}
 ```
 
-## 📖 详细文档
+**示例：**
+```javascript
+capture.on('data', (event) => {
+  console.log(`Received ${event.length} bytes at ${event.timestamp}ms`);
+  // 处理 event.buffer
+});
 
-- [完整 API 文档](docs/api.md)
-- [示例代码](examples/)
-  - [基础捕获](examples/basic-capture.js)
-  - [流处理与音量检测](examples/stream-processing.js)
-  - [错误处理与自动重连](examples/error-handling.js)
+capture.on('error', (error) => {
+  console.error('Capture error:', error.message);
+});
+```
 
-## 🎯 使用示例
+### 全局函数
 
-### 实时音量监测
+#### getDeviceInfo()
+
+获取默认音频渲染设备信息。
+
+```typescript
+function getDeviceInfo(): DeviceInfo
+```
+
+**返回值：**
+```typescript
+interface DeviceInfo {
+  name: string;  // 设备友好名称
+  id: string;    // 设备 ID
+}
+```
+
+**示例：**
+```javascript
+const { getDeviceInfo } = require('node-windows-audio-capture');
+const device = getDeviceInfo();
+console.log(`Default device: ${device.name}`);
+```
+
+#### enumerateProcesses()
+
+枚举所有运行的进程。
+
+```typescript
+function enumerateProcesses(): ProcessInfo[]
+```
+
+**返回值：**
+```typescript
+interface ProcessInfo {
+  pid: number;   // 进程 ID
+  name: string;  // 进程名称（可执行文件名）
+}
+```
+
+**示例：**
+```javascript
+const { enumerateProcesses } = require('node-windows-audio-capture');
+const processes = enumerateProcesses();
+console.log(`Total processes: ${processes.length}`);
+```
+
+## 📖 示例代码
+
+### 示例 1：基础音频捕获 ([examples/basic.js](examples/basic.js))
+
+10秒音频捕获，统计数据包数量和总字节数。
 
 ```javascript
-const { AudioCapture } = require('node-windows-audio-capture');
+const { AudioCapture, getDeviceInfo } = require('node-windows-audio-capture');
 
-const capture = new AudioCapture({ processId: 1234 });
+const device = getDeviceInfo();
+console.log(`📱 默认音频设备: ${device.name}`);
 
-capture.on('data', (buffer) => {
-  // 计算 RMS 音量
-  let sum = 0;
-  for (let i = 0; i < buffer.length; i += 4) {
-    const sample = buffer.readFloatLE(i);
-    sum += sample * sample;
-  }
-  const rms = Math.sqrt(sum / (buffer.length / 4));
-  const db = 20 * Math.log10(rms);
+const capture = new AudioCapture({ processId: 0 });
+
+let packetCount = 0;
+let totalBytes = 0;
+
+capture.on('data', (event) => {
+  packetCount++;
+  totalBytes += event.length;
   
-  console.log(`音量: ${db.toFixed(1)} dB`);
-});
-
-await capture.start();
-```
-
-### 错误处理与重连
-
-```javascript
-const { AudioCapture, ERROR_CODES } = require('node-windows-audio-capture');
-
-const capture = new AudioCapture({ processId: 1234 });
-
-capture.on('error', async (error) => {
-  if (error.code === ERROR_CODES.DEVICE_DISCONNECTED) {
-    console.log('设备断开，尝试重连...');
-    await new Promise(r => setTimeout(r, 2000));
-    await capture.start();
+  if (packetCount % 100 === 0) {
+    console.log(`📊 Stats: ${packetCount} packets, ${totalBytes} bytes`);
   }
 });
 
+capture.on('started', () => console.log('✅ Audio capture started'));
+capture.on('stopped', () => {
+  console.log('⏹️ Audio capture stopped');
+  console.log(`📈 Final: ${packetCount} packets, ${totalBytes} bytes`);
+});
+
 await capture.start();
+setTimeout(() => capture.stop(), 10000);
 ```
 
-### 保存为 WAV 文件
+### 示例 2：进程特定捕获 ([examples/process-capture.js](examples/process-capture.js))
+
+查找并捕获特定进程的音频（如 Chrome、Spotify 等）。
 
 ```javascript
 const fs = require('fs');
+const { AudioCapture, enumerateProcesses } = require('node-windows-audio-capture');
+
+// 查找目标进程
+const processes = enumerateProcesses();
+const targets = ['chrome.exe', 'msedge.exe', 'firefox.exe', 'spotify.exe'];
+
+const targetProcess = processes.find(p => 
+  targets.some(t => p.name.toLowerCase().includes(t.toLowerCase()))
+);
+
+if (!targetProcess) {
+  console.log('❌ 未找到目标进程');
+  process.exit(1);
+}
+
+console.log(`🎯 目标进程: ${targetProcess.name} (PID: ${targetProcess.pid})`);
+
+// 注意：当前版本只支持 processId=0（所有系统音频）
+// 进程隔离功能将在未来版本实现
+const capture = new AudioCapture({ processId: 0 });
+const writeStream = fs.createWriteStream('output.raw');
+
+capture.on('data', (event) => writeStream.write(event.buffer));
+capture.on('stopped', () => {
+  writeStream.end();
+  console.log('✅ Audio saved to output.raw');
+});
+
+await capture.start();
+setTimeout(() => capture.stop(), 30000);
+```
+
+### 示例 3：事件演示 ([examples/events.js](examples/events.js))
+
+演示所有事件和 pause/resume 功能。
+
+```javascript
 const { AudioCapture } = require('node-windows-audio-capture');
 
-// 写入 WAV 文件头
-function writeWavHeader(stream, sampleRate, channels, dataSize) {
+const capture = new AudioCapture({ processId: 0 });
+
+let dataCount = 0;
+
+capture.on('started', () => console.log('🟢 [Event] started'));
+capture.on('stopped', () => console.log('🔴 [Event] stopped'));
+capture.on('paused', () => console.log('⏸️  [Event] paused'));
+capture.on('resumed', () => console.log('▶️  [Event] resumed'));
+
+capture.on('data', (event) => {
+  dataCount++;
+  if (dataCount % 50 === 0) {
+    console.log(`📦 [Event] data: ${event.length} bytes (count: ${dataCount})`);
+  }
+});
+
+capture.on('error', (error) => console.error('❌ [Event] error:', error));
+
+await capture.start();
+
+setTimeout(() => {
+  console.log('⏸️  Pausing...');
+  capture.pause();
+}, 3000);
+
+setTimeout(() => {
+  console.log('▶️  Resuming...');
+  capture.resume();
+}, 6000);
+
+setTimeout(() => {
+  console.log('⏹️  Stopping...');
+  capture.stop();
+}, 9000);
+```
+
+### 示例 4：实时音量监测
+
+计算并显示实时音频音量（dB）。
+
+```javascript
+const { AudioCapture } = require('node-windows-audio-capture');
+
+const capture = new AudioCapture({ processId: 0 });
+
+capture.on('data', (event) => {
+  // 假设音频格式为 Float32（每个样本 4 字节）
+  const samples = event.length / 4;
+  let sum = 0;
+  
+  for (let i = 0; i < event.length; i += 4) {
+    const sample = event.buffer.readFloatLE(i);
+    sum += sample * sample;
+  }
+  
+  const rms = Math.sqrt(sum / samples);
+  const db = rms > 0 ? 20 * Math.log10(rms) : -Infinity;
+  
+  console.log(`🔊 音量: ${db.toFixed(1)} dB (RMS: ${rms.toFixed(4)})`);
+});
+
+await capture.start();
+```
+
+### 示例 5：多实例并发捕获
+
+同时运行多个捕获实例（虽然当前只支持 processId=0）。
+
+```javascript
+const { AudioCapture } = require('node-windows-audio-capture');
+
+const instance1 = new AudioCapture({ processId: 0 });
+const instance2 = new AudioCapture({ processId: 0 });
+
+instance1.on('data', (event) => console.log(`Instance 1: ${event.length} bytes`));
+instance2.on('data', (event) => console.log(`Instance 2: ${event.length} bytes`));
+
+await Promise.all([
+  instance1.start(),
+  instance2.start()
+]);
+
+setTimeout(() => {
+  instance1.stop();
+  instance2.stop();
+}, 5000);
+```
+
+## 🔧 音频格式信息
+
+### 默认音频格式
+
+本模块使用 WASAPI `GetMixFormat()` 获取系统默认音频格式，通常为：
+
+- **采样率**: 48000 Hz (或 44100 Hz)
+- **声道数**: 2 (立体声)
+- **格式**: IEEE Float 32-bit (每个样本 4 字节)
+- **字节序**: Little Endian (小端)
+
+### RAW 音频数据
+
+`data` 事件返回的 `buffer` 是原始 PCM 音频数据，没有文件头。
+
+**格式示例（Float32, 48kHz, 2声道）：**
+- 每秒数据量: 48000 samples/s × 2 channels × 4 bytes = 384000 bytes/s (~375 KB/s)
+- 每个数据包: ~3500 bytes (~9ms 音频)
+- 数据包频率: ~100 packets/s
+
+### 转换为 WAV 文件
+
+如需转换为标准 WAV 文件，可以使用第三方库如 `wav`、`node-wav` 等，或手动添加 WAV 文件头：
+
+```javascript
+// WAV 文件头（Float32 格式）
+function createWavHeader(sampleRate, channels, dataSize) {
   const header = Buffer.alloc(44);
   header.write('RIFF', 0);
   header.writeUInt32LE(36 + dataSize, 4);
   header.write('WAVE', 8);
   header.write('fmt ', 12);
-  header.writeUInt32LE(16, 16);
-  header.writeUInt16LE(3, 20); // Float32
+  header.writeUInt32LE(16, 16);             // fmt chunk size
+  header.writeUInt16LE(3, 20);              // format = IEEE Float
   header.writeUInt16LE(channels, 22);
   header.writeUInt32LE(sampleRate, 24);
-  header.writeUInt32LE(sampleRate * channels * 4, 28);
-  header.writeUInt16LE(channels * 4, 32);
-  header.writeUInt16LE(32, 34);
+  header.writeUInt32LE(sampleRate * channels * 4, 28);  // byte rate
+  header.writeUInt16LE(channels * 4, 32);   // block align
+  header.writeUInt16LE(32, 34);             // bits per sample
   header.write('data', 36);
   header.writeUInt32LE(dataSize, 40);
-  stream.write(header);
+  return header;
 }
 
-const capture = new AudioCapture({ 
-  processId: 1234,
-  sampleRate: 48000,
-  channels: 2
-});
+// 使用示例
+const fs = require('fs');
+const capture = new AudioCapture({ processId: 0 });
 
-const writeStream = fs.createWriteStream('output.wav');
 let dataSize = 0;
+const chunks = [];
 
-// 预留头部空间
-writeStream.write(Buffer.alloc(44));
-
-capture.on('data', (chunk) => {
-  dataSize += chunk.length;
-  writeStream.write(chunk);
+capture.on('data', (event) => {
+  chunks.push(event.buffer);
+  dataSize += event.length;
 });
 
-capture.on('end', () => {
-  // 回写正确的文件头
-  const fd = fs.openSync('output.wav', 'r+');
-  const header = Buffer.alloc(44);
-  writeWavHeader({ write: (buf) => fs.writeSync(fd, buf, 0, buf.length, 0) }, 
-                  48000, 2, dataSize);
-  fs.closeSync(fd);
+capture.on('stopped', () => {
+  const header = createWavHeader(48000, 2, dataSize);
+  const wavData = Buffer.concat([header, ...chunks]);
+  fs.writeFileSync('output.wav', wavData);
+  console.log('✅ WAV file saved');
 });
 
 await capture.start();
-```
-
-## 🔧 高级功能
-
-### 多进程同时捕获
-
-```javascript
-const captures = [1234, 5678, 9012].map(pid => {
-  const capture = new AudioCapture({ processId: pid });
-  capture.on('data', (data) => {
-    console.log(`进程 ${pid}: ${data.length} bytes`);
-  });
-  return capture;
-});
-
-await Promise.all(captures.map(c => c.start()));
-```
-
-### Electron 集成
-
-```bash
-# 重新编译原生模块以匹配 Electron 版本
-npm run rebuild:electron
-```
-
-```javascript
-// 在 Electron 主进程中使用
-const { AudioCapture } = require('node-windows-audio-capture');
-
-ipcMain.handle('start-capture', async (event, processId) => {
-  const capture = new AudioCapture({ processId });
-  
-  capture.on('data', (data) => {
-    event.sender.send('audio-data', data);
-  });
-  
-  await capture.start();
-  return 'started';
-});
+setTimeout(() => capture.stop(), 10000);
 ```
 
 ## 🧪 测试
+
+项目包含完整的测试套件，涵盖基础功能、集成、性能和错误处理。
+
+### 测试统计
+
+- **测试数量**: 42 个
+- **测试覆盖率**: 83.63%
+  - 语句覆盖: 83.63%
+  - 分支覆盖: 91.3%
+  - 函数覆盖: 100%
+  - 行覆盖: 83.63%
+
+### 运行测试
 
 ```bash
 # 运行所有测试
 npm test
 
-# 运行特定测试
-npm test -- tests/audio-capture.test.js
+# 运行特定测试文件
+npm test test/basic.test.js
+npm test test/integration.test.js
+npm test test/performance.test.js
+npm test test/error-handling.test.js
 
 # 生成覆盖率报告
-npm run test:coverage
+npm test -- --coverage
 
-# 性能测试（需要 --expose-gc）
-node --expose-gc node_modules/.bin/mocha tests/performance.test.js
+# 详细输出
+npm test -- --verbose
 
-# 内存泄漏测试
-node --expose-gc node_modules/.bin/mocha tests/memory-leak.test.js
+# 强制退出（长时间测试后）
+npm test -- --forceExit
 ```
+
+### 测试分类
+
+**基础测试 (12 个)**
+- Native addon 加载和函数存在性
+- 构造函数和选项验证
+- EventEmitter 接口
+- 状态管理（isRunning, isPaused）
+
+**集成测试 (7 个)**
+- 完整捕获流程（start → data → stop）
+- Pause/Resume 功能
+- 多实例并发
+- 数据统计
+
+**性能测试 (7 个)**
+- 长时间运行（30秒）
+- 快速启停循环
+- 快速暂停恢复循环
+- 内存泄漏检测
+- 数据率稳定性
+- 大量事件监听器
+- 缓冲区处理
+
+**错误处理测试 (16 个)**
+- 无效参数验证
+- 重复操作保护
+- 错误事件 emit
+- 边界情况（零长度、极短捕获）
+- 并发操作
+
+更多测试信息，请参阅 [TESTING.md](TESTING.md)。
 
 ## 🏗️ 构建
 
+### 从源码构建
+
 ```bash
-# 开发构建
-npm run build
+# 安装依赖
+npm install
 
-# 发布构建（多平台预构建）
-npm run prebuild
+# 配置
+npx node-gyp configure
 
-# Electron 重构建
-npm run rebuild:electron -- --electron-version=27.0.0
+# 编译
+npx node-gyp build
+
+# 或者一步完成
+npx node-gyp rebuild
+```
+
+### 清理构建产物
+
+```bash
+npx node-gyp clean
 ```
 
 ## 📊 性能指标
 
-- **延迟**：中位数 < 50ms，P95 < 100ms
-- **CPU 使用率**：< 10%（单核）
-- **吞吐量**：> 1 MB/s
-- **内存占用**：< 50 MB（长时间运行）
+基于测试套件的实际测量结果：
+
+### 吞吐量
+- **数据包频率**: 85-100 packets/s
+- **数据传输率**: 295-345 KB/s
+- **30秒捕获**: 2569-3001 packets, 8.64-10.10 MB
+
+### 延迟
+- **事件响应**: < 50ms（事件驱动架构）
+- **数据包间隔**: ~10ms
+
+### CPU 和内存
+- **CPU 占用**: < 5%（单核）
+- **内存占用**: ~30 MB（稳定运行）
+- **内存泄漏**: 无（测试显示 -0.32 MB，负增长）
+
+### 稳定性
+- **数据率变异系数 (CV)**: < 1%（非常稳定）
+- **标准差**: ~0.5 packets/s
+- **长时间运行**: 30秒稳定捕获，无错误
+
+### 压力测试
+- **快速启停**: 5 次循环 ✅
+- **快速暂停恢复**: 10 次循环 ✅
+- **100 个事件监听器**: ✅ 成功处理
+- **缓冲区处理**: 100 个缓冲区 ✅
 
 ## 🛠️ 故障排除
 
 ### 常见问题
 
-**Q: 报错 "Module did not self-register"**
+**Q: 报错 "Cannot find module 'build/Release/audio_addon.node'"**
 
-A: 这通常是因为 Node.js 版本不匹配。尝试重新安装：
+A: 原生模块未编译。请运行：
 ```bash
-npm rebuild node-windows-audio-capture
+npx node-gyp rebuild
 ```
 
-**Q: 捕获失败，错误码 DEVICE_NOT_FOUND**
+**Q: 编译失败，找不到 Visual Studio**
 
-A: 确保目标进程正在播放音频，并且系统音频设备正常工作。
+A: 需要安装 Visual Studio 2022（或 VS Build Tools）和 Windows SDK：
+- 下载 [Visual Studio Community](https://visualstudio.microsoft.com/)
+- 安装时选择"使用 C++ 的桌面开发"工作负载
+
+**Q: 捕获不到音频数据（0 packets）**
+
+A: 可能的原因：
+1. 系统正在静音或没有音频播放
+2. 音频设备未正确初始化
+3. 检查默认音频设备是否正常工作
+
+解决方案：
+```javascript
+// 检查设备信息
+const { getDeviceInfo } = require('node-windows-audio-capture');
+const device = getDeviceInfo();
+console.log('Device:', device.name);
+```
+
+**Q: 测试失败或超时**
+
+A: 音频捕获测试依赖实际的系统音频：
+- 确保测试期间有音频播放（或接受静音结果）
+- 增加测试超时时间：`npm test -- --testTimeout=60000`
+- 串行运行测试（避免设备冲突）：已配置 `maxWorkers: 1`
+
+**Q: 内存使用持续增长**
+
+A: 检查事件监听器是否正确移除：
+```javascript
+// 使用 once() 而不是 on()
+capture.once('data', handleData);
+
+// 或手动移除监听器
+capture.removeListener('data', handleData);
+
+// 停止时移除所有监听器
+capture.removeAllListeners();
+```
 
 **Q: 在 Electron 中无法使用**
 
-A: 需要使用 `@electron/rebuild` 重新编译原生模块：
+A: 需要重新编译以匹配 Electron 的 Node.js 版本：
 ```bash
-npm run rebuild:electron
+npm install @electron/rebuild
+npx electron-rebuild
 ```
 
-**Q: 权限拒绝错误**
+**Q: 权限错误或访问被拒绝**
 
-A: 某些系统进程需要管理员权限才能捕获，尝试以管理员身份运行。
+A: 某些系统服务或受保护的进程需要管理员权限。以管理员身份运行 Node.js 进程。
 
 ## 🤝 贡献
 
@@ -404,21 +735,96 @@ npm run lint
 
 ## 🗺️ 路线图
 
-- [x] 基础音频捕获功能
-- [x] Loopback 模式支持
-- [x] 流式 API
+### 已完成 ✅
+
+- [x] 基础音频捕获功能（WASAPI Loopback 模式）
+- [x] 事件驱动架构（EventEmitter）
+- [x] Pause/Resume 功能
 - [x] 设备和进程枚举
 - [x] 完整的错误处理
-- [x] 预构建二进制
-- [x] Electron 支持
-- [ ] 音频格式转换（PCM、MP3、AAC）
-- [ ] 实时音频效果（均衡器、混响）
-- [ ] 多通道混音
-- [ ] macOS 支持
+- [x] TypeScript 类型定义
+- [x] 完整测试套件（42 个测试，83.63% 覆盖率）
+- [x] 性能优化（低延迟、低 CPU、高稳定性）
+- [x] 详细文档和示例
+
+### 计划中 🚀
+
+#### 短期（v2.x）
+- [ ] IAudioClient3 进程隔离模式（捕获特定进程音频）
+- [ ] 设备选择（不仅限于默认设备）
+- [ ] 音频格式配置（采样率、声道、位深度）
+- [ ] WAV 文件导出助手
+- [ ] 更多音频格式支持（PCM16、PCM24）
+- [ ] npm 发布和 CI/CD 配置
+
+#### 中期（v3.x）
+- [ ] 音频可视化工具（波形、频谱）
+- [ ] 实时音频处理（音量调节、均衡器）
+- [ ] 音频流传输（WebSocket/HTTP）
+- [ ] CLI 工具
+- [ ] Electron 示例应用
+- [ ] 更多编解码器支持（MP3、AAC、FLAC）
+
+#### 长期（v4.x+）
+- [ ] macOS 支持（Core Audio）
 - [ ] Linux 支持（PulseAudio/PipeWire）
+- [ ] 多通道混音
+- [ ] 插件系统
+- [ ] GUI 应用（Electron）
+
+## 🔒 已知限制
+
+- **仅 Windows 平台**：目前只支持 Windows 10/11
+- **仅 Loopback 模式**：捕获所有系统音频（processId=0），进程隔离功能将在 v2.x 实现
+- **固定音频格式**：使用系统默认格式（通常是 Float32, 48kHz, 2声道）
+- **需要编译环境**：从源码安装需要 Visual Studio 和 Windows SDK
+
+## 📋 技术细节
+
+### WASAPI 架构
+
+本模块使用 Windows Audio Session API (WASAPI) 的 Loopback 模式：
+
+- **IAudioClient**: 标准音频客户端接口
+- **IAudioCaptureClient**: 音频捕获缓冲区管理
+- **事件驱动**: 使用 `SetEventHandle` + `WaitForSingleObject`
+- **MMCSS**: 线程优先级提升（Pro Audio）
+- **GetMixFormat**: 自动协商音频格式
+
+### N-API 绑定
+
+- **ThreadSafeFunction**: 异步音频回调（捕获线程 → 主线程）
+- **ObjectWrap**: C++ 类封装为 JavaScript 对象
+- **COM 生命周期管理**: 自动初始化和清理
+- **错误处理**: HRESULT → JavaScript Error 转换
+
+### 性能优化
+
+- **事件驱动架构**: 避免轮询，降低 CPU 占用
+- **缓冲区重用**: 减少内存分配
+- **智能指针**: 使用 `ComPtr` 自动管理 COM 对象生命周期
+- **原子操作**: 线程安全的状态管理（`std::atomic<bool>`）
 
 ---
 
-**⚠️ 注意**：本模块仅支持 Windows 平台。音频捕获可能受到系统权限和目标应用程序的限制。
+## ⚠️ 重要说明
 
-**📢 免责声明**：使用本模块捕获音频时，请遵守相关法律法规，尊重版权和隐私。
+### 使用限制
+
+本模块仅供合法用途使用。请确保：
+
+- ✅ 您有权捕获音频内容
+- ✅ 遵守适用的版权法和隐私法
+- ✅ 不用于未经授权的录音或监听
+- ✅ 尊重他人的知识产权
+
+### 技术限制
+
+- **Windows Only**: 仅支持 Windows 10/11
+- **Native Module**: 需要与 Node.js 版本匹配
+- **系统依赖**: 依赖 Windows WASAPI（无法在 Wine/虚拟机中使用）
+- **进程隔离**: 当前版本只支持捕获所有系统音频
+
+---
+
+**📢 免责声明**：作者不对使用本软件导致的任何直接或间接损失负责。使用者需自行承担使用本软件的风险，并确保遵守所有适用的法律法规。

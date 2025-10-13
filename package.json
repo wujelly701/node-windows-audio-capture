@@ -1,14 +1,53 @@
 {
   "name": "node-windows-audio-capture",
-  "version": "0.1.0",
-  "description": "Production-ready Node.js Windows audio capture addon (WASAPI, N-API)",
+  "version": "1.0.0",
+  "description": "Production-ready Node.js Windows audio capture addon using WASAPI (Loopback mode, EventEmitter-based, N-API)",
   "main": "index.js",
   "types": "index.d.ts",
+  "keywords": [
+    "windows",
+    "audio",
+    "capture",
+    "wasapi",
+    "loopback",
+    "recording",
+    "native",
+    "addon",
+    "n-api",
+    "pcm",
+    "sound"
+  ],
   "scripts": {
     "install": "node-gyp-build",
+    "build": "node-gyp rebuild",
+    "configure": "node-gyp configure",
+    "clean": "node-gyp clean",
     "prebuild": "prebuildify --napi --strip",
-    "test": "jest"
+    "test": "jest",
+    "test:coverage": "jest --coverage",
+    "test:verbose": "jest --verbose",
+    "example:basic": "node examples/basic.js",
+    "example:process": "node examples/process-capture.js",
+    "example:events": "node examples/events.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wujelly701/node-windows-audio-capture.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wujelly701/node-windows-audio-capture/issues"
+  },
+  "homepage": "https://github.com/wujelly701/node-windows-audio-capture#readme",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "os": [
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ],
   "dependencies": {
     "node-addon-api": "^8.0.0",
     "node-gyp-build": "^4.8.0"
@@ -27,6 +66,17 @@
       8
     ]
   },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "binding.gyp",
+    "src/**/*.h",
+    "src/**/*.cpp",
+    "examples/*.js",
+    "README.md",
+    "LICENSE",
+    "TESTING.md"
+  ],
   "author": "wujelly701",
   "license": "MIT"
 }

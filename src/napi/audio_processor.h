@@ -15,6 +15,7 @@ private:
     std::unique_ptr<CaptureThread> thread_;
     DWORD processId_ = 0;
     Napi::ThreadSafeFunction tsfn_;
+    bool comInitialized_ = false;
     
     // N-API 方法声明
     Napi::Value Start(const Napi::CallbackInfo& info);

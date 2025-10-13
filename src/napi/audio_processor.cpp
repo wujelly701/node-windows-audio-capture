@@ -25,6 +25,10 @@ Napi::Object AudioProcessor::Init(Napi::Env env, Napi::Object exports) {
 AudioProcessor::AudioProcessor(const Napi::CallbackInfo& info) : Napi::ObjectWrap<AudioProcessor>(info) {
     Napi::Env env = info.Env();
     
+    // 初始化 COM
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    comInitialized_ = SUCCEEDED(hr);
+    
     // 参数验证：需要传入 { processId: number, callback: function }
     if (info.Length() < 1 || !info[0].IsObject()) {
         Napi::TypeError::New(env, "Expected options object as first argument").ThrowAsJavaScriptException();
@@ -68,6 +72,10 @@ AudioProcessor::~AudioProcessor() {
     // 释放 ThreadSafeFunction
     if (tsfn_) {
         tsfn_.Release();
+    }
+    // 清理 COM
+    if (comInitialized_) {
+        CoUninitialize();
     }
 }
 
@@ -139,11 +147,15 @@ Napi::Value AudioProcessor::StopCapture(const Napi::CallbackInfo& info) {
 Napi::Value AudioProcessor::GetDeviceInfo(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
     
+    // 初始化 COM（调用前需要确保 COM 已初始化）
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    bool comInitialized = SUCCEEDED(hr);
+    
     // 枚举音频设备（返回默认渲染设备信息）
-    HRESULT hr;
     Microsoft::WRL::ComPtr<IMMDeviceEnumerator> enumerator;
     hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS(&enumerator));
     if (FAILED(hr)) {
+        if (comInitialized) CoUninitialize();
         Napi::Error::New(env, "Failed to create device enumerator").ThrowAsJavaScriptException();
         return env.Undefined();
     }
@@ -197,6 +209,11 @@ Napi::Value AudioProcessor::GetDeviceInfo(const Napi::CallbackInfo& info) {
     
     PropVariantClear(&varName);
     CoTaskMemFree(deviceId);
+    
+    // 清理 COM
+    if (comInitialized) {
+        CoUninitialize();
+    }
     
     return result;
 }

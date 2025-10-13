@@ -13,8 +13,10 @@ public:
 private:
     std::unique_ptr<AudioClient> client_;
     std::unique_ptr<CaptureThread> thread_;
+    DWORD processId_ = 0;
+    Napi::ThreadSafeFunction tsfn_;
     
-    // N-API 方法声明（占位）
+    // N-API 方法声明
     Napi::Value Start(const Napi::CallbackInfo& info);
     Napi::Value Stop(const Napi::CallbackInfo& info);
     Napi::Value StartCapture(const Napi::CallbackInfo& info);
@@ -23,6 +25,6 @@ private:
     // 静态方法：设备枚举
     static Napi::Value GetDeviceInfo(const Napi::CallbackInfo& info);
     
-    // 音频数据回调（ThreadSafeFunction 占位）
+    // 音频数据回调（从捕获线程调用）
     void OnAudioData(const std::vector<uint8_t>& data);
 };

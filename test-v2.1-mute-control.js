@@ -126,13 +126,13 @@ async function testV20Mode(targetPid) {
 }
 
 // 测试阶段2: v2.1 模式（启用静音控制）
-async function testV21MuteMode(targetPid) {
+async function testV21MuteMode(targetPid, targetProcessName) {
     console.log('\n\n═══════════════════════════════════════════════════');
     console.log('📋 测试阶段 2/4: v2.1 模式（启用静音控制）');
     console.log('═══════════════════════════════════════════════════');
-    console.log(`   目标进程: PID ${targetPid}`);
+    console.log(`   目标进程: PID ${targetPid} (${targetProcessName})`);
     console.log(`   静音控制: ✅ 启用`);
-    console.log(`   预期结果: 只听到目标进程的音频（更纯净）`);
+    console.log(`   预期结果: 只听到目标应用（${targetProcessName}）的音频`);
     console.log('   持续时间: 8秒');
     console.log('───────────────────────────────────────────────────');
     
@@ -148,11 +148,24 @@ async function testV21MuteMode(targetPid) {
     try {
         processor.start();
         
+        // ⚠️ 重要：对于多进程应用（Chrome），需要保护所有同名进程
+        const processes = enumerateProcesses();
+        const sameAppProcesses = processes.filter(p => 
+            p.name && p.name.toLowerCase() === targetProcessName.toLowerCase()
+        );
+        const sameAppPids = sameAppProcesses.map(p => p.pid);
+        
+        console.log(`\n   🔍 发现 ${sameAppProcesses.length} 个 ${targetProcessName} 进程`);
+        console.log(`   📋 保护列表: [${sameAppPids.join(', ')}]`);
+        
+        // 设置允许列表，保护所有同名进程
+        processor.setAllowList(sameAppPids);
+        
         // 启用静音控制
         processor.setMuteOtherProcesses(true);
         const isMuting = processor.isMutingOtherProcesses();
         console.log(`\n   🔧 静音状态: ${isMuting ? '启用 ✅' : '禁用 ❌'}`);
-        console.log(`   🔇 其他进程将被自动静音`);
+        console.log(`   🔇 除 ${targetProcessName} 外的其他进程将被静音`);
         
         processor.startCapture();
         await new Promise(resolve => setTimeout(resolve, TEST_DURATION));
@@ -161,7 +174,7 @@ async function testV21MuteMode(targetPid) {
         processor.stop();
         
         console.log(`\n\n   ✅ 阶段2完成: 捕获 ${audioDataCount} 个音频包 (${(totalBytes / 1024).toFixed(2)} KB)`);
-        console.log(`   💡 对比阶段1，音频应该更纯净（无其他进程的混音）`);
+        console.log(`   💡 对比阶段1，音频应该更纯净（无其他应用的混音）`);
     } catch (error) {
         console.error('\n   ❌ 阶段2失败:', error.message);
     }
@@ -215,11 +228,11 @@ async function testAllowListMode(targetPid, allowList) {
 }
 
 // 测试阶段4: 运行时切换
-async function testRuntimeToggle(targetPid) {
+async function testRuntimeToggle(targetPid, targetProcessName) {
     console.log('\n\n═══════════════════════════════════════════════════');
     console.log('📋 测试阶段 4/4: 运行时动态切换');
     console.log('═══════════════════════════════════════════════════');
-    console.log(`   目标进程: PID ${targetPid}`);
+    console.log(`   目标进程: PID ${targetPid} (${targetProcessName})`);
     console.log(`   测试内容: 每2秒切换一次静音状态`);
     console.log(`   预期结果: 音频纯度随静音状态动态变化`);
     console.log('   持续时间: 8秒');
@@ -236,6 +249,16 @@ async function testRuntimeToggle(targetPid) {
     
     try {
         processor.start();
+        
+        // ⚠️ 设置允许列表保护所有同名进程
+        const processes = enumerateProcesses();
+        const sameAppProcesses = processes.filter(p => 
+            p.name && p.name.toLowerCase() === targetProcessName.toLowerCase()
+        );
+        const sameAppPids = sameAppProcesses.map(p => p.pid);
+        processor.setAllowList(sameAppPids);
+        console.log(`\n   📋 已保护 ${sameAppProcesses.length} 个 ${targetProcessName} 进程`);
+        
         processor.startCapture();
         
         // 初始状态: 禁用静音
@@ -244,7 +267,7 @@ async function testRuntimeToggle(targetPid) {
         // 2秒后启用
         setTimeout(() => {
             processor.setMuteOtherProcesses(true);
-            console.log(`\n   [2s] 🔧 静音控制: 启用 ✅ (其他进程被静音)`);
+            console.log(`\n   [2s] 🔧 静音控制: 启用 ✅ (除${targetProcessName}外的进程被静音)`);
         }, 2000);
         
         // 4秒后禁用
@@ -256,7 +279,7 @@ async function testRuntimeToggle(targetPid) {
         // 6秒后再次启用
         setTimeout(() => {
             processor.setMuteOtherProcesses(true);
-            console.log(`\n   [6s] 🔧 静音控制: 启用 ✅ (其他进程被静音)`);
+            console.log(`\n   [6s] 🔧 静音控制: 启用 ✅ (除${targetProcessName}外的进程被静音)`);
         }, 6000);
         
         await new Promise(resolve => setTimeout(resolve, TEST_DURATION));
@@ -303,13 +326,13 @@ async function runTests() {
         await testV20Mode(targetProcess.processId);
         await new Promise(resolve => setTimeout(resolve, 1000));  // 1秒间隔
         
-        await testV21MuteMode(targetProcess.processId);
+        await testV21MuteMode(targetProcess.processId, targetProcess.processName);
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         await testAllowListMode(targetProcess.processId, allowList);
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        await testRuntimeToggle(targetProcess.processId);
+        await testRuntimeToggle(targetProcess.processId, targetProcess.processName);
         
         // 测试总结
         console.log('\n\n╔═══════════════════════════════════════════════════════════════╗');

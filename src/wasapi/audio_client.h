@@ -16,6 +16,8 @@ public:
     // 获取底层 IAudioClient2 指针
     Microsoft::WRL::ComPtr<IAudioClient2> GetAudioClient() const;
 
+    // 获取捕获客户端指针
+    Microsoft::WRL::ComPtr<IAudioCaptureClient> GetCaptureClient() const;
 
     // 查询是否已初始化
     bool IsInitialized() const;
@@ -41,5 +43,6 @@ public:
 private:
     Microsoft::WRL::ComPtr<IMMDevice> device_;
     Microsoft::WRL::ComPtr<IAudioClient2> audioClient_;
+    Microsoft::WRL::ComPtr<IAudioCaptureClient> captureClient_;
     bool initialized_ = false;
 };

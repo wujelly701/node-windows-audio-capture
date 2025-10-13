@@ -39,7 +39,8 @@
             "ole32.lib",
             "oleaut32.lib",
             "uuid.lib",
-            "winmm.lib"
+            "winmm.lib",
+            "avrt.lib"
           ]
         }]
       ]

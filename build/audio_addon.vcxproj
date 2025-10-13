@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{F2482DE3-FE3F-75D0-23C7-34DA889F60A3}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>audio_addon</RootNamespace>
+    <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <WindowsTargetPlatformVersion>10.0.26100.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props"/>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+  </PropertyGroup>
+  <PropertyGroup Label="Locals">
+    <PlatformToolset>v143</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
+  <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props"/>
+  <ImportGroup Label="ExtensionSettings"/>
+  <ImportGroup Label="PropertySheets">
+    <Import Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props"/>
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros"/>
+  <PropertyGroup>
+    <ExecutablePath>$(ExecutablePath);$(MSBuildProjectDirectory)\..\bin\;$(MSBuildProjectDirectory)\..\bin\</ExecutablePath>
+    <IgnoreImportLibrary>true</IgnoreImportLibrary>
+    <IntDir>$(Configuration)\obj\$(ProjectName)\</IntDir>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <OutDir>$(SolutionDir)$(Configuration)\</OutDir>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.node</TargetExt>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.node</TargetExt>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.node</TargetExt>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.node</TargetExt>
+    <TargetName>$(ProjectName)</TargetName>
+    <TargetPath>$(OutDir)\$(ProjectName).node</TargetPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\include\node;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\src;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\config;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\openssl\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\uv\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\zlib;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\v8\include;D:\node-windows-audio-capture\node_modules\node-addon-api;..\src\wasapi;..\src\napi;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/Zc:__cplusplus -std:c++17 /std:c++17 %(AdditionalOptions)</AdditionalOptions>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <DisableSpecificWarnings>4351;4355;4800;4251;4275;4244;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <MinimalRebuild>false</MinimalRebuild>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <OmitFramePointers>false</OmitFramePointers>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=audio_addon;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;_GLIBCXX_USE_CXX11_ABI=1;_FILE_OFFSET_BITS=64;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;NAPI_VERSION=8;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0A00;NAPI_DISABLE_CPP_EXCEPTIONS;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;DEBUG;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <StringPooling>true</StringPooling>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <WarningLevel>Level3</WarningLevel>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+    </ClCompile>
+    <Lib>
+      <AdditionalOptions>/LTCG:INCREMENTAL %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;odbc32.lib;DelayImp.lib;&quot;C:\\Users\\wu\\AppData\\Local\\node-gyp\\Cache\\20.19.5\\x64\\node.lib&quot;;ole32.lib;oleaut32.lib;uuid.lib;winmm.lib;avrt.lib</AdditionalDependencies>
+      <AdditionalOptions>/LTCG:INCREMENTAL /ignore:4199 %(AdditionalOptions)</AdditionalOptions>
+      <DelayLoadDLLs>node.exe;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OptimizeReferences>true</OptimizeReferences>
+      <OutputFile>$(OutDir)$(ProjectName).node</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetExt>.node</TargetExt>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\include\node;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\src;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\config;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\openssl\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\uv\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\zlib;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\v8\include;D:\node-windows-audio-capture\node_modules\node-addon-api;..\src\wasapi;..\src\napi;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=audio_addon;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;_GLIBCXX_USE_CXX11_ABI=1;_FILE_OFFSET_BITS=64;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;NAPI_VERSION=8;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0A00;NAPI_DISABLE_CPP_EXCEPTIONS;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\include\node;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\src;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\config;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\openssl\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\uv\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\zlib;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\v8\include;D:\node-windows-audio-capture\node_modules\node-addon-api;..\src\wasapi;..\src\napi;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/Zc:__cplusplus -std:c++17 /std:c++17 %(AdditionalOptions)</AdditionalOptions>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <DebugInformationFormat>OldStyle</DebugInformationFormat>
+      <DisableSpecificWarnings>4351;4355;4800;4251;4275;4244;4267;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <OmitFramePointers>true</OmitFramePointers>
+      <Optimization>Full</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=audio_addon;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;_GLIBCXX_USE_CXX11_ABI=1;_FILE_OFFSET_BITS=64;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;NAPI_VERSION=8;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0A00;NAPI_DISABLE_CPP_EXCEPTIONS;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeTypeInfo>false</RuntimeTypeInfo>
+      <StringPooling>true</StringPooling>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <WarningLevel>Level3</WarningLevel>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
+    </ClCompile>
+    <Lib>
+      <AdditionalOptions>/LTCG:INCREMENTAL %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
+    <Link>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;odbc32.lib;DelayImp.lib;&quot;C:\\Users\\wu\\AppData\\Local\\node-gyp\\Cache\\20.19.5\\x64\\node.lib&quot;;ole32.lib;oleaut32.lib;uuid.lib;winmm.lib;avrt.lib</AdditionalDependencies>
+      <AdditionalOptions>/LTCG:INCREMENTAL /ignore:4199 %(AdditionalOptions)</AdditionalOptions>
+      <DelayLoadDLLs>node.exe;%(DelayLoadDLLs)</DelayLoadDLLs>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OptimizeReferences>true</OptimizeReferences>
+      <OutputFile>$(OutDir)$(ProjectName).node</OutputFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <TargetExt>.node</TargetExt>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\include\node;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\src;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\config;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\openssl\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\uv\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\zlib;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\v8\include;D:\node-windows-audio-capture\node_modules\node-addon-api;..\src\wasapi;..\src\napi;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=audio_addon;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;_GLIBCXX_USE_CXX11_ABI=1;_FILE_OFFSET_BITS=64;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;NAPI_VERSION=8;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0A00;NAPI_DISABLE_CPP_EXCEPTIONS;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <None Include="..\binding.gyp"/>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\wasapi\com_initializer.cpp">
+      <ObjectFileName>$(IntDir)\src\wasapi\com_initializer.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\wasapi\audio_params.cpp">
+      <ObjectFileName>$(IntDir)\src\wasapi\audio_params.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\wasapi\audio_client.cpp">
+      <ObjectFileName>$(IntDir)\src\wasapi\audio_client.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\wasapi\capture_thread.cpp">
+      <ObjectFileName>$(IntDir)\src\wasapi\capture_thread.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\wasapi\error_handler.cpp">
+      <ObjectFileName>$(IntDir)\src\wasapi\error_handler.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\napi\addon.cpp">
+      <ObjectFileName>$(IntDir)\src\napi\addon.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\napi\audio_processor.cpp">
+      <ObjectFileName>$(IntDir)\src\napi\audio_processor.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\napi\process_enumerator.cpp">
+      <ObjectFileName>$(IntDir)\src\napi\process_enumerator.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="D:\node-windows-audio-capture\node_modules\@electron\node-gyp\src\win_delay_load_hook.cc"/>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
+  <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets"/>
+  <ImportGroup Label="ExtensionTargets"/>
+</Project>

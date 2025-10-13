@@ -21,4 +21,5 @@ private:
     std::thread thread_;
     std::atomic<bool> running_ = false;
     AudioClient* client_;
+    HANDLE sampleReadyEvent_;
 };

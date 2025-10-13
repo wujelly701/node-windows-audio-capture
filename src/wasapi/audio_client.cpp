@@ -7,6 +7,22 @@
 #include <windows.h>
 #include <functional>
 #include <vector>
+#include <stdio.h>
+
+// 调试输出宏
+#define DEBUG_LOG(msg) do { \
+    OutputDebugStringA(msg); \
+    fprintf(stderr, "%s", msg); \
+    fflush(stderr); \
+} while(0)
+
+#define DEBUG_LOGF(fmt, ...) do { \
+    char debugMsg[512]; \
+    sprintf_s(debugMsg, fmt, __VA_ARGS__); \
+    OutputDebugStringA(debugMsg); \
+    fprintf(stderr, "%s", debugMsg); \
+    fflush(stderr); \
+} while(0)
 
 AudioClient::AudioClient() {}
 AudioClient::~AudioClient() {}
@@ -170,4 +186,92 @@ bool AudioClient::IsTargetProcessPlayingAudio() const {
     }
     
     return sessionManager_->IsProcessPlayingAudio(filterProcessId_);
+}
+
+// ====== v2.1: 动态静音控制实现 ======
+
+bool AudioClient::InitializeWithProcessFilter(
+    DWORD processId,
+    const ProcessFilterOptions& options) {
+    
+    DEBUG_LOGF("[AudioClient] InitializeWithProcessFilter: PID=%d, muteOthers=%d\n",
+               processId, options.muteOtherProcesses);
+    
+    // 1. 先调用原始的 InitializeWithProcessFilter(DWORD)
+    if (!InitializeWithProcessFilter(processId)) {
+        DEBUG_LOG("[AudioClient] Base initialization failed\n");
+        return false;
+    }
+    
+    // 2. 保存选项
+    filterOptions_ = options;
+    
+    // 3. 立即应用静音控制
+    if (filterOptions_.muteOtherProcesses) {
+        DEBUG_LOG("[AudioClient] Applying initial mute control\n");
+        ApplyMuteControl();
+    }
+    
+    return true;
+}
+
+void AudioClient::SetMuteOtherProcesses(bool enable) {
+    DEBUG_LOGF("[AudioClient] SetMuteOtherProcesses: %d\n", enable);
+    
+    filterOptions_.muteOtherProcesses = enable;
+    
+    if (enable) {
+        ApplyMuteControl();
+    } else {
+        // 恢复原始状态
+        if (sessionManager_) {
+            sessionManager_->UnmuteAll();
+        }
+    }
+}
+
+void AudioClient::SetAllowList(const std::vector<DWORD>& pids) {
+    DEBUG_LOGF("[AudioClient] SetAllowList: %d processes\n", pids.size());
+    
+    filterOptions_.allowList = pids;
+    
+    // 如果正在使用静音控制，重新应用
+    if (filterOptions_.muteOtherProcesses) {
+        ApplyMuteControl();
+    }
+}
+
+void AudioClient::SetBlockList(const std::vector<DWORD>& pids) {
+    DEBUG_LOGF("[AudioClient] SetBlockList: %d processes\n", pids.size());
+    
+    filterOptions_.blockList = pids;
+    
+    // 如果正在使用静音控制，重新应用
+    if (filterOptions_.muteOtherProcesses) {
+        ApplyMuteControl();
+    }
+}
+
+void AudioClient::ApplyMuteControl() {
+    if (!sessionManager_ || filterProcessId_ == 0) {
+        DEBUG_LOG("[AudioClient] ApplyMuteControl: Not ready (no session manager or filter)\n");
+        return;
+    }
+    
+    if (!filterOptions_.muteOtherProcesses) {
+        DEBUG_LOG("[AudioClient] ApplyMuteControl: Muting disabled\n");
+        return;
+    }
+    
+    DEBUG_LOG("[AudioClient] Applying mute control to all sessions...\n");
+    
+    // 构建最终的白名单（allowList）
+    std::vector<DWORD> finalAllowList = filterOptions_.allowList;
+    
+    // 应用静音规则
+    if (sessionManager_->MuteAllExcept(filterProcessId_, finalAllowList)) {
+        DEBUG_LOG("[AudioClient] Mute control applied successfully\n");
+    } else {
+        DEBUG_LOG("[AudioClient] Failed to apply mute control\n");
+    }
 }

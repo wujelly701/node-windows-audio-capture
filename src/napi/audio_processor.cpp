@@ -15,7 +15,14 @@ Napi::Object AudioProcessor::Init(Napi::Env env, Napi::Object exports) {
         InstanceMethod("start", &AudioProcessor::Start),
         InstanceMethod("stop", &AudioProcessor::Stop),
         InstanceMethod("startCapture", &AudioProcessor::StartCapture),
-        InstanceMethod("stopCapture", &AudioProcessor::StopCapture)
+        InstanceMethod("stopCapture", &AudioProcessor::StopCapture),
+        // v2.1: 动态音频会话静音控制
+        InstanceMethod("setMuteOtherProcesses", &AudioProcessor::SetMuteOtherProcesses),
+        InstanceMethod("setAllowList", &AudioProcessor::SetAllowList),
+        InstanceMethod("setBlockList", &AudioProcessor::SetBlockList),
+        InstanceMethod("isMutingOtherProcesses", &AudioProcessor::IsMutingOtherProcesses),
+        InstanceMethod("getAllowList", &AudioProcessor::GetAllowList),
+        InstanceMethod("getBlockList", &AudioProcessor::GetBlockList)
     });
     exports.Set("AudioProcessor", func);
     exports.Set("getDeviceInfo", Napi::Function::New(env, AudioProcessor::GetDeviceInfo));
@@ -268,4 +275,134 @@ void AudioProcessor::OnAudioData(const std::vector<uint8_t>& data) {
         jsCallback.Call({ buffer });
         delete data;  // 释放堆内存
     });
+}
+
+// ====== v2.1: 动态音频会话静音控制 ======
+
+Napi::Value AudioProcessor::SetMuteOtherProcesses(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (!client_) {
+        Napi::Error::New(env, "Audio client not initialized").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    // 参数验证：需要 boolean
+    if (info.Length() < 1 || !info[0].IsBoolean()) {
+        Napi::TypeError::New(env, "Expected boolean argument").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    bool enable = info[0].As<Napi::Boolean>().Value();
+    client_->SetMuteOtherProcesses(enable);
+    
+    return env.Undefined();
+}
+
+Napi::Value AudioProcessor::SetAllowList(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (!client_) {
+        Napi::Error::New(env, "Audio client not initialized").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    // 参数验证：需要 number 数组
+    if (info.Length() < 1 || !info[0].IsArray()) {
+        Napi::TypeError::New(env, "Expected array of process IDs").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    Napi::Array arr = info[0].As<Napi::Array>();
+    std::vector<DWORD> pids;
+    pids.reserve(arr.Length());
+    
+    for (uint32_t i = 0; i < arr.Length(); i++) {
+        Napi::Value val = arr[i];
+        if (val.IsNumber()) {
+            pids.push_back(val.As<Napi::Number>().Uint32Value());
+        }
+    }
+    
+    client_->SetAllowList(pids);
+    
+    return env.Undefined();
+}
+
+Napi::Value AudioProcessor::SetBlockList(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (!client_) {
+        Napi::Error::New(env, "Audio client not initialized").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    // 参数验证：需要 number 数组
+    if (info.Length() < 1 || !info[0].IsArray()) {
+        Napi::TypeError::New(env, "Expected array of process IDs").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    Napi::Array arr = info[0].As<Napi::Array>();
+    std::vector<DWORD> pids;
+    pids.reserve(arr.Length());
+    
+    for (uint32_t i = 0; i < arr.Length(); i++) {
+        Napi::Value val = arr[i];
+        if (val.IsNumber()) {
+            pids.push_back(val.As<Napi::Number>().Uint32Value());
+        }
+    }
+    
+    client_->SetBlockList(pids);
+    
+    return env.Undefined();
+}
+
+Napi::Value AudioProcessor::IsMutingOtherProcesses(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (!client_) {
+        Napi::Error::New(env, "Audio client not initialized").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    bool isMuting = client_->IsMutingOtherProcesses();
+    return Napi::Boolean::New(env, isMuting);
+}
+
+Napi::Value AudioProcessor::GetAllowList(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (!client_) {
+        Napi::Error::New(env, "Audio client not initialized").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    std::vector<DWORD> pids = client_->GetAllowList();
+    Napi::Array result = Napi::Array::New(env, pids.size());
+    
+    for (size_t i = 0; i < pids.size(); i++) {
+        result[static_cast<uint32_t>(i)] = Napi::Number::New(env, pids[i]);
+    }
+    
+    return result;
+}
+
+Napi::Value AudioProcessor::GetBlockList(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (!client_) {
+        Napi::Error::New(env, "Audio client not initialized").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    std::vector<DWORD> pids = client_->GetBlockList();
+    Napi::Array result = Napi::Array::New(env, pids.size());
+    
+    for (size_t i = 0; i < pids.size(); i++) {
+        result[static_cast<uint32_t>(i)] = Napi::Number::New(env, pids[i]);
+    }
+    
+    return result;
 }

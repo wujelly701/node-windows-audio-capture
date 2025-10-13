@@ -23,6 +23,14 @@ private:
     Napi::Value StartCapture(const Napi::CallbackInfo& info);
     Napi::Value StopCapture(const Napi::CallbackInfo& info);
     
+    // v2.1: 动态音频会话静音控制
+    Napi::Value SetMuteOtherProcesses(const Napi::CallbackInfo& info);
+    Napi::Value SetAllowList(const Napi::CallbackInfo& info);
+    Napi::Value SetBlockList(const Napi::CallbackInfo& info);
+    Napi::Value IsMutingOtherProcesses(const Napi::CallbackInfo& info);
+    Napi::Value GetAllowList(const Napi::CallbackInfo& info);
+    Napi::Value GetBlockList(const Napi::CallbackInfo& info);
+    
     // 静态方法：设备枚举
     static Napi::Value GetDeviceInfo(const Napi::CallbackInfo& info);
     

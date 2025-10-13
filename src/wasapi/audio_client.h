@@ -55,6 +55,32 @@ public:
     bool IsProcessFilterEnabled() const { return filterProcessId_ != 0; }
     bool IsTargetProcessPlayingAudio() const;
 
+    // ====== v2.1: 动态静音控制 ======
+    
+    // 进程过滤选项
+    struct ProcessFilterOptions {
+        bool muteOtherProcesses = false;     // 自动静音其他进程
+        std::vector<DWORD> allowList;        // 白名单（不静音）
+        std::vector<DWORD> blockList;        // 黑名单（强制静音）
+    };
+    
+    // 使用选项初始化进程过滤
+    bool InitializeWithProcessFilter(DWORD processId, 
+                                     const ProcessFilterOptions& options);
+    
+    // 运行时配置
+    void SetMuteOtherProcesses(bool enable);
+    void SetAllowList(const std::vector<DWORD>& pids);
+    void SetBlockList(const std::vector<DWORD>& pids);
+    
+    // 查询状态
+    bool IsMutingOtherProcesses() const { return filterOptions_.muteOtherProcesses; }
+    std::vector<DWORD> GetAllowList() const { return filterOptions_.allowList; }
+    std::vector<DWORD> GetBlockList() const { return filterOptions_.blockList; }
+    
+    // 应用静音控制（内部使用）
+    void ApplyMuteControl();
+
 private:
     Microsoft::WRL::ComPtr<IMMDevice> device_;
     Microsoft::WRL::ComPtr<IAudioClient> audioClient_;
@@ -65,4 +91,7 @@ private:
     // v2.0: 进程过滤
     DWORD filterProcessId_ = 0;  // 0 = 不过滤
     std::unique_ptr<audio_capture::AudioSessionManager> sessionManager_;
+    
+    // v2.1: 动态静音控制选项
+    ProcessFilterOptions filterOptions_;
 };

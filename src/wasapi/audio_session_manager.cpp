@@ -2,6 +2,7 @@
 
 #include "audio_session_manager.h"
 #include <stdio.h>
+#include <algorithm>
 
 // 调试输出宏（复用现有的）
 #define DEBUG_LOG(msg) do { \
@@ -286,6 +287,136 @@ bool AudioSessionManager::GetSessionInfo(IAudioSessionControl* sessionControl, A
     }
 
     return true;
+}
+
+// ====== v2.1 新增方法实现 ======
+
+bool AudioSessionManager::SaveMuteStates() {
+    DEBUG_LOG("[AudioSessionManager] Saving mute states...\n");
+    
+    originalMuteStates_.clear();
+    
+    std::vector<AudioSessionInfo> sessions;
+    if (!EnumerateSessions(sessions)) {
+        DEBUG_LOG("[AudioSessionManager] Failed to enumerate sessions\n");
+        return false;
+    }
+    
+    for (const auto& session : sessions) {
+        originalMuteStates_[session.processId] = session.isMuted;
+        DEBUG_LOGF("[AudioSessionManager] Saved state: PID %d, Muted: %d\n", 
+                   session.processId, session.isMuted);
+    }
+    
+    DEBUG_LOGF("[AudioSessionManager] Saved %d mute states\n", 
+               originalMuteStates_.size());
+    return true;
+}
+
+bool AudioSessionManager::RestoreMuteStates() {
+    DEBUG_LOG("[AudioSessionManager] Restoring mute states...\n");
+    
+    if (originalMuteStates_.empty()) {
+        DEBUG_LOG("[AudioSessionManager] No saved states to restore\n");
+        return true;
+    }
+    
+    int restored = 0;
+    for (const auto& [processId, wasMuted] : originalMuteStates_) {
+        if (SetProcessMute(processId, wasMuted)) {
+            restored++;
+            DEBUG_LOGF("[AudioSessionManager] Restored PID %d to muted=%d\n", 
+                       processId, wasMuted);
+        }
+    }
+    
+    DEBUG_LOGF("[AudioSessionManager] Restored %d/%d states\n", 
+               restored, originalMuteStates_.size());
+    
+    originalMuteStates_.clear();
+    isManagingMuteStates_ = false;
+    
+    return restored > 0;
+}
+
+bool AudioSessionManager::MuteAllExcept(
+    DWORD targetProcessId,
+    const std::vector<DWORD>& allowList) {
+    
+    DEBUG_LOGF("[AudioSessionManager] MuteAllExcept: target=%d, allowList size=%d\n",
+               targetProcessId, allowList.size());
+    
+    if (!sessionManager_) {
+        DEBUG_LOG("[AudioSessionManager] Session manager not initialized\n");
+        return false;
+    }
+    
+    // 首次调用时保存原始状态
+    if (!isManagingMuteStates_) {
+        if (!SaveMuteStates()) {
+            DEBUG_LOG("[AudioSessionManager] Failed to save mute states\n");
+            return false;
+        }
+        isManagingMuteStates_ = true;
+    }
+    
+    // 枚举所有会话
+    std::vector<AudioSessionInfo> sessions;
+    if (!EnumerateSessions(sessions)) {
+        DEBUG_LOG("[AudioSessionManager] Failed to enumerate sessions\n");
+        return false;
+    }
+    
+    int mutedCount = 0;
+    int unmutedCount = 0;
+    
+    // 应用静音规则
+    for (const auto& session : sessions) {
+        bool shouldMute = true;
+        
+        // 规则1: 目标进程不静音
+        if (session.processId == targetProcessId) {
+            shouldMute = false;
+            DEBUG_LOGF("[AudioSessionManager] Target process %d - will not mute\n", 
+                       session.processId);
+        }
+        // 规则2: 白名单进程不静音
+        else if (std::find(allowList.begin(), allowList.end(), 
+                          session.processId) != allowList.end()) {
+            shouldMute = false;
+            DEBUG_LOGF("[AudioSessionManager] Allow-listed process %d - will not mute\n",
+                       session.processId);
+        }
+        else {
+            DEBUG_LOGF("[AudioSessionManager] Process %d - will mute\n",
+                       session.processId);
+        }
+        
+        // 应用静音设置
+        if (SetProcessMute(session.processId, shouldMute)) {
+            if (shouldMute) {
+                mutedCount++;
+            } else {
+                unmutedCount++;
+            }
+        }
+    }
+    
+    DEBUG_LOGF("[AudioSessionManager] MuteAllExcept complete: muted=%d, unmuted=%d\n",
+               mutedCount, unmutedCount);
+    
+    return true;
+}
+
+bool AudioSessionManager::UnmuteAll() {
+    DEBUG_LOG("[AudioSessionManager] UnmuteAll called\n");
+    
+    if (!isManagingMuteStates_) {
+        DEBUG_LOG("[AudioSessionManager] Not managing mute states, nothing to restore\n");
+        return true;
+    }
+    
+    return RestoreMuteStates();
 }
 
 }  // namespace audio_capture

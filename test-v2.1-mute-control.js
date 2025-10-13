@@ -181,14 +181,14 @@ async function testV21MuteMode(targetPid, targetProcessName) {
 }
 
 // 测试阶段3: v2.1 模式 + 允许列表
-async function testAllowListMode(targetPid, allowList) {
+async function testAllowListMode(targetPid, targetProcessName, allowList) {
     console.log('\n\n═══════════════════════════════════════════════════');
     console.log('📋 测试阶段 3/4: v2.1 模式 + 允许列表');
     console.log('═══════════════════════════════════════════════════');
-    console.log(`   目标进程: PID ${targetPid}`);
+    console.log(`   目标进程: PID ${targetPid} (${targetProcessName})`);
     console.log(`   静音控制: ✅ 启用`);
-    console.log(`   允许列表: [${allowList.length > 0 ? allowList.join(', ') : '空'}]`);
-    console.log(`   预期结果: 目标进程 + 允许列表进程的音频`);
+    console.log(`   额外允许: [${allowList.length > 0 ? allowList.join(', ') : '空'}]`);
+    console.log(`   预期结果: ${targetProcessName} + 允许列表进程的音频`);
     console.log('   持续时间: 8秒');
     console.log('───────────────────────────────────────────────────');
     
@@ -204,15 +204,27 @@ async function testAllowListMode(targetPid, allowList) {
     try {
         processor.start();
         
+        // ⚠️ 重要：先保护所有目标应用的进程
+        const processes = enumerateProcesses();
+        const sameAppProcesses = processes.filter(p => 
+            p.name && p.name.toLowerCase() === targetProcessName.toLowerCase()
+        );
+        const sameAppPids = sameAppProcesses.map(p => p.pid);
+        
+        // 合并允许列表：目标应用的所有进程 + 额外的允许列表
+        const combinedAllowList = [...sameAppPids, ...allowList];
+        
+        console.log(`\n   � 发现 ${sameAppProcesses.length} 个 ${targetProcessName} 进程`);
+        console.log(`   📋 总允许列表: ${combinedAllowList.length} 个进程`);
+        console.log(`      - ${targetProcessName}: ${sameAppPids.length} 个`);
+        console.log(`      - 额外允许: ${allowList.length} 个`);
+        
         // 配置静音控制 + 允许列表
         processor.setMuteOtherProcesses(true);
-        if (allowList.length > 0) {
-            processor.setAllowList(allowList);
-            console.log(`\n   🔧 已设置允许列表: ${allowList.length} 个进程`);
-        }
+        processor.setAllowList(combinedAllowList);
         
         const currentAllowList = processor.getAllowList();
-        console.log(`   📋 当前允许列表: [${currentAllowList.join(', ')}]`);
+        console.log(`\n   � 已设置总允许列表: ${currentAllowList.length} 个进程`);
         
         processor.startCapture();
         await new Promise(resolve => setTimeout(resolve, TEST_DURATION));
@@ -329,7 +341,7 @@ async function runTests() {
         await testV21MuteMode(targetProcess.processId, targetProcess.processName);
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        await testAllowListMode(targetProcess.processId, allowList);
+        await testAllowListMode(targetProcess.processId, targetProcess.processName, allowList);
         await new Promise(resolve => setTimeout(resolve, 1000));
         
         await testRuntimeToggle(targetProcess.processId, targetProcess.processName);

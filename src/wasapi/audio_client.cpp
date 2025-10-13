@@ -1,21 +1,3 @@
-// 处理音频样本（接口占位）
-bool AudioClient::ProcessAudioSample(BYTE* pData, UINT32 numFrames) {
-    // TODO: 实际样本处理逻辑
-    // 占位实现，返回 true
-    return true;
-}
-// 停止音频捕获
-bool AudioClient::Stop() {
-    if (!audioClient_) return false;
-    HRESULT hr = audioClient_->Stop();
-    return SUCCEEDED(hr);
-}
-// 开始音频捕获
-bool AudioClient::Start() {
-    if (!audioClient_) return false;
-    HRESULT hr = audioClient_->Start();
-    return SUCCEEDED(hr);
-}
 #include "audio_client.h"
 #include <mmdeviceapi.h>
 #include <audioclient.h>
@@ -74,4 +56,25 @@ bool AudioClient::SetEventHandle(HANDLE hEvent) {
     if (!audioClient_) return false;
     HRESULT hr = audioClient_->SetEventHandle(hEvent);
     return SUCCEEDED(hr);
+}
+
+// 开始音频捕获
+bool AudioClient::Start() {
+    if (!audioClient_) return false;
+    HRESULT hr = audioClient_->Start();
+    return SUCCEEDED(hr);
+}
+
+// 停止音频捕获
+bool AudioClient::Stop() {
+    if (!audioClient_) return false;
+    HRESULT hr = audioClient_->Stop();
+    return SUCCEEDED(hr);
+}
+
+// 处理音频样本（接口占位）
+bool AudioClient::ProcessAudioSample(BYTE* pData, UINT32 numFrames) {
+    // TODO: 实际样本处理逻辑
+    // 占位实现，返回 true
+    return true;
 }

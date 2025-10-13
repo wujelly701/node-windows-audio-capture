@@ -5,6 +5,8 @@
 #include <propvarutil.h>
 #include <propidl.h>
 #include <windows.h>
+#include <functional>
+#include <vector>
 
 AudioClient::AudioClient() {}
 AudioClient::~AudioClient() {}
@@ -20,10 +22,10 @@ bool AudioClient::Initialize(const AudioActivationParams& params) {
     hr = enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device_);
     if (FAILED(hr)) return false;
 
-    // 激活 IAudioClient2（进程环回模式）
-    PROPVARIANT var = params.ToPropVariant();
-    hr = device_->Activate(__uuidof(IAudioClient2), CLSCTX_ALL, &var, (void**)&audioClient_);
-    PropVariantClear(&var);
+    // 激活 IAudioClient（标准 loopback 模式）
+    // 注意：进程隔离模式需要 IAudioClient3 和 Windows 10 19H1+
+    // 这里先使用标准 loopback 捕获所有音频
+    hr = device_->Activate(__uuidof(IAudioClient), CLSCTX_ALL, nullptr, (void**)&audioClient_);
     if (FAILED(hr)) return false;
 
     // 获取设备默认格式
@@ -53,7 +55,7 @@ bool AudioClient::Initialize(const AudioActivationParams& params) {
     return true;
 }
 
-Microsoft::WRL::ComPtr<IAudioClient2> AudioClient::GetAudioClient() const {
+Microsoft::WRL::ComPtr<IAudioClient> AudioClient::GetAudioClient() const {
     return audioClient_;
 }
 
@@ -67,7 +69,7 @@ bool AudioClient::IsInitialized() const {
 
 // ActivateAsync 占位，后续实现异步激活
 // 激活完成回调接口
-void AudioClient::ActivateCompleted(HRESULT hr, Microsoft::WRL::ComPtr<IAudioClient2> client) {
+void AudioClient::ActivateCompleted(HRESULT hr, Microsoft::WRL::ComPtr<IAudioClient> client) {
     if (SUCCEEDED(hr) && client) {
         audioClient_ = client;
         initialized_ = true;
@@ -99,9 +101,31 @@ bool AudioClient::Stop() {
     return SUCCEEDED(hr);
 }
 
-// 处理音频样本（接口占位）
+// 处理音频样本
 bool AudioClient::ProcessAudioSample(BYTE* pData, UINT32 numFrames) {
-    // TODO: 实际样本处理逻辑
-    // 占位实现，返回 true
+    if (!audioDataCallback_ || !pData || numFrames == 0) {
+        return true;
+    }
+    
+    // 获取音频格式以计算字节数
+    WAVEFORMATEX* pFormat = nullptr;
+    HRESULT hr = audioClient_->GetMixFormat(&pFormat);
+    if (FAILED(hr)) return false;
+    
+    // 计算数据大小（帧数 * 每帧字节数）
+    UINT32 bytesPerFrame = pFormat->nBlockAlign;
+    UINT32 dataSize = numFrames * bytesPerFrame;
+    
+    CoTaskMemFree(pFormat);
+    
+    // 复制数据到 vector 并回调
+    std::vector<uint8_t> audioData(pData, pData + dataSize);
+    audioDataCallback_(audioData);
+    
     return true;
+}
+
+// 设置音频数据回调
+void AudioClient::SetAudioDataCallback(AudioDataCallback callback) {
+    audioDataCallback_ = callback;
 }

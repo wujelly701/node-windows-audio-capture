@@ -22,11 +22,6 @@ CaptureThread::~CaptureThread() {
 void CaptureThread::Start() {
     if (running_) return;
     
-    // 设置事件句柄到 AudioClient
-    if (client_ && sampleReadyEvent_) {
-        client_->SetEventHandle(sampleReadyEvent_);
-    }
-    
     running_ = true;
     thread_ = std::thread(&CaptureThread::ThreadProc, this);
 }
@@ -45,6 +40,10 @@ void CaptureThread::Stop() {
 
 bool CaptureThread::IsRunning() const {
     return running_;
+}
+
+HANDLE CaptureThread::GetEventHandle() const {
+    return sampleReadyEvent_;
 }
 
 void CaptureThread::ThreadProc() {

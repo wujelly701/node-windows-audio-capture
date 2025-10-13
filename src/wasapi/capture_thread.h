@@ -15,6 +15,8 @@ public:
     void Stop();
     // 查询是否正在运行
     bool IsRunning() const;
+    // 获取事件句柄
+    HANDLE GetEventHandle() const;
 
 private:
     void ThreadProc();

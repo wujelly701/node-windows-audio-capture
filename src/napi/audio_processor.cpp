@@ -59,6 +59,11 @@ AudioProcessor::AudioProcessor(const Napi::CallbackInfo& info) : Napi::ObjectWra
     
     client_ = std::make_unique<AudioClient>();
     thread_ = std::make_unique<CaptureThread>(client_.get());
+    
+    // 设置 AudioClient 的音频数据回调
+    client_->SetAudioDataCallback([this](const std::vector<uint8_t>& data) {
+        this->OnAudioData(data);
+    });
 }
 
 AudioProcessor::~AudioProcessor() {
@@ -89,6 +94,13 @@ Napi::Value AudioProcessor::Start(const Napi::CallbackInfo& info) {
     
     if (!client_->Initialize(params)) {
         Napi::Error::New(env, "Failed to initialize audio client").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    // 设置事件句柄（在 Start() 之前必须设置）
+    HANDLE sampleReadyEvent = thread_->GetEventHandle();
+    if (sampleReadyEvent && !client_->SetEventHandle(sampleReadyEvent)) {
+        Napi::Error::New(env, "Failed to set event handle").ThrowAsJavaScriptException();
         return env.Undefined();
     }
     

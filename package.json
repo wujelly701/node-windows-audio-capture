@@ -2,7 +2,8 @@
   "name": "node-windows-audio-capture",
   "version": "0.1.0",
   "description": "Production-ready Node.js Windows audio capture addon (WASAPI, N-API)",
-  "main": "lib/index.js",
+  "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "install": "node-gyp-build",
     "prebuild": "prebuildify --napi --strip",

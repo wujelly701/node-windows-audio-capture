@@ -18,7 +18,7 @@ Napi::Object AudioProcessor::Init(Napi::Env env, Napi::Object exports) {
 
 AudioProcessor::AudioProcessor(const Napi::CallbackInfo& info) : Napi::ObjectWrap<AudioProcessor>(info) {
     client_ = std::make_unique<AudioClient>();
-    thread_ = std::make_unique<CaptureThread>();
+    thread_ = std::make_unique<CaptureThread>(client_.get());
 }
 
 AudioProcessor::~AudioProcessor() {}

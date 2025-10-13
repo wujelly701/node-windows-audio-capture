@@ -72,7 +72,7 @@
       <AdditionalOptions>/LTCG:INCREMENTAL %(AdditionalOptions)</AdditionalOptions>
     </Lib>
     <Link>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;odbc32.lib;DelayImp.lib;&quot;C:\\Users\\wu\\AppData\\Local\\node-gyp\\Cache\\20.19.5\\x64\\node.lib&quot;;ole32.lib;oleaut32.lib;uuid.lib;winmm.lib;avrt.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;odbc32.lib;DelayImp.lib;&quot;C:\\Users\\wu\\AppData\\Local\\node-gyp\\Cache\\20.19.5\\x64\\node.lib&quot;;ole32.lib;oleaut32.lib;uuid.lib;winmm.lib;avrt.lib;mmdevapi.lib;runtimeobject.lib</AdditionalDependencies>
       <AdditionalOptions>/LTCG:INCREMENTAL /ignore:4199 %(AdditionalOptions)</AdditionalOptions>
       <DelayLoadDLLs>node.exe;%(DelayLoadDLLs)</DelayLoadDLLs>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -117,7 +117,7 @@
       <AdditionalOptions>/LTCG:INCREMENTAL %(AdditionalOptions)</AdditionalOptions>
     </Lib>
     <Link>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;odbc32.lib;DelayImp.lib;&quot;C:\\Users\\wu\\AppData\\Local\\node-gyp\\Cache\\20.19.5\\x64\\node.lib&quot;;ole32.lib;oleaut32.lib;uuid.lib;winmm.lib;avrt.lib</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;odbc32.lib;DelayImp.lib;&quot;C:\\Users\\wu\\AppData\\Local\\node-gyp\\Cache\\20.19.5\\x64\\node.lib&quot;;ole32.lib;oleaut32.lib;uuid.lib;winmm.lib;avrt.lib;mmdevapi.lib;runtimeobject.lib</AdditionalDependencies>
       <AdditionalOptions>/LTCG:INCREMENTAL /ignore:4199 %(AdditionalOptions)</AdditionalOptions>
       <DelayLoadDLLs>node.exe;%(DelayLoadDLLs)</DelayLoadDLLs>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -145,6 +145,12 @@
     </ClCompile>
     <ClCompile Include="..\src\wasapi\audio_client.cpp">
       <ObjectFileName>$(IntDir)\src\wasapi\audio_client.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\wasapi\audio_session_manager.cpp">
+      <ObjectFileName>$(IntDir)\src\wasapi\audio_session_manager.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\wasapi\activation_handler.cpp">
+      <ObjectFileName>$(IntDir)\src\wasapi\activation_handler.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="..\src\wasapi\capture_thread.cpp">
       <ObjectFileName>$(IntDir)\src\wasapi\capture_thread.obj</ObjectFileName>

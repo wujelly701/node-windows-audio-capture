@@ -129,3 +129,45 @@ bool AudioClient::ProcessAudioSample(BYTE* pData, UINT32 numFrames) {
 void AudioClient::SetAudioDataCallback(AudioDataCallback callback) {
     audioDataCallback_ = callback;
 }
+
+// ========== v2.0: 进程过滤功能 ==========
+
+// v2.0: 初始化并启用进程过滤
+bool AudioClient::InitializeWithProcessFilter(DWORD processId) {
+    // 首先使用标准 Loopback 初始化
+    AudioActivationParams params;
+    if (!Initialize(params)) {
+        return false;
+    }
+    
+    // 初始化会话管理器
+    sessionManager_ = std::make_unique<audio_capture::AudioSessionManager>();
+    if (!sessionManager_->Initialize(device_.Get())) {
+        return false;
+    }
+    
+    // 设置进程过滤
+    filterProcessId_ = processId;
+    
+    return true;
+}
+
+// v2.0: 设置/取消进程过滤
+void AudioClient::SetProcessFilter(DWORD processId) {
+    filterProcessId_ = processId;
+    
+    if (processId != 0 && !sessionManager_ && device_) {
+        // 延迟初始化会话管理器
+        sessionManager_ = std::make_unique<audio_capture::AudioSessionManager>();
+        sessionManager_->Initialize(device_.Get());
+    }
+}
+
+// v2.0: 检查目标进程是否有活动音频
+bool AudioClient::IsTargetProcessPlayingAudio() const {
+    if (filterProcessId_ == 0 || !sessionManager_) {
+        return false;
+    }
+    
+    return sessionManager_->IsProcessPlayingAudio(filterProcessId_);
+}

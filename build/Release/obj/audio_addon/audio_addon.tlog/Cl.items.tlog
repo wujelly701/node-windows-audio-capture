@@ -1,6 +1,8 @@
 D:\node-windows-audio-capture\src\wasapi\com_initializer.cpp;D:\node-windows-audio-capture\build\Release\obj\audio_addon\src\wasapi\com_initializer.obj
 D:\node-windows-audio-capture\src\wasapi\audio_params.cpp;D:\node-windows-audio-capture\build\Release\obj\audio_addon\src\wasapi\audio_params.obj
 D:\node-windows-audio-capture\src\wasapi\audio_client.cpp;D:\node-windows-audio-capture\build\Release\obj\audio_addon\src\wasapi\audio_client.obj
+D:\node-windows-audio-capture\src\wasapi\audio_session_manager.cpp;D:\node-windows-audio-capture\build\Release\obj\audio_addon\src\wasapi\audio_session_manager.obj
+D:\node-windows-audio-capture\src\wasapi\activation_handler.cpp;D:\node-windows-audio-capture\build\Release\obj\audio_addon\src\wasapi\activation_handler.obj
 D:\node-windows-audio-capture\src\wasapi\capture_thread.cpp;D:\node-windows-audio-capture\build\Release\obj\audio_addon\src\wasapi\capture_thread.obj
 D:\node-windows-audio-capture\src\wasapi\error_handler.cpp;D:\node-windows-audio-capture\build\Release\obj\audio_addon\src\wasapi\error_handler.obj
 D:\node-windows-audio-capture\src\napi\addon.cpp;D:\node-windows-audio-capture\build\Release\obj\audio_addon\src\napi\addon.obj

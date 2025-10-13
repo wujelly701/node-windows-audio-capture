@@ -1,0 +1,466 @@
+#include "audio_client.h"
+#include <mmdeviceapi.h>
+#include <audioclient.h>
+#include <wrl/client.h>
+#include <propvarutil.h>
+#include <propidl.h>
+#include <windows.h>
+#include <functional>
+#include <vector>
+#include <stdio.h>
+
+// 调试输出宏
+#define DEBUG_LOG(msg) do { \
+    OutputDebugStringA(msg); \
+    fprintf(stderr, "%s", msg); \
+    fflush(stderr); \
+} while(0)
+
+#define DEBUG_LOGF(fmt, ...) do { \
+    char debugMsg[512]; \
+    sprintf_s(debugMsg, fmt, __VA_ARGS__); \
+    OutputDebugStringA(debugMsg); \
+    fprintf(stderr, "%s", debugMsg); \
+    fflush(stderr); \
+} while(0)
+    
+    ~ActivationContext() {
+        if (deviceId) {
+            CoTaskMemFree(deviceId);
+            deviceId = nullptr;
+        }
+    }
+};
+
+AudioClient::AudioClient() {}
+AudioClient::~AudioClient() {}
+
+bool AudioClient::Initialize(const AudioActivationParams& params) {
+    HRESULT hr;
+    // 获取设备枚举器
+    Microsoft::WRL::ComPtr<IMMDeviceEnumerator> enumerator;
+    hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS(&enumerator));
+    if (FAILED(hr)) return false;
+
+    // 获取默认音频渲染设备
+    hr = enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device_);
+    if (FAILED(hr)) return false;
+
+    // 激活 IAudioClient（标准 loopback 模式）
+    // 注意：进程隔离模式需要 IAudioClient3 和 Windows 10 19H1+
+    // 这里先使用标准 loopback 捕获所有音频
+    hr = device_->Activate(__uuidof(IAudioClient), CLSCTX_ALL, nullptr, (void**)&audioClient_);
+    if (FAILED(hr)) return false;
+
+    // 获取设备默认格式
+    WAVEFORMATEX* pFormat = nullptr;
+    hr = audioClient_->GetMixFormat(&pFormat);
+    if (FAILED(hr)) return false;
+
+    // 初始化音频客户端（共享模式 + 环回 + 事件驱动）
+    hr = audioClient_->Initialize(
+        AUDCLNT_SHAREMODE_SHARED,
+        AUDCLNT_STREAMFLAGS_LOOPBACK | AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
+        10000000,  // 1 秒缓冲区 (100ns 单位)
+        0,
+        pFormat,
+        nullptr
+    );
+    CoTaskMemFree(pFormat);
+    if (FAILED(hr)) return false;
+
+    // 获取 IAudioCaptureClient 接口
+    Microsoft::WRL::ComPtr<IAudioCaptureClient> captureClient;
+    hr = audioClient_->GetService(__uuidof(IAudioCaptureClient), (void**)&captureClient);
+    if (FAILED(hr)) return false;
+
+    captureClient_ = captureClient;
+    initialized_ = true;
+    return true;
+}
+
+Microsoft::WRL::ComPtr<IAudioClient> AudioClient::GetAudioClient() const {
+    return audioClient_;
+}
+
+Microsoft::WRL::ComPtr<IAudioCaptureClient> AudioClient::GetCaptureClient() const {
+    return captureClient_;
+}
+
+bool AudioClient::IsInitialized() const {
+    return initialized_;
+}
+
+// ActivateAsync 占位，后续实现异步激活
+// 激活完成回调接口
+void AudioClient::ActivateCompleted(HRESULT hr, Microsoft::WRL::ComPtr<IAudioClient> client) {
+    if (SUCCEEDED(hr) && client) {
+        audioClient_ = client;
+        initialized_ = true;
+        // 可扩展：通知外部/事件回调
+    } else {
+        initialized_ = false;
+        // 可扩展：错误处理/通知
+    }
+}
+
+// 设置事件句柄
+bool AudioClient::SetEventHandle(HANDLE hEvent) {
+    HRESULT hr;
+    if (usingProcessLoopback_ && audioClient3_) {
+        hr = audioClient3_->SetEventHandle(hEvent);
+    } else if (audioClient_) {
+        hr = audioClient_->SetEventHandle(hEvent);
+    } else {
+        return false;
+    }
+    return SUCCEEDED(hr);
+}
+
+// 开始音频捕获
+bool AudioClient::Start() {
+    HRESULT hr;
+    if (usingProcessLoopback_ && audioClient3_) {
+        hr = audioClient3_->Start();
+    } else if (audioClient_) {
+        hr = audioClient_->Start();
+    } else {
+        return false;
+    }
+    return SUCCEEDED(hr);
+}
+
+// 停止音频捕获
+bool AudioClient::Stop() {
+    HRESULT hr;
+    if (usingProcessLoopback_ && audioClient3_) {
+        hr = audioClient3_->Stop();
+    } else if (audioClient_) {
+        hr = audioClient_->Stop();
+    } else {
+        return false;
+    }
+    return SUCCEEDED(hr);
+}
+
+// 处理音频样本
+bool AudioClient::ProcessAudioSample(BYTE* pData, UINT32 numFrames) {
+    if (!audioDataCallback_ || !pData || numFrames == 0) {
+        return true;
+    }
+    
+    // 获取音频格式以计算字节数
+    WAVEFORMATEX* pFormat = nullptr;
+    HRESULT hr;
+    
+    if (usingProcessLoopback_ && audioClient3_) {
+        hr = audioClient3_->GetMixFormat(&pFormat);
+    } else if (audioClient_) {
+        hr = audioClient_->GetMixFormat(&pFormat);
+    } else {
+        return false;
+    }
+    
+    if (FAILED(hr)) return false;
+    
+    // 计算数据大小（帧数 * 每帧字节数）
+    UINT32 bytesPerFrame = pFormat->nBlockAlign;
+    UINT32 dataSize = numFrames * bytesPerFrame;
+    
+    CoTaskMemFree(pFormat);
+    
+    // 复制数据到 vector 并回调
+    std::vector<uint8_t> audioData(pData, pData + dataSize);
+    audioDataCallback_(audioData);
+    
+    return true;
+}
+
+// 设置音频数据回调
+void AudioClient::SetAudioDataCallback(AudioDataCallback callback) {
+    audioDataCallback_ = callback;
+}
+
+// ========== v2.0: 进程过滤功能（使用音频会话管理） ==========
+
+// v2.0: 在 MTA 线程中执行激活的函数
+// 注意: ActivateAudioInterfaceAsync 要求 MTA (多线程公寓) 模式，不能用 STA
+static void ActivateInMTAThread(ActivationContext* ctx) {
+    DEBUG_LOG("[ProcessLoopback] MTA thread started\n");
+    
+    // 1. 初始化 Windows Runtime - MTA 模式
+    HRESULT hr = RoInitialize(RO_INIT_MULTITHREADED);
+    bool roInitialized = SUCCEEDED(hr);
+    if (FAILED(hr) && hr != RPC_E_CHANGED_MODE && hr != S_FALSE) {
+        DEBUG_LOGF("[ProcessLoopback] MTA RoInitialize failed: 0x%08X\n", hr);
+        std::lock_guard<std::mutex> lock(ctx->mutex);
+        ctx->activationHr = hr;
+        ctx->completed = true;
+        ctx->cv.notify_one();
+        return;
+    }
+    DEBUG_LOG("[ProcessLoopback] MTA Windows Runtime initialized\n");
+    
+    // 2. 初始化 COM - MTA 模式
+    hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    bool comInitialized = SUCCEEDED(hr);
+    if (FAILED(hr) && hr != RPC_E_CHANGED_MODE && hr != S_FALSE) {
+        DEBUG_LOGF("[ProcessLoopback] MTA CoInitializeEx failed: 0x%08X\n", hr);
+        if (roInitialized) RoUninitialize();
+        std::lock_guard<std::mutex> lock(ctx->mutex);
+        ctx->activationHr = hr;
+        ctx->completed = true;
+        ctx->cv.notify_one();
+        return;
+    }
+    
+    DEBUG_LOG("[ProcessLoopback] MTA thread COM initialized\n");
+    DEBUG_LOGF("[ProcessLoopback] MTA device ID: %S\n", ctx->deviceId);
+    
+    // 构造进程 Loopback 激活参数
+    AUDIOCLIENT_ACTIVATION_PARAMS activationParams = {};
+    activationParams.ActivationType = AUDIOCLIENT_ACTIVATION_TYPE_PROCESS_LOOPBACK;
+    activationParams.ProcessLoopbackParams.ProcessLoopbackMode = ctx->mode;
+    activationParams.ProcessLoopbackParams.TargetProcessId = ctx->processId;
+
+    PROPVARIANT activateParams = {};
+    activateParams.vt = VT_BLOB;
+    activateParams.blob.cbSize = sizeof(activationParams);
+    activateParams.blob.pBlobData = (BYTE*)&activationParams;
+
+    // 创建激活完成处理器
+    Microsoft::WRL::ComPtr<ActivationHandler> handler;
+    handler.Attach(new ActivationHandler());
+
+    // 异步激活 IAudioClient3
+    DEBUG_LOG("[ProcessLoopback] MTA thread calling ActivateAudioInterfaceAsync...\n");
+    Microsoft::WRL::ComPtr<IActivateAudioInterfaceAsyncOperation> asyncOp;
+    hr = ActivateAudioInterfaceAsync(
+        ctx->deviceId,
+        __uuidof(IAudioClient3),
+        &activateParams,
+        handler.Get(),
+        &asyncOp
+    );
+    
+    if (FAILED(hr)) {
+        DEBUG_LOGF("[ProcessLoopback] MTA ActivateAudioInterfaceAsync failed: 0x%08X\n", hr);
+        std::lock_guard<std::mutex> lock(ctx->mutex);
+        ctx->activationHr = hr;
+        ctx->completed = true;
+        ctx->cv.notify_one();
+        if (comInitialized) CoUninitialize();
+        if (roInitialized) RoUninitialize();
+        return;
+    }
+
+    DEBUG_LOG("[ProcessLoopback] MTA thread waiting for activation...\n");
+    
+    // 等待激活完成（最多 5 秒）
+    if (!handler->WaitForActivation(5000)) {
+        DEBUG_LOG("[ProcessLoopback] MTA activation timeout\n");
+        std::lock_guard<std::mutex> lock(ctx->mutex);
+        ctx->activationHr = E_FAIL;
+        ctx->completed = true;
+        ctx->cv.notify_one();
+        if (comInitialized) CoUninitialize();
+        if (roInitialized) RoUninitialize();
+        return;
+    }
+
+    HRESULT activationResult = handler->GetActivationResult();
+    if (FAILED(activationResult)) {
+        DEBUG_LOGF("[ProcessLoopback] MTA activation result failed: 0x%08X\n", activationResult);
+        std::lock_guard<std::mutex> lock(ctx->mutex);
+        ctx->activationHr = activationResult;
+        ctx->completed = true;
+        ctx->cv.notify_one();
+        if (comInitialized) CoUninitialize();
+        if (roInitialized) RoUninitialize();
+        return;
+    }
+
+    // 成功获取 IAudioClient3
+    DEBUG_LOG("[ProcessLoopback] MTA activation succeeded!\n");
+    {
+        std::lock_guard<std::mutex> lock(ctx->mutex);
+        ctx->audioClient3 = handler->GetAudioClient3();
+        ctx->activationHr = S_OK;
+        ctx->completed = true;
+        ctx->cv.notify_one();
+    }
+    
+    // 清理：依次反向清理 COM 和 Windows Runtime
+    if (comInitialized) {
+        CoUninitialize();
+        DEBUG_LOG("[ProcessLoopback] MTA COM uninitialized\n");
+    }
+    if (roInitialized) {
+        RoUninitialize();
+        DEBUG_LOG("[ProcessLoopback] MTA Windows Runtime uninitialized\n");
+    }
+    DEBUG_LOG("[ProcessLoopback] MTA thread completed\n");
+}
+#include <versionhelpers.h>
+
+// v2.0: 获取 IAudioClient3 指针
+Microsoft::WRL::ComPtr<IAudioClient3> AudioClient::GetAudioClient3() const {
+    return audioClient3_;
+}
+
+// v2.0: 检测系统是否支持进程隔离
+bool AudioClient::IsProcessLoopbackSupported() {
+    // 检查 Windows 版本 >= 10.0.18362 (19H1)
+    OSVERSIONINFOEXW osvi = {};
+    osvi.dwOSVersionInfoSize = sizeof(osvi);
+    osvi.dwBuildNumber = 18362;
+    
+    DWORDLONG conditionMask = 0;
+    VER_SET_CONDITION(conditionMask, VER_BUILDNUMBER, VER_GREATER_EQUAL);
+    
+    return VerifyVersionInfoW(&osvi, VER_BUILDNUMBER, conditionMask) != FALSE;
+}
+
+// v2.0: 进程隔离模式初始化（使用单独的 STA 线程）
+bool AudioClient::InitializeProcessLoopback(DWORD processId, PROCESS_LOOPBACK_MODE mode) {
+    // 检查系统支持
+    if (!IsProcessLoopbackSupported()) {
+        DEBUG_LOG("[ProcessLoopback] System not supported\n");
+        return false;
+    }
+    
+    DEBUG_LOGF("[ProcessLoopback] Initializing for PID=%lu, mode=%d\n", processId, mode);
+    
+    // 1. 获取默认渲染设备 ID
+    // 根据微软官方文档，Process Loopback 必须使用实际的音频设备 ID (默认渲染设备)
+    // ActivateAudioInterfaceAsync 会根据 AUDIOCLIENT_ACTIVATION_PARAMS 自动处理进程隔离
+    HRESULT hr;
+    Microsoft::WRL::ComPtr<IMMDeviceEnumerator> enumerator;
+    hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL,
+                         __uuidof(IMMDeviceEnumerator), &enumerator);
+    if (FAILED(hr)) {
+        DEBUG_LOGF("[ProcessLoopback] Failed to create enumerator: 0x%08X\n", hr);
+        return false;
+    }
+
+    Microsoft::WRL::ComPtr<IMMDevice> device;
+    hr = enumerator->GetDefaultAudioEndpoint(eRender, eConsole, &device);
+    if (FAILED(hr)) {
+        DEBUG_LOGF("[ProcessLoopback] Failed to get default device: 0x%08X\n", hr);
+        return false;
+    }
+
+    LPWSTR deviceId = nullptr;
+    hr = device->GetId(&deviceId);
+    if (FAILED(hr)) {
+        DEBUG_LOGF("[ProcessLoopback] Failed to get device ID: 0x%08X\n", hr);
+        return false;
+    }
+    
+    DEBUG_LOGF("[ProcessLoopback] Using default render device: %S\n", deviceId);
+
+    // 2. 构造进程 Loopback 激活参数
+    AUDIOCLIENT_ACTIVATION_PARAMS activationParams = {};
+    activationParams.ActivationType = AUDIOCLIENT_ACTIVATION_TYPE_PROCESS_LOOPBACK;
+    activationParams.ProcessLoopbackParams.ProcessLoopbackMode = mode;
+    activationParams.ProcessLoopbackParams.TargetProcessId = processId;
+
+    PROPVARIANT activateParams = {};
+    activateParams.vt = VT_BLOB;
+    activateParams.blob.cbSize = sizeof(activationParams);
+    activateParams.blob.pBlobData = (BYTE*)&activationParams;
+
+    // 3. 创建激活完成处理器
+    Microsoft::WRL::ComPtr<ActivationHandler> handler;
+    handler.Attach(new ActivationHandler());
+
+    // 4. 直接调用 ActivateAudioInterfaceAsync (不使用单独线程)
+    DEBUG_LOG("[ProcessLoopback] Calling ActivateAudioInterfaceAsync...\n");
+    Microsoft::WRL::ComPtr<IActivateAudioInterfaceAsyncOperation> asyncOp;
+    hr = ActivateAudioInterfaceAsync(
+        deviceId,
+        __uuidof(IAudioClient3),
+        &activateParams,
+        handler.Get(),
+        &asyncOp
+    );
+    
+    // 释放设备 ID
+    CoTaskMemFree(deviceId);
+    deviceId = nullptr;
+    
+    if (FAILED(hr)) {
+        DEBUG_LOGF("[ProcessLoopback] ActivateAudioInterfaceAsync failed: 0x%08X\n", hr);
+        return false;
+    }
+
+    DEBUG_LOG("[ProcessLoopback] Waiting for activation...\n");
+    
+    // 5. 等待激活完成（最多 5 秒）
+    if (!handler->WaitForActivation(5000)) {
+        DEBUG_LOG("[ProcessLoopback] Activation timeout\n");
+        return false;
+    }
+
+    HRESULT activationResult = handler->GetActivationResult();
+    if (FAILED(activationResult)) {
+        DEBUG_LOGF("[ProcessLoopback] Activation result failed: 0x%08X\n", activationResult);
+        return false;
+    }
+
+    // 6. 获取 IAudioClient3 指针
+    Microsoft::WRL::ComPtr<IAudioClient3> audioClient3 = handler->GetAudioClient3();
+    if (!audioClient3) {
+        DEBUG_LOG("[ProcessLoopback] IAudioClient3 is null\n");
+        return false;
+    }
+    
+    DEBUG_LOG("[ProcessLoopback] Activation successful!\n");
+    audioClient3_ = audioClient3;
+
+    // 6. 获取设备默认格式
+    WAVEFORMATEX* pFormat = nullptr;
+    hr = audioClient3_->GetMixFormat(&pFormat);
+    if (FAILED(hr)) {
+        DEBUG_LOGF("[ProcessLoopback] GetMixFormat failed: 0x%08X\n", hr);
+        return false;
+    }
+    
+    DEBUG_LOG("[ProcessLoopback] GetMixFormat succeeded\n");
+
+    // 7. 初始化音频客户端（共享模式 + 环回 + 事件驱动）
+    hr = audioClient3_->Initialize(
+        AUDCLNT_SHAREMODE_SHARED,
+        AUDCLNT_STREAMFLAGS_LOOPBACK | AUDCLNT_STREAMFLAGS_EVENTCALLBACK,
+        10000000,  // 1 秒缓冲区 (100ns 单位)
+        0,
+        pFormat,
+        nullptr
+    );
+    CoTaskMemFree(pFormat);
+    
+    if (FAILED(hr)) {
+        DEBUG_LOGF("[ProcessLoopback] Initialize failed: 0x%08X\n", hr);
+        return false;
+    }
+    
+    DEBUG_LOG("[ProcessLoopback] Initialize succeeded\n");
+
+    // 8. 获取 IAudioCaptureClient 接口
+    Microsoft::WRL::ComPtr<IAudioCaptureClient> captureClient;
+    hr = audioClient3_->GetService(__uuidof(IAudioCaptureClient), 
+                                    (void**)&captureClient);
+    if (FAILED(hr)) {
+        DEBUG_LOGF("[ProcessLoopback] GetService failed: 0x%08X\n", hr);
+        return false;
+    }
+    
+    DEBUG_LOG("[ProcessLoopback] All initialization steps succeeded!\n");
+
+    captureClient_ = captureClient;
+    usingProcessLoopback_ = true;
+    initialized_ = true;
+    // 注意：Process Loopback 不使用物理设备，所以不设置 device_
+    
+    return true;
+}

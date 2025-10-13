@@ -6,7 +6,9 @@
 #include <functional>
 #include <vector>
 #include <cstdint>
+#include <memory>
 #include "audio_params.h"
+#include "audio_session_manager.h"  // v2.0: 音频会话管理
 
 class AudioClient {
 public:
@@ -15,6 +17,9 @@ public:
 
     // 初始化音频客户端
     bool Initialize(const AudioActivationParams& params);
+    
+    // v2.0: 初始化并启用进程过滤
+    bool InitializeWithProcessFilter(DWORD processId);
 
     // 获取底层 IAudioClient 指针
     Microsoft::WRL::ComPtr<IAudioClient> GetAudioClient() const;
@@ -28,14 +33,11 @@ public:
     // 激活完成回调
     void ActivateCompleted(HRESULT hr, Microsoft::WRL::ComPtr<IAudioClient> client);
 
-
     // 设置事件句柄
     bool SetEventHandle(HANDLE hEvent);
 
-
     // 开始音频捕获
     bool Start();
-
 
     // 停止音频捕获
     bool Stop();
@@ -46,6 +48,12 @@ public:
     // 设置音频数据回调
     using AudioDataCallback = std::function<void(const std::vector<uint8_t>&)>;
     void SetAudioDataCallback(AudioDataCallback callback);
+    
+    // v2.0: 进程过滤相关
+    void SetProcessFilter(DWORD processId);  // 0 = 禁用过滤
+    DWORD GetProcessFilter() const { return filterProcessId_; }
+    bool IsProcessFilterEnabled() const { return filterProcessId_ != 0; }
+    bool IsTargetProcessPlayingAudio() const;
 
 private:
     Microsoft::WRL::ComPtr<IMMDevice> device_;
@@ -53,4 +61,8 @@ private:
     Microsoft::WRL::ComPtr<IAudioCaptureClient> captureClient_;
     bool initialized_ = false;
     AudioDataCallback audioDataCallback_;
+    
+    // v2.0: 进程过滤
+    DWORD filterProcessId_ = 0;  // 0 = 不过滤
+    std::unique_ptr<audio_capture::AudioSessionManager> sessionManager_;
 };

@@ -52,6 +52,24 @@
     <Filter Include="..\src">
       <UniqueIdentifier>{8CDEE807-BC53-E450-C8B8-4DEBB66742D4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="..\src\wasapi">
+      <UniqueIdentifier>{6DB0FDFB-9A01-1C66-C11F-00E57420327C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\src">
+      <UniqueIdentifier>{8CDEE807-BC53-E450-C8B8-4DEBB66742D4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\src\wasapi">
+      <UniqueIdentifier>{6DB0FDFB-9A01-1C66-C11F-00E57420327C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..">
+      <UniqueIdentifier>{739DB09A-CC57-A953-A6CF-F64FA08E4FA7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="..\src">
+      <UniqueIdentifier>{8CDEE807-BC53-E450-C8B8-4DEBB66742D4}</UniqueIdentifier>
+    </Filter>
     <Filter Include="..\src\napi">
       <UniqueIdentifier>{610F1D7C-AFD0-2654-5C0D-7D7637EC9355}</UniqueIdentifier>
     </Filter>
@@ -103,6 +121,12 @@
       <Filter>..\src\wasapi</Filter>
     </ClCompile>
     <ClCompile Include="..\src\wasapi\audio_client.cpp">
+      <Filter>..\src\wasapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\wasapi\audio_session_manager.cpp">
+      <Filter>..\src\wasapi</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\wasapi\activation_handler.cpp">
       <Filter>..\src\wasapi</Filter>
     </ClCompile>
     <ClCompile Include="..\src\wasapi\capture_thread.cpp">

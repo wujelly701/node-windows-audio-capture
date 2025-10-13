@@ -25,9 +25,10 @@ Napi::Object AudioProcessor::Init(Napi::Env env, Napi::Object exports) {
 AudioProcessor::AudioProcessor(const Napi::CallbackInfo& info) : Napi::ObjectWrap<AudioProcessor>(info) {
     Napi::Env env = info.Env();
     
-    // 初始化 COM
-    HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-    comInitialized_ = SUCCEEDED(hr);
+    // 初始化 COM (v2.0: 使用 APARTMENTTHREADED 以支持 ActivateAudioInterfaceAsync)
+    // 注意: 如果已经初始化则会返回 S_FALSE 或 RPC_E_CHANGED_MODE
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    comInitialized_ = (hr == S_OK || hr == S_FALSE);
     
     // 参数验证：需要传入 { processId: number, callback: function }
     if (info.Length() < 1 || !info[0].IsObject()) {
@@ -87,14 +88,35 @@ AudioProcessor::~AudioProcessor() {
 Napi::Value AudioProcessor::Start(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
     
-    // 初始化 AudioClient（使用指定的进程 ID）
-    AudioActivationParams params;
-    params.targetProcessId = processId_;
-    params.loopbackMode = ProcessLoopbackMode::INCLUDE;
+    // v2.0: 根据 processId 选择初始化模式
+    bool initSuccess = false;
     
-    if (!client_->Initialize(params)) {
-        Napi::Error::New(env, "Failed to initialize audio client").ThrowAsJavaScriptException();
-        return env.Undefined();
+    if (processId_ > 0) {
+        // v2.0: 使用进程过滤模式（标准 Loopback + 音频会话过滤）
+        // 这种方式从 Windows 7 开始就支持，无需特殊版本检查
+        
+        // v2.0: 使用进程过滤方式（标准 Loopback + 会话过滤）
+        initSuccess = client_->InitializeWithProcessFilter(processId_);
+        
+        if (!initSuccess) {
+            Napi::Error::New(env, 
+                "Failed to initialize process filter. "
+                "Make sure the process ID is valid and the process is running."
+            ).ThrowAsJavaScriptException();
+            return env.Undefined();
+        }
+    } else {
+        // 使用标准 Loopback 模式（向后兼容 v1.0）
+        AudioActivationParams params;
+        params.targetProcessId = 0;
+        params.loopbackMode = ProcessLoopbackMode::INCLUDE;
+        
+        initSuccess = client_->Initialize(params);
+        
+        if (!initSuccess) {
+            Napi::Error::New(env, "Failed to initialize audio client").ThrowAsJavaScriptException();
+            return env.Undefined();
+        }
     }
     
     // 设置事件句柄（在 Start() 之前必须设置）

@@ -8,7 +8,8 @@ Production-ready Windows 音频捕获 Node.js Native Addon，基于 WASAPI 标�
 
 ## ✨ 特性
 
-- � **系统音频捕获**：使用 WASAPI Loopback 模式捕获所有系统音频输出
+- 🎵 **系统音频捕获**：使用 WASAPI Loopback 模式捕获所有系统音频输出
+- 🎯 **v2.0 进程音频过滤**：只捕获指定进程的音频，支持应用级音频隔离 ✨ NEW
 - 🔄 **事件驱动架构**：基于 EventEmitter，支持 data、error、started、stopped 等事件
 - ⚡ **高性能**：低延迟（< 50ms）、低 CPU 占用（< 5%）、高吞吐量（~100 packets/s）
 - 🎛️ **状态管理**：支持 start、stop、pause、resume 操作，完整的状态跟踪
@@ -16,7 +17,8 @@ Production-ready Windows 音频捕获 Node.js Native Addon，基于 WASAPI 标�
 - 🛡️ **完善的错误处理**：详细的错误消息和异常处理
 - 🧪 **完整测试覆盖**：42 个测试用例，83.63% 代码覆盖率
 - 📝 **TypeScript 支持**：完整的 .d.ts 类型定义
-- � **丰富文档**：API 文档、示例代码、测试文档
+- 📚 **丰富文档**：API 文档、示例代码、测试文档
+- ✅ **兼容性强**：Windows 7+ 支持，无需管理员权限
 
 ## 📋 系统要求
 
@@ -105,6 +107,47 @@ capture.on('stopped', () => {
 await capture.start();
 setTimeout(() => capture.stop(), 30000);  // 30秒录制
 ```
+
+### v2.0 进程音频过滤 ✨ NEW
+
+只捕获指定进程的音频（例如：只捕获 Chrome 浏览器的音频）：
+
+```javascript
+const addon = require('node-windows-audio-capture');
+
+// 1. 查找目标进程
+const processes = addon.enumerateProcesses();
+const chrome = processes.find(p => p.name === 'chrome.exe');
+
+if (!chrome) {
+    console.log('未找到 Chrome 进程');
+    process.exit(1);
+}
+
+// 2. 创建进程过滤捕获器
+const processor = new addon.AudioProcessor({
+    sampleRate: 48000,
+    bitsPerSample: 16,
+    channels: 2,
+    processId: chrome.pid  // 只捕获 Chrome 的音频
+});
+
+// 3. 启动捕获
+processor.start();
+console.log(`开始捕获 Chrome (PID: ${chrome.pid}) 的音频`);
+
+// 4. 停止捕获
+setTimeout(() => {
+    processor.stop();
+    console.log('捕获完成');
+}, 10000);
+```
+
+**特性：**
+- ✅ Windows 7+ 支持
+- ✅ 无需管理员权限
+- ✅ 低延迟，低资源占用
+- 📖 详细文档：[V2_PROCESS_FILTER_GUIDE.md](./V2_PROCESS_FILTER_GUIDE.md)
 
 ### 暂停和恢复
 

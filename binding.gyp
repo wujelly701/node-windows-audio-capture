@@ -6,6 +6,8 @@
         "src/wasapi/com_initializer.cpp",
         "src/wasapi/audio_params.cpp",
         "src/wasapi/audio_client.cpp",
+        "src/wasapi/audio_session_manager.cpp",
+        "src/wasapi/activation_handler.cpp",
         "src/wasapi/capture_thread.cpp",
         "src/wasapi/error_handler.cpp",
         "src/napi/addon.cpp",
@@ -40,7 +42,9 @@
             "oleaut32.lib",
             "uuid.lib",
             "winmm.lib",
-            "avrt.lib"
+            "avrt.lib",
+            "mmdevapi.lib",
+            "runtimeobject.lib"
           ]
         }]
       ]

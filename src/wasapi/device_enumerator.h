@@ -60,6 +60,12 @@ public:
      */
     ComPtr<IMMDevice> GetDefaultDevice();
 
+    /**
+     * Get the underlying device enumerator COM interface
+     * @return IMMDeviceEnumerator pointer
+     */
+    ComPtr<IMMDeviceEnumerator> GetEnumerator() const { return device_enumerator_; }
+
 private:
     ComPtr<IMMDeviceEnumerator> device_enumerator_;
     bool initialized_;

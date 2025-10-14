@@ -11,6 +11,7 @@
         "src/wasapi/capture_thread.cpp",
         "src/wasapi/error_handler.cpp",
         "src/wasapi/device_enumerator.cpp",
+        "src/wasapi/device_notification_client.cpp",
         "src/napi/addon.cpp",
         "src/napi/audio_processor.cpp",
         "src/napi/process_enumerator.cpp",

@@ -103,6 +103,51 @@ export interface AudioDeviceInfo {
 }
 
 /**
+ * v2.4: 设备事件类型
+ * @since 2.4.0
+ */
+export type DeviceEventType = 
+    | 'deviceAdded'           // 设备已添加（热插拔）
+    | 'deviceRemoved'         // 设备已移除（热拔出）
+    | 'defaultDeviceChanged'  // 默认设备已更改
+    | 'deviceStateChanged'    // 设备状态已更改
+    | 'devicePropertyChanged'; // 设备属性已更改
+
+/**
+ * v2.4: 设备事件数据
+ * @since 2.4.0
+ */
+export interface DeviceEvent {
+    /**
+     * 事件类型
+     */
+    type: DeviceEventType;
+    
+    /**
+     * 设备 ID
+     */
+    deviceId: string;
+    
+    /**
+     * 设备状态（仅当 type='deviceStateChanged' 时有值）
+     * 1=ACTIVE, 2=DISABLED, 4=NOT_PRESENT, 8=UNPLUGGED
+     */
+    state?: number;
+    
+    /**
+     * 数据流方向（仅当 type='defaultDeviceChanged' 时有值）
+     * 0=Render(输出), 1=Capture(输入), 2=All
+     */
+    dataFlow?: number;
+    
+    /**
+     * 设备角色（仅当 type='defaultDeviceChanged' 时有值）
+     * 0=Console, 1=Multimedia, 2=Communications
+     */
+    role?: number;
+}
+
+/**
  * @deprecated Use AudioDeviceInfo instead
  * @since 1.0.0
  */
@@ -220,6 +265,20 @@ export declare class AudioCapture extends EventEmitter {
      * @since 2.3.0
      */
     static getDefaultDeviceId(): Promise<string | null>;
+    
+    /**
+     * v2.4: 开始监控设备事件（热插拔、设备更改等）
+     * @param callback 设备事件回调函数
+     * @throws {Error} 如果已经在监控或启动失败
+     * @since 2.4.0
+     */
+    static startDeviceMonitoring(callback: (event: DeviceEvent) => void): void;
+    
+    /**
+     * v2.4: 停止监控设备事件
+     * @since 2.4.0
+     */
+    static stopDeviceMonitoring(): void;
     
     /**
      * 枚举所有运行中的进程（包含音频会话的进程）

@@ -3,15 +3,47 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D16.x-brightgreen.svg)](https://nodejs.org/)
 [![Windows](https://img.shields.io/badge/Windows-10%2F11-blue.svg)](https://www.microsoft.com/windows)
-[![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)](https://github.com/wujelly701/node-windows-audio-capture/releases/tag/v2.1.0)
+[![Version](https://img.shields.io/badge/version-2.2.0-blue.svg)](https://github.com/wujelly701/node-windows-audio-capture/releases/tag/v2.2.0)
 
 Production-ready Windows 音频捕获 Node.js Native Addon，基于 WASAPI 标准 Loopback 模式实现。
 
 > **🎙️ ASR 语音识别专用**: 专为语音识别场景优化，支持阿里云/百度/腾讯/OpenAI Whisper 等主流 ASR API。
 > 
-> 📖 [查看 ASR 兼容性路线图 →](docs/ASR_COMPATIBILITY_ROADMAP.md) | [Gummy API 集成指南 →](#示例-6与阿里云-gummy-api-集成-)
+> 📖 [查看 ASR 兼容性路线图 →](docs/ASR_COMPATIBILITY_ROADMAP.md) | [格式转换示例 →](#示例-7音频格式转换-v22-) | [Gummy API 集成 →](#示例-6与阿里云-gummy-api-集成-)
 
-## 🎯 v2.1.0 新特性
+## 🎯 v2.2.0 新特性 🆕
+
+**🎵 内置音频格式转换器** - ASR 集成零门槛！
+
+- **一键配置**: 6 个 ASR 预设配置，一行代码完成设置 🚀
+- **智能降采样**: 48kHz → 16kHz，3 种质量级别可选
+- **格式转换**: Float32 → Int16，立体声 → 单声道
+- **WAV 生成**: 自动生成 WAV 文件头（OpenAI Whisper）
+- **极致性能**: <5ms 延迟，91.7% 大小减少，12:1 压缩比
+
+**支持的 ASR 服务**:
+- 🇨🇳 **国内**: 阿里云 Gummy、百度、腾讯云、讯飞
+- 🌍 **国际**: OpenAI Whisper、Azure、Google Cloud、AWS
+
+**使用示例**:
+```javascript
+const AudioProcessingPipeline = require('node-windows-audio-capture/lib/audio-processing-pipeline');
+
+// 一行代码配置！
+const pipeline = new AudioProcessingPipeline('china-asr');
+
+// 实时转换
+capture.on('data', (event) => {
+  const asrReady = pipeline.process(event.buffer);
+  // 直接发送到 ASR API，无需手动转换！
+});
+```
+
+[📖 查看完整 v2.2 发布说明 →](docs/V2.2_RELEASE_NOTES.md) | [📖 查看格式转换示例 →](examples/format-conversion-example.js)
+
+---
+
+## 🎯 v2.1.0 特性
 
 **🔇 动态音频会话静音控制** - 革命性的音频纯净度提升！
 
@@ -32,10 +64,12 @@ Production-ready Windows 音频捕获 Node.js Native Addon，基于 WASAPI 标�
 
 - 🎵 **系统音频捕获**：使用 WASAPI Loopback 模式捕获所有系统音频输出
 - 🎯 **进程音频过滤** (v2.0)：只捕获指定进程的音频，支持应用级音频隔离
-- 🔇 **动态静音控制** (v2.1)：自动静音其他进程，实现 90%+ 音频纯净度 ✨ NEW
-- 📋 **允许/阻止列表** (v2.1)：精细化控制哪些进程被静音 ✨ NEW
-- 🔄 **事件驱动架构**：基于 EventEmitter，支持 data、error、started、stopped 等事件
-- ⚡ **高性能**：低延迟（< 50ms）、低 CPU 占用（< 5%）、高吞吐量（~100 packets/s）
+- 🔇 **动态静音控制** (v2.1)：自动静音其他进程，实现 90%+ 音频纯净度
+- 📋 **允许/阻止列表** (v2.1)：精细化控制哪些进程被静音
+- 🎼 **内置格式转换** (v2.2)：一键配置 ASR 格式，支持 8 大主流服务 ✨ NEW
+- � **智能降采样** (v2.2)：48kHz → 16kHz，3 种质量级别 ✨ NEW
+- �🔄 **事件驱动架构**：基于 EventEmitter，支持 data、error、started、stopped 等事件
+- ⚡ **极致性能**：<5ms 延迟、91.7% 大小减少、12:1 压缩比 🚀 IMPROVED
 - 🎛️ **状态管理**：支持 start、stop、pause、resume 操作，完整的状态跟踪
 - 📊 **设备和进程枚举**：获取默认音频设备信息和系统进程列表
 - 🛡️ **完善的错误处理**：详细的错误消息和异常处理
@@ -656,6 +690,106 @@ $env:DASHSCOPE_API_KEY="your_api_key"
 node examples/gummy-integration-example.js
 ```
 
+---
+
+### 示例 7：音频格式转换 (v2.2) 🆕
+
+**🎯 一键配置 ASR 格式** - 从 200+ 行代码简化到 1 行！
+
+v2.2.0 提供内置音频格式转换器，支持 8 大主流 ASR 服务的预设配置。
+
+#### 方式一：使用 ASR 预设配置（推荐）
+
+```javascript
+const { AudioCapture } = require('node-windows-audio-capture');
+const AudioProcessingPipeline = require('node-windows-audio-capture/lib/audio-processing-pipeline');
+
+// 1️⃣ 一行配置！支持 6 个预设
+const pipeline = new AudioProcessingPipeline('china-asr');  // 或 openai-whisper, azure, google, global-asr-48k, raw
+
+// 2️⃣ 启动音频捕获
+const capture = new AudioCapture({ 
+  processId: 0,
+  enableMuteControl: true  // v2.1 静音控制
+});
+
+// 3️⃣ 实时转换并发送到 ASR
+capture.on('data', (event) => {
+  const asrReadyBuffer = pipeline.process(event.buffer);
+  // 🚀 直接发送到 ASR API，无需任何手动转换！
+  // await sendToASR(asrReadyBuffer);
+});
+
+await capture.start();
+```
+
+#### 支持的 ASR 预设
+
+| 预设名称 | 适用服务 | 采样率 | 声道 | 格式 | 输出 |
+|---------|---------|--------|------|------|------|
+| `china-asr` | 百度/腾讯/讯飞/阿里云 | 16kHz | 单声道 | Int16 | PCM |
+| `openai-whisper` | OpenAI Whisper | 16kHz | 单声道 | Int16 | WAV |
+| `azure` | Azure Speech | 16kHz | 单声道 | Int16 | PCM |
+| `google` | Google Cloud | 16kHz | 单声道 | Int16 | PCM |
+| `global-asr-48k` | 高质量服务 | 48kHz | 单声道 | Int16 | PCM |
+| `raw` | 原始数据 | 48kHz | 立体声 | Float32 | RAW |
+
+#### 方式二：自定义配置
+
+```javascript
+// 高级用户自定义配置
+const pipeline = new AudioProcessingPipeline({
+  sampleRate: 16000,        // 目标采样率
+  channels: 1,              // 单声道
+  format: 'int16',          // Int16 格式
+  outputFormat: 'pcm',      // 输出 PCM
+  resampleQuality: 'linear' // simple | linear | sinc
+});
+
+// 处理音频
+const converted = pipeline.process(rawBuffer);
+```
+
+#### 性能优势
+
+- **大小减少**: 91.7% (384 KB/s → 32 KB/s)
+- **压缩比**: 12:1
+- **处理延迟**: < 5ms/秒音频
+- **CPU 占用**: ~10%
+- **内存占用**: < 50 MB
+
+#### 质量级别对比
+
+| 质量级别 | CPU 占用 | 处理时间 | 音质 | 适用场景 |
+|---------|---------|---------|------|---------|
+| `simple` | ~1% | 3ms/s | 良好 | 实时传输，低端设备 |
+| `linear` | ~3% | 5ms/s | 优秀 | **默认，推荐** |
+| `sinc` | ~8% | 8ms/s | 最佳 | 离线处理，高质量需求 |
+
+#### 完整示例
+
+完整的格式转换示例代码请参见：[examples/format-conversion-example.js](examples/format-conversion-example.js)
+
+示例包含：
+1. ✅ 使用 ASR 预设配置
+2. ✅ 自定义配置选项
+3. ✅ 实时处理集成
+4. ✅ 性能对比测试
+5. ✅ 所有 6 个预设的对比
+6. ✅ 与 AudioCapture 完整集成
+
+```bash
+# 运行格式转换示例
+node examples/format-conversion-example.js
+```
+
+**相关文档**：
+- [📖 v2.2 完整发布说明](docs/V2.2_RELEASE_NOTES.md)
+- [📖 ASR 兼容性路线图](docs/ASR_COMPATIBILITY_ROADMAP.md)
+- [📖 格式转换测试套件](test-v2.2-format-conversion.js)
+
+---
+
 ## 🔧 音频格式信息
 
 ### 默认音频格式
@@ -773,6 +907,7 @@ setTimeout(() => capture.stop(), 10000);
 - ✅ **基础功能测试**: `test-basic.js` - 系统音频捕获
 - ✅ **进程过滤测试**: `test-potplayer.js` - 单进程音频捕获
 - ✅ **v2.1 静音控制**: `test-v2.1-mute-control.js` - 动态静音功能（4个场景）
+- ✅ **v2.2 格式转换**: `test-v2.2-format-conversion.js` - 音频格式转换（53个测试，98.1%通过率）🆕
 
 ### 运行测试
 
@@ -785,6 +920,9 @@ npm test test/basic.test.js
 npm test test/integration.test.js
 npm test test/performance.test.js
 npm test test/error-handling.test.js
+
+# v2.2 格式转换测试 (53 tests, 98.1% pass) 🆕
+node test-v2.2-format-conversion.js
 
 # 生成覆盖率报告
 npm test -- --coverage

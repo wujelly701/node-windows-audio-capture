@@ -53,6 +53,21 @@ jobs:
         run: npm test
         continue-on-error: true
       
+      - name: Generate coverage report
+        if: runner.os == 'Windows'
+        run: npm run test:coverage --if-present || npm test
+        continue-on-error: true
+      
+      - name: Upload coverage to Codecov
+        if: runner.os == 'Windows' && matrix.node == '20'
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-${{ matrix.os }}-node${{ matrix.node }}
+        continue-on-error: true
+      
       - name: Run linter
         run: npm run lint --if-present
         continue-on-error: true

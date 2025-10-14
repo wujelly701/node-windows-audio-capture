@@ -1,0 +1,222 @@
+name: Release and Publish
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  # 1. 创建GitHub Release
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      version: ${{ steps.get_version.outputs.version }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Get version from tag
+        id: get_version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION"
+      
+      - name: Generate changelog
+        id: changelog
+        run: |
+          if [ -f "CHANGELOG.md" ]; then
+            # 提取当前版本的变更日志
+            sed -n "/## \[.*\] - $(date +%Y-%m-%d)/,/## \[/p" CHANGELOG.md > RELEASE_NOTES.md
+          else
+            echo "Release ${{ steps.get_version.outputs.version }}" > RELEASE_NOTES.md
+          fi
+      
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          name: Release v${{ steps.get_version.outputs.version }}
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: ${{ contains(steps.get_version.outputs.version, 'alpha') || contains(steps.get_version.outputs.version, 'beta') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # 2. 构建预编译二进制
+  prebuild:
+    name: Prebuild ${{ matrix.platform }}-${{ matrix.arch }}
+    needs: create-release
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Windows
+          - os: windows-latest
+            arch: x64
+            platform: win32
+          
+          # macOS (暂不支持，v3.0开发)
+          # - os: macos-latest
+          #   arch: x64
+          #   platform: darwin
+          # - os: macos-latest
+          #   arch: arm64
+          #   platform: darwin
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build native addon
+        run: npm run build
+        env:
+          npm_config_build_from_source: true
+      
+      - name: Create prebuild
+        run: node scripts/prebuild.js
+      
+      - name: Upload to release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ needs.create-release.outputs.version }}
+          files: prebuilds/**/*.node
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # 3. 运行完整测试
+  test:
+    name: Test before publish
+    needs: create-release
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build
+        run: npm run build
+      
+      - name: Run tests
+        run: npm test
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-v${{ needs.create-release.outputs.version }}
+
+  # 4. 发布到npm
+  publish-npm:
+    name: Publish to npm
+    needs: [create-release, prebuild, test]
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org'
+      
+      - name: Download prebuilds
+        uses: actions/download-artifact@v4
+        with:
+          pattern: prebuilds-*
+          path: prebuilds/
+          merge-multiple: true
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Verify package
+        run: |
+          npm pack --dry-run
+          echo "Package size:"
+          du -sh *.tgz 2>/dev/null || echo "No tarball generated (dry run)"
+      
+      - name: Publish to npm
+        run: |
+          if [[ "${{ needs.create-release.outputs.version }}" == *"alpha"* ]] || [[ "${{ needs.create-release.outputs.version }}" == *"beta"* ]]; then
+            npm publish --tag next
+          else
+            npm publish
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      
+      - name: Create npm link comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ needs.create-release.outputs.version }}';
+            const packageName = 'node-windows-audio-capture';
+            const comment = `
+            🎉 **Published to npm!**
+            
+            \`\`\`bash
+            npm install ${packageName}@${version}
+            \`\`\`
+            
+            📦 [View on npm](https://www.npmjs.com/package/${packageName}/v/${version})
+            `;
+            
+            github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: comment
+            });
+
+  # 5. 发布通知
+  notify:
+    name: Release notification
+    needs: [create-release, publish-npm]
+    runs-on: ubuntu-latest
+    if: always()
+    
+    steps:
+      - name: Notify success
+        if: needs.publish-npm.result == 'success'
+        run: |
+          echo "✅ Release v${{ needs.create-release.outputs.version }} published successfully!"
+          echo "📦 npm: https://www.npmjs.com/package/node-windows-audio-capture/v/${{ needs.create-release.outputs.version }}"
+          echo "🐙 GitHub: ${{ github.server_url }}/${{ github.repository }}/releases/tag/v${{ needs.create-release.outputs.version }}"
+      
+      - name: Notify failure
+        if: needs.publish-npm.result != 'success'
+        run: |
+          echo "❌ Release v${{ needs.create-release.outputs.version }} failed!"
+          exit 1

@@ -18,6 +18,14 @@ export interface AudioCaptureOptions {
     processId?: number;
     
     /**
+     * v2.3: 音频输出设备 ID
+     * 如果不指定，则使用系统默认设备
+     * 使用 AudioCapture.getAudioDevices() 获取可用设备列表
+     * @since 2.3.0
+     */
+    deviceId?: string;
+    
+    /**
      * 采样率（Hz）
      * @default 44100
      */
@@ -34,6 +42,13 @@ export interface AudioCaptureOptions {
      * @default 16
      */
     bitDepth?: number;
+    
+    /**
+     * Loopback 模式（0=排除目标进程，1=仅包含目标进程）
+     * @default 0
+     * @since 2.0.0
+     */
+    loopbackMode?: 0 | 1;
 }
 
 /**
@@ -57,7 +72,39 @@ export interface AudioDataEvent {
 }
 
 /**
- * 音频设备信息
+ * v2.3: 音频设备详细信息
+ * @since 2.3.0
+ */
+export interface AudioDeviceInfo {
+    /**
+     * 设备唯一标识符
+     */
+    id: string;
+    
+    /**
+     * 设备友好名称
+     */
+    name: string;
+    
+    /**
+     * 设备描述
+     */
+    description: string;
+    
+    /**
+     * 是否为系统默认设备
+     */
+    isDefault: boolean;
+    
+    /**
+     * 设备是否处于活动状态
+     */
+    isActive: boolean;
+}
+
+/**
+ * @deprecated Use AudioDeviceInfo instead
+ * @since 1.0.0
  */
 export interface DeviceInfo {
     /**
@@ -152,6 +199,37 @@ export declare class AudioCapture extends EventEmitter {
     getOptions(): AudioCaptureOptions;
     
     /**
+     * v2.3: 获取当前使用的设备 ID
+     * @returns 设备 ID，如果使用默认设备则返回 undefined
+     * @since 2.3.0
+     */
+    getDeviceId(): string | undefined;
+    
+    /**
+     * v2.3: 获取所有音频输出设备
+     * @returns Promise 包含设备信息数组
+     * @throws {Error} 如果枚举设备失败
+     * @since 2.3.0
+     */
+    static getAudioDevices(): Promise<AudioDeviceInfo[]>;
+    
+    /**
+     * v2.3: 获取默认音频输出设备 ID
+     * @returns Promise 包含默认设备 ID，如果未找到则为 null
+     * @throws {Error} 如果获取失败
+     * @since 2.3.0
+     */
+    static getDefaultDeviceId(): Promise<string | null>;
+    
+    /**
+     * 枚举所有运行中的进程（包含音频会话的进程）
+     * @returns Promise 包含进程信息数组
+     * @throws {Error} 如果枚举进程失败
+     * @since 2.0.0
+     */
+    static getProcesses(): Promise<ProcessInfo[]>;
+    
+    /**
      * 音频数据事件
      * @event
      */
@@ -200,13 +278,17 @@ export declare class AudioCapture extends EventEmitter {
 }
 
 /**
+ * @deprecated Use AudioCapture.getAudioDevices() instead
  * 获取默认音频设备信息
  * @throws {Error} 如果获取设备信息失败
+ * @since 1.0.0
  */
 export declare function getDeviceInfo(): DeviceInfo;
 
 /**
+ * @deprecated Use AudioCapture.getProcesses() instead
  * 枚举所有运行中的进程
  * @throws {Error} 如果枚举进程失败
+ * @since 2.0.0
  */
 export declare function enumerateProcesses(): ProcessInfo[];

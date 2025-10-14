@@ -11,7 +11,38 @@ Production-ready Windows 音频捕获 Node.js Native Addon，基于 WASAPI 标�
 > 
 > 📖 [查看 ASR 兼容性路线图 →](docs/ASR_COMPATIBILITY_ROADMAP.md) | [格式转换示例 →](#示例-7音频格式转换-v22-) | [Gummy API 集成 →](#示例-6与阿里云-gummy-api-集成-)
 
-## 🎯 v2.2.0 新特性 🆕
+## 🎯 v2.3.0 新特性 🆕
+
+**🎧 音频设备选择** - 多设备音频捕获！
+
+- **设备枚举**: 列出所有可用音频输出设备 🎛️
+- **自由选择**: 指定要捕获的音频设备
+- **多设备支持**: 同时捕获多个音频设备
+- **设备信息**: 获取设备名称、ID、状态等详细信息
+- **向后兼容**: 不指定设备时自动使用系统默认设备
+
+**使用示例**:
+```javascript
+const AudioCapture = require('node-windows-audio-capture');
+
+// 获取所有可用设备
+const devices = await AudioCapture.getAudioDevices();
+console.log('可用设备:', devices);
+
+// 捕获指定设备
+const capture = new AudioCapture({
+  deviceId: devices[0].id,
+  processId: 0
+});
+
+await capture.start();
+```
+
+[📖 查看设备选择完整文档 →](docs/device-selection.md) | [📖 查看示例代码 →](examples/device-selection.js)
+
+---
+
+## 🎯 v2.2.0 特性
 
 **🎵 内置音频格式转换器** - ASR 集成零门槛！
 
@@ -349,6 +380,156 @@ if (targetProcess) {
   console.log(`找到 Chrome: PID=${targetProcess.pid}`);
 }
 ```
+
+---
+
+### v2.3 设备选择 ✨ NEW
+
+**选择特定音频设备进行捕获，支持多设备同时录制。**
+
+#### 基础用法：列出所有设备
+
+```javascript
+const AudioCapture = require('node-windows-audio-capture');
+
+async function listDevices() {
+  // 获取所有音频输出设备
+  const devices = await AudioCapture.getAudioDevices();
+  
+  console.log('可用的音频设备:');
+  devices.forEach((device, index) => {
+    const defaultMarker = device.isDefault ? ' (系统默认)' : '';
+    const activeMarker = device.isActive ? ' [活跃]' : '';
+    console.log(`  ${index + 1}. ${device.name}${defaultMarker}${activeMarker}`);
+    console.log(`     ID: ${device.id}`);
+  });
+  
+  // 获取默认设备ID
+  const defaultId = await AudioCapture.getDefaultDeviceId();
+  console.log(`\n系统默认设备 ID: ${defaultId}`);
+}
+
+listDevices();
+```
+
+#### 捕获特定设备
+
+```javascript
+const AudioCapture = require('node-windows-audio-capture');
+
+async function captureSpecificDevice() {
+  // 获取所有设备
+  const devices = await AudioCapture.getAudioDevices();
+  
+  // 选择第一个设备
+  const targetDevice = devices[0];
+  console.log(`将要捕获: ${targetDevice.name}`);
+  
+  // 创建捕获器
+  const capture = new AudioCapture({
+    deviceId: targetDevice.id,  // 指定设备
+    processId: 0                // 捕获所有音频
+  });
+  
+  capture.on('data', (event) => {
+    console.log(`收到 ${event.length} bytes 音频数据`);
+  });
+  
+  await capture.start();
+  console.log(`正在捕获设备: ${capture.getDeviceId()}`);
+}
+
+captureSpecificDevice();
+```
+
+#### 设备 + 进程过滤组合
+
+```javascript
+const AudioCapture = require('node-windows-audio-capture');
+
+async function deviceAndProcessFilter() {
+  // 1. 选择音频设备
+  const devices = await AudioCapture.getAudioDevices();
+  const device = devices.find(d => d.name.includes('Realtek'));
+  
+  // 2. 选择进程
+  const processes = await AudioCapture.getProcesses();
+  const process = processes.find(p => p.name === 'chrome.exe');
+  
+  if (!device || !process) {
+    throw new Error('未找到目标设备或进程');
+  }
+  
+  // 3. 同时指定设备和进程
+  const capture = new AudioCapture({
+    deviceId: device.id,       // 只从这个设备捕获
+    processId: process.pid,    // 只捕获这个进程
+    loopbackMode: 1            // 进程过滤模式
+  });
+  
+  console.log(`捕获 ${process.name} 在设备 ${device.name} 上的音频`);
+  await capture.start();
+}
+
+deviceAndProcessFilter();
+```
+
+#### 多设备同时捕获
+
+```javascript
+const AudioCapture = require('node-windows-audio-capture');
+
+async function captureMultipleDevices() {
+  const devices = await AudioCapture.getAudioDevices();
+  
+  // 创建多个捕获器实例
+  const captures = devices.map(device => {
+    const capture = new AudioCapture({
+      deviceId: device.id,
+      processId: 0
+    });
+    
+    capture.on('data', (event) => {
+      console.log(`[${device.name}] ${event.length} bytes`);
+    });
+    
+    return { device, capture };
+  });
+  
+  // 同时启动所有捕获器
+  for (const { device, capture } of captures) {
+    await capture.start();
+    console.log(`✓ 已启动捕获: ${device.name}`);
+  }
+  
+  console.log(`正在同时捕获 ${captures.length} 个设备的音频`);
+}
+
+captureMultipleDevices();
+```
+
+**v2.3 新增 API：**
+- `AudioCapture.getAudioDevices()` - 获取所有音频输出设备（静态方法）
+- `AudioCapture.getDefaultDeviceId()` - 获取系统默认设备 ID（静态方法）
+- `options.deviceId` - 构造函数选项：指定要捕获的设备 ID
+- `capture.getDeviceId()` - 获取当前使用的设备 ID（实例方法）
+
+**返回类型：**
+```typescript
+interface AudioDeviceInfo {
+  id: string;           // 设备唯一标识符
+  name: string;         // 设备友好名称
+  description: string;  // 设备描述
+  isDefault: boolean;   // 是否为系统默认设备
+  isActive: boolean;    // 设备是否处于活跃状态
+}
+```
+
+📖 **完整文档**：
+- [Device Selection Guide](docs/device-selection.md) - 完整特性指南
+- [Device Selection Example](examples/device-selection.js) - 实际代码示例
+
+---
 
 ## 📚 API 文档
 

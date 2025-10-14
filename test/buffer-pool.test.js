@@ -147,7 +147,7 @@ describe('BufferPool', () => {
       }
       
       const stats = pool.getStats();
-      expect(parseFloat(stats.hitRate)).toBeGreaterThan(50);
+      expect(stats.hitRate).toBeGreaterThan(0.5); // > 50%
     });
   });
   
@@ -173,7 +173,7 @@ describe('BufferPool', () => {
       }
       
       const stats = pool.getStats();
-      expect(parseFloat(stats.hitRate)).toBe(100);
+      expect(stats.hitRate).toBe(1); // 100%
     });
   });
   
@@ -221,8 +221,8 @@ describe('BufferPool', () => {
       }
       
       const stats = pool.getStats();
-      expect(stats.hitRate).toBe('100.00%');
-      expect(stats.reuseRate).toBe('100.00%');
+      expect(stats.hitRate).toBe(1); // 100%
+      expect(stats.reuseRate).toBe(1); // 100%
     });
   });
   
@@ -286,7 +286,7 @@ describe('BufferPool', () => {
       }
       
       const stats = pool.getStats();
-      expect(parseFloat(stats.hitRate)).toBeGreaterThan(99);
+      expect(stats.hitRate).toBeGreaterThan(0.99); // > 99%
     });
   });
   

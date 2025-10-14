@@ -161,6 +161,9 @@
     <ClCompile Include="..\src\wasapi\device_enumerator.cpp">
       <ObjectFileName>$(IntDir)\src\wasapi\device_enumerator.obj</ObjectFileName>
     </ClCompile>
+    <ClCompile Include="..\src\wasapi\device_notification_client.cpp">
+      <ObjectFileName>$(IntDir)\src\wasapi\device_notification_client.obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="..\src\napi\addon.cpp">
       <ObjectFileName>$(IntDir)\src\napi\addon.obj</ObjectFileName>
     </ClCompile>

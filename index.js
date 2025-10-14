@@ -4,7 +4,7 @@
  */
 
 const { EventEmitter } = require('events');
-const addon = require('./build/Release/audio_addon.node');
+const addon = require('node-gyp-build')(__dirname);
 
 /**
  * AudioCapture 类 - 音频捕获器
@@ -185,6 +185,75 @@ class AudioCapture extends EventEmitter {
             length: buffer.length,
             timestamp: Date.now()
         });
+    }
+
+    /**
+     * v2.3: 获取所有音频输出设备
+     * @static
+     * @returns {Promise<Array>} 设备列表
+     */
+    static async getAudioDevices() {
+        try {
+            return addon.getAudioDevices();
+        } catch (error) {
+            throw new Error(`Failed to get audio devices: ${error.message}`);
+        }
+    }
+
+    /**
+     * v2.3: 获取默认音频输出设备 ID
+     * @static
+     * @returns {Promise<string|null>} 默认设备 ID
+     */
+    static async getDefaultDeviceId() {
+        try {
+            const deviceId = addon.getDefaultDeviceId();
+            return deviceId || null;
+        } catch (error) {
+            throw new Error(`Failed to get default device ID: ${error.message}`);
+        }
+    }
+
+    /**
+     * v2.4: 开始监控设备事件（热插拔、设备更改等）
+     * @static
+     * @param {Function} callback - 设备事件回调函数
+     */
+    static startDeviceMonitoring(callback) {
+        if (typeof callback !== 'function') {
+            throw new TypeError('callback must be a function');
+        }
+        
+        try {
+            addon.startDeviceMonitoring(callback);
+        } catch (error) {
+            throw new Error(`Failed to start device monitoring: ${error.message}`);
+        }
+    }
+
+    /**
+     * v2.4: 停止监控设备事件
+     * @static
+     */
+    static stopDeviceMonitoring() {
+        try {
+            addon.stopDeviceMonitoring();
+        } catch (error) {
+            throw new Error(`Failed to stop device monitoring: ${error.message}`);
+        }
+    }
+
+    /**
+     * 枚举所有运行中的进程（包含音频会话的进程）
+     * @static
+     * @returns {Array} 进程列表
+     */
+    static getProcesses() {
+        try {
+            return addon.enumerateProcesses();
+        } catch (error) {
+            throw new Error(`Failed to enumerate processes: ${error.message}`);
+        }
     }
 }
 

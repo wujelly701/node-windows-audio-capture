@@ -3,3 +3,47 @@
 分片续写与截断恢复-模板.md
 temp.md
 tasks/
+
+# Build artifacts - DO NOT COMMIT
+build/Release/
+build/Debug/
+build/**/*.obj
+build/**/*.iobj
+build/**/*.ipdb
+build/**/*.pdb
+build/**/*.tlog
+build/**/*.log
+build/**/*.lastbuildstate
+*.vcxproj.user
+*.sln.cache
+
+# Prebuilds (binary files - large)
+prebuilds/**/*.node
+
+# Test and development files
+test-*.js
+test-*.ts
+diagnose-*.js
+fix-*.js
+simple-*.js
+
+# Coverage
+coverage/
+.nyc_output/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary
+*.tmp
+*.temp
+*.backup

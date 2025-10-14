@@ -15,7 +15,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.3.0] - 2025-01-XX (In Development)
+## [2.4.0] - 2025-10-XX (Alpha - In Development)
+
+### Added
+
+#### 🔌 Device Hot-Plug Detection
+- **Real-time Device Monitoring**
+  - `AudioCapture.startDeviceMonitoring(callback)` - Start monitoring device events
+  - `AudioCapture.stopDeviceMonitoring()` - Stop monitoring
+  - 5 event types: `deviceAdded`, `deviceRemoved`, `defaultDeviceChanged`, `deviceStateChanged`, `devicePropertyChanged`
+  - COM-based `IMMNotificationClient` implementation
+  - Thread-safe event callbacks
+
+- **Device Event System**
+  - `DeviceEvent` interface with event type and metadata
+  - Real-time USB device plug/unplug detection
+  - Default audio device change notifications
+  - Device state change monitoring (enabled/disabled)
+  - Device property change tracking
+
+#### New APIs
+- **Static Methods**:
+  - `AudioCapture.startDeviceMonitoring(callback: (event: DeviceEvent) => void): void`
+  - `AudioCapture.stopDeviceMonitoring(): void`
+
+- **TypeScript Definitions**:
+  - `DeviceEventType` - Event type union
+  - `DeviceEvent` - Complete event interface
+  - Enhanced AudioCapture class definitions
+
+### Fixed
+- **Build System**
+  - Added prebuilt binary for win32-x64 platform
+  - Fixed `node-gyp-build` integration for automatic binary loading
+  - Resolved installation failures when building from GitHub
+
+### Documentation
+- Added comprehensive device hot-plug guide (bilingual)
+- Added device event testing documentation (bilingual)
+- Added installation guide with troubleshooting
+- Added version comparison document
+- Created Phase 1 completion summary (bilingual)
+
+### Tests
+- Added 20 comprehensive unit tests for device events (100% passing)
+- Added integration tests for device monitoring lifecycle
+- Added real-world scenario tests
+
+---
+
+## [2.3.0] - 2025-10-XX
 
 ### Added
 

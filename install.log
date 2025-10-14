@@ -1,0 +1,1642 @@
+0 verbose cli C:\Program Files\nodejs\node.exe C:\Program Files\nodejs\node_modules\npm\bin\npm-cli.js
+1 info using npm@10.8.2
+2 info using node@v20.19.5
+3 silly config load:file:C:\Program Files\nodejs\node_modules\npm\npmrc
+4 silly config load:file:D:\realtime-translator-all\.npmrc
+5 silly config load:file:C:\Users\wu\.npmrc
+6 silly config load:file:C:\Users\wu\AppData\Roaming\npm\etc\npmrc
+7 verbose title npm install https://github.com/wujelly701/node-windows-audio-capture/tarball/master
+8 verbose argv "install" "https://github.com/wujelly701/node-windows-audio-capture/tarball/master"
+9 verbose logfile logs-max:10 dir:C:\Users\wu\AppData\Local\npm-cache\_logs\2025-10-14T12_23_11_816Z-
+10 verbose logfile C:\Users\wu\AppData\Local\npm-cache\_logs\2025-10-14T12_23_11_816Z-debug-0.log
+11 silly packumentCache heap:4345298944 maxSize:1086324736 maxEntrySize:543162368
+12 silly logfile start cleaning logs, removing 1 files
+13 silly logfile done cleaning log files
+14 verbose shrinkwrap failed to load node_modules/.package-lock.json out of date, updated: node_modules
+15 http fetch GET 200 https://codeload.github.com/wujelly701/node-windows-audio-capture/legacy.tar.gz/main 249340ms (cache miss)
+16 silly idealTree buildDeps
+17 silly fetch manifest node-windows-audio-capture@https://github.com/wujelly701/node-windows-audio-capture/tarball/master
+18 http fetch GET https://github.com/wujelly701/node-windows-audio-capture/tarball/master attempt 1 failed with ETIMEDOUT
+19 http fetch GET https://github.com/wujelly701/node-windows-audio-capture/tarball/master attempt 2 failed with ETIMEDOUT
+20 http fetch GET 200 https://codeload.github.com/wujelly701/node-windows-audio-capture/legacy.tar.gz/main 113643ms (cache revalidated)
+21 silly placeDep ROOT node-windows-audio-capture@2.3.0 OK for: realtime-translator@1.0.0 want: https://github.com/wujelly701/node-windows-audio-capture/tarball/master
+22 silly fetch manifest node-addon-api@^8.0.0
+23 silly packumentCache full:https://registry.npmjs.org/node-addon-api cache-miss
+24 silly fetch manifest node-gyp-build@^4.8.0
+25 silly packumentCache full:https://registry.npmjs.org/node-gyp-build cache-miss
+26 http fetch GET 200 https://registry.npmjs.org/node-gyp-build 763ms (cache revalidated)
+27 silly packumentCache full:https://registry.npmjs.org/node-gyp-build set size:84545 disposed:false
+28 http fetch GET 200 https://registry.npmjs.org/node-addon-api 1226ms (cache revalidated)
+29 silly packumentCache full:https://registry.npmjs.org/node-addon-api set size:328136 disposed:false
+30 silly placeDep node_modules/node-windows-audio-capture node-addon-api@8.5.0 OK for: node-windows-audio-capture@2.3.0 want: ^8.0.0
+31 silly placeDep ROOT node-gyp-build@4.8.4 OK for: node-windows-audio-capture@2.3.0 want: ^4.8.0
+32 silly reify moves {}
+33 silly audit bulk request {
+33 silly audit   '@adobe/css-tools': [ '4.4.4' ],
+33 silly audit   '@babel/code-frame': [ '7.27.1' ],
+33 silly audit   '@babel/compat-data': [ '7.28.4' ],
+33 silly audit   '@babel/core': [ '7.28.4' ],
+33 silly audit   '@babel/generator': [ '7.28.3' ],
+33 silly audit   '@babel/helper-annotate-as-pure': [ '7.27.3' ],
+33 silly audit   '@babel/helper-compilation-targets': [ '7.27.2' ],
+33 silly audit   '@babel/helper-create-class-features-plugin': [ '7.28.3' ],
+33 silly audit   '@babel/helper-create-regexp-features-plugin': [ '7.27.1' ],
+33 silly audit   '@babel/helper-define-polyfill-provider': [ '0.6.5' ],
+33 silly audit   '@babel/helper-globals': [ '7.28.0' ],
+33 silly audit   '@babel/helper-member-expression-to-functions': [ '7.27.1' ],
+33 silly audit   '@babel/helper-module-imports': [ '7.27.1' ],
+33 silly audit   '@babel/helper-module-transforms': [ '7.28.3' ],
+33 silly audit   '@babel/helper-optimise-call-expression': [ '7.27.1' ],
+33 silly audit   '@babel/helper-plugin-utils': [ '7.27.1' ],
+33 silly audit   '@babel/helper-remap-async-to-generator': [ '7.27.1' ],
+33 silly audit   '@babel/helper-replace-supers': [ '7.27.1' ],
+33 silly audit   '@babel/helper-skip-transparent-expression-wrappers': [ '7.27.1' ],
+33 silly audit   '@babel/helper-string-parser': [ '7.27.1' ],
+33 silly audit   '@babel/helper-validator-identifier': [ '7.27.1' ],
+33 silly audit   '@babel/helper-validator-option': [ '7.27.1' ],
+33 silly audit   '@babel/helper-wrap-function': [ '7.28.3' ],
+33 silly audit   '@babel/helpers': [ '7.28.4' ],
+33 silly audit   '@babel/parser': [ '7.28.4' ],
+33 silly audit   '@babel/plugin-bugfix-firefox-class-in-computed-class-key': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-bugfix-safari-class-field-initializer-scope': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-bugfix-safari-id-destructuring-collision-in-function-expression': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-bugfix-v8-spread-parameters-in-optional-chaining': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-bugfix-v8-static-class-fields-redefine-readonly': [ '7.28.3' ],
+33 silly audit   '@babel/plugin-proposal-private-property-in-object': [ '7.21.0-placeholder-for-preset-env.2' ],
+33 silly audit   '@babel/plugin-syntax-async-generators': [ '7.8.4' ],
+33 silly audit   '@babel/plugin-syntax-bigint': [ '7.8.3' ],
+33 silly audit   '@babel/plugin-syntax-class-properties': [ '7.12.13' ],
+33 silly audit   '@babel/plugin-syntax-class-static-block': [ '7.14.5' ],
+33 silly audit   '@babel/plugin-syntax-import-assertions': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-syntax-import-attributes': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-syntax-import-meta': [ '7.10.4' ],
+33 silly audit   '@babel/plugin-syntax-json-strings': [ '7.8.3' ],
+33 silly audit   '@babel/plugin-syntax-jsx': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-syntax-logical-assignment-operators': [ '7.10.4' ],
+33 silly audit   '@babel/plugin-syntax-nullish-coalescing-operator': [ '7.8.3' ],
+33 silly audit   '@babel/plugin-syntax-numeric-separator': [ '7.10.4' ],
+33 silly audit   '@babel/plugin-syntax-object-rest-spread': [ '7.8.3' ],
+33 silly audit   '@babel/plugin-syntax-optional-catch-binding': [ '7.8.3' ],
+33 silly audit   '@babel/plugin-syntax-optional-chaining': [ '7.8.3' ],
+33 silly audit   '@babel/plugin-syntax-private-property-in-object': [ '7.14.5' ],
+33 silly audit   '@babel/plugin-syntax-top-level-await': [ '7.14.5' ],
+33 silly audit   '@babel/plugin-syntax-typescript': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-syntax-unicode-sets-regex': [ '7.18.6' ],
+33 silly audit   '@babel/plugin-transform-arrow-functions': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-async-generator-functions': [ '7.28.0' ],
+33 silly audit   '@babel/plugin-transform-async-to-generator': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-block-scoped-functions': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-block-scoping': [ '7.28.4' ],
+33 silly audit   '@babel/plugin-transform-class-properties': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-class-static-block': [ '7.28.3' ],
+33 silly audit   '@babel/plugin-transform-classes': [ '7.28.4' ],
+33 silly audit   '@babel/plugin-transform-computed-properties': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-destructuring': [ '7.28.0' ],
+33 silly audit   '@babel/plugin-transform-dotall-regex': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-duplicate-keys': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-duplicate-named-capturing-groups-regex': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-dynamic-import': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-explicit-resource-management': [ '7.28.0' ],
+33 silly audit   '@babel/plugin-transform-exponentiation-operator': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-export-namespace-from': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-for-of': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-function-name': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-json-strings': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-literals': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-logical-assignment-operators': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-member-expression-literals': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-modules-amd': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-modules-commonjs': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-modules-systemjs': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-modules-umd': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-named-capturing-groups-regex': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-new-target': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-nullish-coalescing-operator': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-numeric-separator': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-object-rest-spread': [ '7.28.4' ],
+33 silly audit   '@babel/plugin-transform-object-super': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-optional-catch-binding': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-optional-chaining': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-parameters': [ '7.27.7' ],
+33 silly audit   '@babel/plugin-transform-private-methods': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-private-property-in-object': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-property-literals': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-react-display-name': [ '7.28.0' ],
+33 silly audit   '@babel/plugin-transform-react-jsx': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-react-jsx-development': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-react-pure-annotations': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-regenerator': [ '7.28.4' ],
+33 silly audit   '@babel/plugin-transform-regexp-modifiers': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-reserved-words': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-shorthand-properties': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-spread': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-sticky-regex': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-template-literals': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-typeof-symbol': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-typescript': [ '7.28.0' ],
+33 silly audit   '@babel/plugin-transform-unicode-escapes': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-unicode-property-regex': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-unicode-regex': [ '7.27.1' ],
+33 silly audit   '@babel/plugin-transform-unicode-sets-regex': [ '7.27.1' ],
+33 silly audit   '@babel/preset-env': [ '7.28.3' ],
+33 silly audit   '@babel/preset-modules': [ '0.1.6-no-external-plugins' ],
+33 silly audit   '@babel/preset-react': [ '7.27.1' ],
+33 silly audit   '@babel/preset-typescript': [ '7.27.1' ],
+33 silly audit   '@babel/runtime': [ '7.28.4' ],
+33 silly audit   '@babel/template': [ '7.27.2' ],
+33 silly audit   '@babel/traverse': [ '7.28.4' ],
+33 silly audit   '@babel/types': [ '7.28.4' ],
+33 silly audit   '@bcoe/v8-coverage': [ '0.2.3' ],
+33 silly audit   '@cspotcode/source-map-support': [ '0.8.1' ],
+33 silly audit   '@jridgewell/trace-mapping': [ '0.3.9', '0.3.31' ],
+33 silly audit   '@develar/schema-utils': [ '2.6.5' ],
+33 silly audit   '@discoveryjs/json-ext': [ '0.5.7' ],
+33 silly audit   '@electron/asar': [ '3.4.1' ],
+33 silly audit   'brace-expansion': [ '1.1.12', '2.0.2' ],
+33 silly audit   minimatch: [ '3.1.2', '5.1.6', '9.0.5', '9.0.3' ],
+33 silly audit   '@electron/get': [ '2.0.3' ],
+33 silly audit   '@electron/notarize': [ '2.2.1' ],
+33 silly audit   'fs-extra': [ '9.1.0', '10.1.0', '8.1.0' ],
+33 silly audit   jsonfile: [ '6.2.0', '4.0.0' ],
+33 silly audit   universalify: [ '2.0.1', '0.2.0', '0.1.2' ],
+33 silly audit   '@electron/osx-sign': [ '1.0.5' ],
+33 silly audit   isbinaryfile: [ '4.0.10', '5.0.6' ],
+33 silly audit   '@electron/universal': [ '1.5.1' ],
+33 silly audit   '@eslint-community/eslint-utils': [ '4.9.0' ],
+33 silly audit   '@eslint-community/regexpp': [ '4.12.1' ],
+33 silly audit   '@eslint/eslintrc': [ '2.1.4' ],
+33 silly audit   '@eslint/js': [ '8.57.1' ],
+33 silly audit   '@humanwhocodes/config-array': [ '0.13.0' ],
+33 silly audit   '@humanwhocodes/module-importer': [ '1.0.1' ],
+33 silly audit   '@humanwhocodes/object-schema': [ '2.0.3' ],
+33 silly audit   '@isaacs/cliui': [ '8.0.2' ],
+33 silly audit   'ansi-regex': [ '6.2.2', '5.0.1' ],
+33 silly audit   'ansi-styles': [ '6.2.3', '5.2.0', '4.3.0' ],
+33 silly audit   'emoji-regex': [ '9.2.2', '8.0.0' ],
+33 silly audit   'string-width': [ '5.1.2', '4.2.3' ],
+33 silly audit   'strip-ansi': [ '7.1.2', '6.0.1' ],
+33 silly audit   'wrap-ansi': [ '8.1.0', '7.0.0' ],
+33 silly audit   '@istanbuljs/load-nyc-config': [ '1.1.0' ],
+33 silly audit   argparse: [ '1.0.10', '2.0.1' ],
+33 silly audit   'find-up': [ '4.1.0', '5.0.0', '6.3.0', '3.0.0' ],
+33 silly audit   'js-yaml': [ '3.14.1', '4.1.0' ],
+33 silly audit   'locate-path': [ '5.0.0', '6.0.0', '7.2.0', '3.0.0' ],
+33 silly audit   'p-limit': [ '2.3.0', '3.1.0', '4.0.0' ],
+33 silly audit   'p-locate': [ '4.1.0', '5.0.0', '6.0.0', '3.0.0' ],
+33 silly audit   'resolve-from': [ '5.0.0', '4.0.0' ],
+33 silly audit   'sprintf-js': [ '1.0.3', '1.1.3' ],
+33 silly audit   '@istanbuljs/schema': [ '0.1.3' ],
+33 silly audit   '@jest/console': [ '29.7.0' ],
+33 silly audit   '@jest/core': [ '29.7.0' ],
+33 silly audit   'pretty-format': [ '29.7.0', '27.5.1' ],
+33 silly audit   'react-is': [ '18.3.1', '16.13.1', '17.0.2' ],
+33 silly audit   '@jest/environment': [ '29.7.0' ],
+33 silly audit   '@jest/expect': [ '29.7.0' ],
+33 silly audit   '@jest/expect-utils': [ '29.7.0' ],
+33 silly audit   '@jest/fake-timers': [ '29.7.0' ],
+33 silly audit   '@jest/globals': [ '29.7.0' ],
+33 silly audit   '@jest/reporters': [ '29.7.0' ],
+33 silly audit   '@jest/schemas': [ '29.6.3' ],
+33 silly audit   '@jest/source-map': [ '29.6.3' ],
+33 silly audit   '@jest/test-result': [ '29.7.0' ],
+33 silly audit   '@jest/test-sequencer': [ '29.7.0' ],
+33 silly audit   '@jest/transform': [ '29.7.0' ],
+33 silly audit   '@jest/types': [ '29.6.3' ],
+33 silly audit   '@jridgewell/gen-mapping': [ '0.3.13' ],
+33 silly audit   '@jridgewell/remapping': [ '2.3.5' ],
+33 silly audit   '@jridgewell/resolve-uri': [ '3.1.2' ],
+33 silly audit   '@jridgewell/source-map': [ '0.3.11' ],
+33 silly audit   '@jridgewell/sourcemap-codec': [ '1.5.5' ],
+33 silly audit   '@leichtgewicht/ip-codec': [ '2.0.5' ],
+33 silly audit   '@malept/cross-spawn-promise': [ '1.1.1' ],
+33 silly audit   '@malept/flatpak-bundler': [ '0.4.0' ],
+33 silly audit   '@nodelib/fs.scandir': [ '2.1.5' ],
+33 silly audit   '@nodelib/fs.stat': [ '2.0.5' ],
+33 silly audit   '@nodelib/fs.walk': [ '1.2.8' ],
+33 silly audit   '@pkgjs/parseargs': [ '0.11.0' ],
+33 silly audit   '@sinclair/typebox': [ '0.27.8' ],
+33 silly audit   '@sindresorhus/is': [ '4.6.0' ],
+33 silly audit   '@sinonjs/commons': [ '3.0.1' ],
+33 silly audit   '@sinonjs/fake-timers': [ '10.3.0' ],
+33 silly audit   '@szmarczak/http-timer': [ '4.0.6' ],
+33 silly audit   '@testing-library/dom': [ '9.3.4' ],
+33 silly audit   'aria-query': [ '5.1.3', '5.3.2' ],
+33 silly audit   'dom-accessibility-api': [ '0.5.16', '0.6.3' ],
+33 silly audit   '@testing-library/jest-dom': [ '6.9.1' ],
+33 silly audit   '@testing-library/react': [ '14.3.1' ],
+33 silly audit   '@testing-library/user-event': [ '14.6.1' ],
+33 silly audit   '@tootallnate/once': [ '2.0.0' ],
+33 silly audit   '@tsconfig/node10': [ '1.0.11' ],
+33 silly audit   '@tsconfig/node12': [ '1.0.11' ],
+33 silly audit   '@tsconfig/node14': [ '1.0.3' ],
+33 silly audit   '@tsconfig/node16': [ '1.0.4' ],
+33 silly audit   '@types/aria-query': [ '5.0.4' ],
+33 silly audit   '@types/babel__core': [ '7.20.5' ],
+33 silly audit   '@types/babel__generator': [ '7.27.0' ],
+33 silly audit   '@types/babel__template': [ '7.4.4' ],
+33 silly audit   '@types/babel__traverse': [ '7.28.0' ],
+33 silly audit   '@types/body-parser': [ '1.19.6' ],
+33 silly audit   '@types/bonjour': [ '3.5.13' ],
+33 silly audit   '@types/cacheable-request': [ '6.0.3' ],
+33 silly audit   '@types/connect': [ '3.4.38' ],
+33 silly audit   '@types/connect-history-api-fallback': [ '1.5.4' ],
+33 silly audit   '@types/debug': [ '4.1.12' ],
+33 silly audit   '@types/eslint': [ '9.6.1' ],
+33 silly audit   '@types/eslint-scope': [ '3.7.7' ],
+33 silly audit   '@types/estree': [ '1.0.8' ],
+33 silly audit   '@types/express': [ '4.17.23' ],
+33 silly audit   '@types/express-serve-static-core': [ '5.1.0', '4.19.7' ],
+33 silly audit   '@types/fs-extra': [ '9.0.13' ],
+33 silly audit   '@types/graceful-fs': [ '4.1.9' ],
+33 silly audit   '@types/html-minifier-terser': [ '6.1.0' ],
+33 silly audit   '@types/http-cache-semantics': [ '4.0.4' ],
+33 silly audit   '@types/http-errors': [ '2.0.5' ],
+33 silly audit   '@types/http-proxy': [ '1.17.16' ],
+33 silly audit   '@types/istanbul-lib-coverage': [ '2.0.6' ],
+33 silly audit   '@types/istanbul-lib-report': [ '3.0.3' ],
+33 silly audit   '@types/istanbul-reports': [ '3.0.4' ],
+33 silly audit   '@types/jest': [ '29.5.14' ],
+33 silly audit   '@types/jsdom': [ '20.0.1' ],
+33 silly audit   '@types/json-schema': [ '7.0.15' ],
+33 silly audit   '@types/keyv': [ '3.1.4' ],
+33 silly audit   '@types/mime': [ '1.3.5' ],
+33 silly audit   '@types/ms': [ '2.1.0' ],
+33 silly audit   '@types/node': [ '20.19.21' ],
+33 silly audit   '@types/node-forge': [ '1.3.14' ],
+33 silly audit   '@types/plist': [ '3.0.5' ],
+33 silly audit   '@types/prop-types': [ '15.7.15' ],
+33 silly audit   '@types/qs': [ '6.14.0' ],
+33 silly audit   '@types/range-parser': [ '1.2.7' ],
+33 silly audit   '@types/react': [ '18.3.26' ],
+33 silly audit   '@types/react-dom': [ '18.3.7' ],
+33 silly audit   '@types/responselike': [ '1.0.3' ],
+33 silly audit   '@types/retry': [ '0.12.0' ],
+33 silly audit   '@types/semver': [ '7.7.1' ],
+33 silly audit   '@types/send': [ '1.2.0', '0.17.5' ],
+33 silly audit   '@types/serve-index': [ '1.9.4' ],
+33 silly audit   '@types/serve-static': [ '1.15.9' ],
+33 silly audit   '@types/sockjs': [ '0.3.36' ],
+33 silly audit   '@types/stack-utils': [ '2.0.3' ],
+33 silly audit   '@types/tough-cookie': [ '4.0.5' ],
+33 silly audit   '@types/verror': [ '1.10.11' ],
+33 silly audit   '@types/ws': [ '8.18.1' ],
+33 silly audit   '@types/yargs': [ '17.0.33' ],
+33 silly audit   '@types/yargs-parser': [ '21.0.3' ],
+33 silly audit   '@types/yauzl': [ '2.10.3' ],
+33 silly audit   '@typescript-eslint/eslint-plugin': [ '6.21.0' ],
+33 silly audit   semver: [ '7.7.3', '6.3.1' ],
+33 silly audit   '@typescript-eslint/parser': [ '6.21.0' ],
+33 silly audit   '@typescript-eslint/scope-manager': [ '6.21.0' ],
+33 silly audit   '@typescript-eslint/type-utils': [ '6.21.0' ],
+33 silly audit   '@typescript-eslint/types': [ '6.21.0' ],
+33 silly audit   '@typescript-eslint/typescript-estree': [ '6.21.0' ],
+33 silly audit   '@typescript-eslint/utils': [ '6.21.0' ],
+33 silly audit   '@typescript-eslint/visitor-keys': [ '6.21.0' ],
+33 silly audit   '@ungap/structured-clone': [ '1.3.0' ],
+33 silly audit   '@webassemblyjs/ast': [ '1.14.1' ],
+33 silly audit   '@webassemblyjs/floating-point-hex-parser': [ '1.13.2' ],
+33 silly audit   '@webassemblyjs/helper-api-error': [ '1.13.2' ],
+33 silly audit   '@webassemblyjs/helper-buffer': [ '1.14.1' ],
+33 silly audit   '@webassemblyjs/helper-numbers': [ '1.13.2' ],
+33 silly audit   '@webassemblyjs/helper-wasm-bytecode': [ '1.13.2' ],
+33 silly audit   '@webassemblyjs/helper-wasm-section': [ '1.14.1' ],
+33 silly audit   '@webassemblyjs/ieee754': [ '1.13.2' ],
+33 silly audit   '@webassemblyjs/leb128': [ '1.13.2' ],
+33 silly audit   '@webassemblyjs/utf8': [ '1.13.2' ],
+33 silly audit   '@webassemblyjs/wasm-edit': [ '1.14.1' ],
+33 silly audit   '@webassemblyjs/wasm-gen': [ '1.14.1' ],
+33 silly audit   '@webassemblyjs/wasm-opt': [ '1.14.1' ],
+33 silly audit   '@webassemblyjs/wasm-parser': [ '1.14.1' ],
+33 silly audit   '@webassemblyjs/wast-printer': [ '1.14.1' ],
+33 silly audit   '@webpack-cli/configtest': [ '2.1.1' ],
+33 silly audit   '@webpack-cli/info': [ '2.0.2' ],
+33 silly audit   '@webpack-cli/serve': [ '2.0.5' ],
+33 silly audit   '@xmldom/xmldom': [ '0.8.11' ],
+33 silly audit   '@xtuc/ieee754': [ '1.2.0' ],
+33 silly audit   '@xtuc/long': [ '4.2.2' ],
+33 silly audit   '7zip-bin': [ '5.2.0' ],
+33 silly audit   abab: [ '2.0.6' ],
+33 silly audit   accepts: [ '1.3.8' ],
+33 silly audit   negotiator: [ '0.6.3', '0.6.4' ],
+33 silly audit   acorn: [ '8.15.0' ],
+33 silly audit   'acorn-globals': [ '7.0.1' ],
+33 silly audit   'acorn-import-phases': [ '1.0.4' ],
+33 silly audit   'acorn-jsx': [ '5.3.2' ],
+33 silly audit   'acorn-walk': [ '8.3.4' ],
+33 silly audit   'agent-base': [ '6.0.2' ],
+33 silly audit   ajv: [ '6.12.6', '8.17.1' ],
+33 silly audit   'ajv-formats': [ '2.1.1' ],
+33 silly audit   'json-schema-traverse': [ '1.0.0', '0.4.1' ],
+33 silly audit   'ajv-keywords': [ '3.5.2', '5.1.0' ],
+33 silly audit   'ansi-escapes': [ '4.3.2' ],
+33 silly audit   'type-fest': [ '0.21.3', '0.20.2', '0.13.1', '4.41.0', '2.19.0' ],
+33 silly audit   'ansi-html-community': [ '0.0.8' ],
+33 silly audit   anymatch: [ '3.1.3' ],
+33 silly audit   'app-builder-bin': [ '4.0.0' ],
+33 silly audit   'app-builder-lib': [ '24.13.3' ],
+33 silly audit   archiver: [ '5.3.2' ],
+33 silly audit   'archiver-utils': [ '2.1.0', '3.0.4' ],
+33 silly audit   isarray: [ '1.0.0', '2.0.5' ],
+33 silly audit   'readable-stream': [ '2.3.8', '3.6.2' ],
+33 silly audit   'safe-buffer': [ '5.1.2', '5.2.1' ],
+33 silly audit   string_decoder: [ '1.1.1', '1.3.0' ],
+33 silly audit   arg: [ '4.1.3' ],
+33 silly audit   'array-buffer-byte-length': [ '1.0.2' ],
+33 silly audit   'array-flatten': [ '1.1.1' ],
+33 silly audit   'array-includes': [ '3.1.9' ],
+33 silly audit   'array-union': [ '2.1.0' ],
+33 silly audit   'array.prototype.findlast': [ '1.2.5' ],
+33 silly audit   'array.prototype.flat': [ '1.3.3' ],
+33 silly audit   'array.prototype.flatmap': [ '1.3.3' ],
+33 silly audit   'array.prototype.tosorted': [ '1.1.4' ],
+33 silly audit   'arraybuffer.prototype.slice': [ '1.0.4' ],
+33 silly audit   'assert-plus': [ '1.0.0' ],
+33 silly audit   'astral-regex': [ '2.0.0' ],
+33 silly audit   async: [ '3.2.6' ],
+33 silly audit   'async-exit-hook': [ '2.0.1' ],
+33 silly audit   'async-function': [ '1.0.0' ],
+33 silly audit   asynckit: [ '0.4.0' ],
+33 silly audit   'at-least-node': [ '1.0.0' ],
+33 silly audit   atomically: [ '1.7.0' ],
+33 silly audit   'available-typed-arrays': [ '1.0.7' ],
+33 silly audit   'babel-jest': [ '29.7.0' ],
+33 silly audit   'babel-loader': [ '9.2.1' ],
+33 silly audit   'babel-plugin-istanbul': [ '6.1.1' ],
+33 silly audit   'istanbul-lib-instrument': [ '5.2.1', '6.0.3' ],
+33 silly audit   'babel-plugin-jest-hoist': [ '29.6.3' ],
+33 silly audit   'babel-plugin-polyfill-corejs2': [ '0.4.14' ],
+33 silly audit   'babel-plugin-polyfill-corejs3': [ '0.13.0' ],
+33 silly audit   'babel-plugin-polyfill-regenerator': [ '0.6.5' ],
+33 silly audit   'babel-preset-current-node-syntax': [ '1.2.0' ],
+33 silly audit   'babel-preset-jest': [ '29.6.3' ],
+33 silly audit   'balanced-match': [ '1.0.2' ],
+33 silly audit   'base64-js': [ '1.5.1' ],
+33 silly audit   'baseline-browser-mapping': [ '2.8.16' ],
+33 silly audit   batch: [ '0.6.1' ],
+33 silly audit   'better-sqlite3': [ '11.10.0' ],
+33 silly audit   'big.js': [ '5.2.2' ],
+33 silly audit   'binary-extensions': [ '2.3.0' ],
+33 silly audit   bindings: [ '1.5.0' ],
+33 silly audit   bl: [ '4.1.0' ],
+33 silly audit   bluebird: [ '3.7.2' ],
+33 silly audit   'bluebird-lst': [ '1.0.9' ],
+33 silly audit   'body-parser': [ '1.20.3' ],
+33 silly audit   debug: [ '2.6.9', '4.4.3' ],
+33 silly audit   'iconv-lite': [ '0.4.24', '0.6.3' ],
+33 silly audit   ms: [ '2.0.0', '2.1.3' ],
+33 silly audit   'bonjour-service': [ '1.3.0' ],
+33 silly audit   boolbase: [ '1.0.0' ],
+33 silly audit   boolean: [ '3.2.0' ],
+33 silly audit   braces: [ '3.0.3' ],
+33 silly audit   browserslist: [ '4.26.3' ],
+33 silly audit   'bs-logger': [ '0.2.6' ],
+33 silly audit   bser: [ '2.1.1' ],
+33 silly audit   buffer: [ '5.7.1' ],
+33 silly audit   'buffer-crc32': [ '0.2.13' ],
+33 silly audit   'buffer-equal': [ '1.0.1' ],
+33 silly audit   'buffer-from': [ '1.1.2' ],
+33 silly audit   'builder-util': [ '24.13.1' ],
+33 silly audit   'builder-util-runtime': [ '9.2.4' ],
+33 silly audit   bytes: [ '3.1.2' ],
+33 silly audit   'cacheable-lookup': [ '5.0.4' ],
+33 silly audit   'cacheable-request': [ '7.0.4' ],
+33 silly audit   'call-bind': [ '1.0.8' ],
+33 silly audit   'call-bind-apply-helpers': [ '1.0.2' ],
+33 silly audit   'call-bound': [ '1.0.4' ],
+33 silly audit   callsites: [ '3.1.0' ],
+33 silly audit   'camel-case': [ '4.1.2' ],
+33 silly audit   camelcase: [ '5.3.1', '6.3.0' ],
+33 silly audit   'caniuse-lite': [ '1.0.30001750' ],
+33 silly audit   chalk: [ '4.1.2' ],
+33 silly audit   'char-regex': [ '1.0.2' ],
+33 silly audit   chokidar: [ '3.6.0' ],
+33 silly audit   'glob-parent': [ '5.1.2', '6.0.2' ],
+33 silly audit   chownr: [ '2.0.0', '1.1.4' ],
+33 silly audit   'chrome-trace-event': [ '1.0.4' ],
+33 silly audit   'chromium-pickle-js': [ '0.2.0' ],
+33 silly audit   'ci-info': [ '3.9.0' ],
+33 silly audit   'cjs-module-lexer': [ '1.4.3' ],
+33 silly audit   'clean-css': [ '5.3.3' ],
+33 silly audit   'cli-truncate': [ '2.1.0' ],
+33 silly audit   cliui: [ '8.0.1' ],
+33 silly audit   'clone-deep': [ '4.0.1' ],
+33 silly audit   'clone-response': [ '1.0.3' ],
+33 silly audit   co: [ '4.6.0' ],
+33 silly audit   'collect-v8-coverage': [ '1.0.2' ],
+33 silly audit   'color-convert': [ '2.0.1' ],
+33 silly audit   'color-name': [ '1.1.4' ],
+33 silly audit   colorette: [ '2.0.20' ],
+33 silly audit   'combined-stream': [ '1.0.8' ],
+33 silly audit   commander: [ '5.1.0', '8.3.0', '2.20.3', '10.0.1' ],
+33 silly audit   'common-path-prefix': [ '3.0.0' ],
+33 silly audit   'compare-version': [ '0.1.2' ],
+33 silly audit   'compress-commons': [ '4.1.2' ],
+33 silly audit   compressible: [ '2.0.18' ],
+33 silly audit   compression: [ '1.8.1' ],
+33 silly audit   'concat-map': [ '0.0.1' ],
+33 silly audit   concurrently: [ '8.2.2' ],
+33 silly audit   'supports-color': [ '8.1.1', '7.2.0' ],
+33 silly audit   conf: [ '10.2.0' ],
+33 silly audit   'config-file-ts': [ '0.2.6' ],
+33 silly audit   glob: [ '10.4.5', '7.2.3' ],
+33 silly audit   minipass: [ '7.1.2', '3.3.6', '5.0.0' ],
+33 silly audit   'connect-history-api-fallback': [ '2.0.0' ],
+33 silly audit   'content-disposition': [ '0.5.4' ],
+33 silly audit   'content-type': [ '1.0.5' ],
+33 silly audit   'convert-source-map': [ '2.0.0' ],
+33 silly audit   cookie: [ '0.7.1' ],
+33 silly audit   'cookie-signature': [ '1.0.6' ],
+33 silly audit   'core-js-compat': [ '3.46.0' ],
+33 silly audit   'core-util-is': [ '1.0.2' ],
+33 silly audit   crc: [ '3.8.0' ],
+33 silly audit   'crc-32': [ '1.2.2' ],
+33 silly audit   'crc32-stream': [ '4.0.3' ],
+33 silly audit   'create-jest': [ '29.7.0' ],
+33 silly audit   'create-require': [ '1.1.1' ],
+33 silly audit   'cross-spawn': [ '7.0.6' ],
+33 silly audit   'css-loader': [ '6.11.0' ],
+33 silly audit   'css-select': [ '4.3.0' ],
+33 silly audit   'css-what': [ '6.2.2' ],
+33 silly audit   'css.escape': [ '1.5.1' ],
+33 silly audit   cssesc: [ '3.0.0' ],
+33 silly audit   cssom: [ '0.5.0', '0.3.8' ],
+33 silly audit   cssstyle: [ '2.3.0' ],
+33 silly audit   csstype: [ '3.1.3' ],
+33 silly audit   'data-urls': [ '3.0.2' ],
+33 silly audit   'data-view-buffer': [ '1.0.2' ],
+33 silly audit   'data-view-byte-length': [ '1.0.2' ],
+33 silly audit   'data-view-byte-offset': [ '1.0.1' ],
+33 silly audit   'date-fns': [ '2.30.0' ],
+33 silly audit   'debounce-fn': [ '4.0.0' ],
+33 silly audit   'decimal.js': [ '10.6.0' ],
+33 silly audit   'decompress-response': [ '6.0.0' ],
+33 silly audit   'mimic-response': [ '3.1.0', '1.0.1' ],
+33 silly audit   dedent: [ '1.7.0' ],
+33 silly audit   'deep-equal': [ '2.2.3' ],
+33 silly audit   'deep-extend': [ '0.6.0' ],
+33 silly audit   'deep-is': [ '0.1.4' ],
+33 silly audit   deepmerge: [ '4.3.1' ],
+33 silly audit   'default-gateway': [ '6.0.3' ],
+33 silly audit   'defer-to-connect': [ '2.0.1' ],
+33 silly audit   'define-data-property': [ '1.1.4' ],
+33 silly audit   'define-lazy-prop': [ '2.0.0' ],
+33 silly audit   'define-properties': [ '1.2.1' ],
+33 silly audit   'delayed-stream': [ '1.0.0' ],
+33 silly audit   depd: [ '2.0.0', '1.1.2' ],
+33 silly audit   destroy: [ '1.2.0' ],
+33 silly audit   'detect-libc': [ '2.1.2' ],
+33 silly audit   'detect-newline': [ '3.1.0' ],
+33 silly audit   'detect-node': [ '2.1.0' ],
+33 silly audit   diff: [ '4.0.2' ],
+33 silly audit   'diff-sequences': [ '29.6.3' ],
+33 silly audit   'dir-compare': [ '3.3.0' ],
+33 silly audit   'dir-glob': [ '3.0.1' ],
+33 silly audit   'dmg-builder': [ '24.13.3' ],
+33 silly audit   'dmg-license': [ '1.0.11' ],
+33 silly audit   'dns-packet': [ '5.6.1' ],
+33 silly audit   doctrine: [ '3.0.0', '2.1.0' ],
+33 silly audit   'dom-converter': [ '0.2.0' ],
+33 silly audit   'dom-serializer': [ '1.4.1' ],
+33 silly audit   entities: [ '2.2.0', '6.0.1' ],
+33 silly audit   domelementtype: [ '2.3.0' ],
+33 silly audit   domexception: [ '4.0.0' ],
+33 silly audit   domhandler: [ '4.3.1' ],
+33 silly audit   domutils: [ '2.8.0' ],
+33 silly audit   'dot-case': [ '3.0.4' ],
+33 silly audit   'dot-prop': [ '6.0.1' ],
+33 silly audit   dotenv: [ '9.0.2' ],
+33 silly audit   'dotenv-expand': [ '5.1.0' ],
+33 silly audit   'dunder-proto': [ '1.0.1' ],
+33 silly audit   eastasianwidth: [ '0.2.0' ],
+33 silly audit   'ee-first': [ '1.1.1' ],
+33 silly audit   ejs: [ '3.1.10' ],
+33 silly audit   electron: [ '31.7.7' ],
+33 silly audit   'electron-builder': [ '24.13.3' ],
+33 silly audit   'electron-builder-squirrel-windows': [ '24.13.3' ],
+33 silly audit   'electron-publish': [ '24.13.1' ],
+33 silly audit   'electron-store': [ '8.2.0' ],
+33 silly audit   'electron-to-chromium': [ '1.5.235' ],
+33 silly audit   emittery: [ '0.13.1' ],
+33 silly audit   'emojis-list': [ '3.0.0' ],
+33 silly audit   encodeurl: [ '2.0.0', '1.0.2' ],
+33 silly audit   'end-of-stream': [ '1.4.5' ],
+33 silly audit   'enhanced-resolve': [ '5.18.3' ],
+33 silly audit   'env-paths': [ '2.2.1' ],
+33 silly audit   envinfo: [ '7.18.0' ],
+33 silly audit   'err-code': [ '2.0.3' ],
+33 silly audit   'error-ex': [ '1.3.4' ],
+33 silly audit   'es-abstract': [ '1.24.0' ],
+33 silly audit   'es-define-property': [ '1.0.1' ],
+33 silly audit   'es-errors': [ '1.3.0' ],
+33 silly audit   'es-get-iterator': [ '1.1.3' ],
+33 silly audit   'es-iterator-helpers': [ '1.2.1' ],
+33 silly audit   'es-module-lexer': [ '1.7.0' ],
+33 silly audit   'es-object-atoms': [ '1.1.1' ],
+33 silly audit   'es-set-tostringtag': [ '2.1.0' ],
+33 silly audit   'es-shim-unscopables': [ '1.1.0' ],
+33 silly audit   'es-to-primitive': [ '1.3.0' ],
+33 silly audit   'es6-error': [ '4.1.1' ],
+33 silly audit   escalade: [ '3.2.0' ],
+33 silly audit   'escape-html': [ '1.0.3' ],
+33 silly audit   'escape-string-regexp': [ '4.0.0', '2.0.0' ],
+33 silly audit   escodegen: [ '2.1.0' ],
+33 silly audit   eslint: [ '8.57.1' ],
+33 silly audit   'eslint-plugin-react': [ '7.37.5' ],
+33 silly audit   'eslint-plugin-react-hooks': [ '4.6.2' ],
+33 silly audit   resolve: [ '2.0.0-next.5', '1.22.10' ],
+33 silly audit   'eslint-scope': [ '7.2.2', '5.1.1' ],
+33 silly audit   'eslint-visitor-keys': [ '3.4.3' ],
+33 silly audit   espree: [ '9.6.1' ],
+33 silly audit   esprima: [ '4.0.1' ],
+33 silly audit   esquery: [ '1.6.0' ],
+33 silly audit   esrecurse: [ '4.3.0' ],
+33 silly audit   estraverse: [ '5.3.0', '4.3.0' ],
+33 silly audit   esutils: [ '2.0.3' ],
+33 silly audit   etag: [ '1.8.1' ],
+33 silly audit   eventemitter3: [ '4.0.7' ],
+33 silly audit   events: [ '3.3.0' ],
+33 silly audit   execa: [ '5.1.1' ],
+33 silly audit   'get-stream': [ '6.0.1', '5.2.0' ],
+33 silly audit   exit: [ '0.1.2' ],
+33 silly audit   'expand-template': [ '2.0.3' ],
+33 silly audit   expect: [ '29.7.0' ],
+33 silly audit   express: [ '4.21.2' ],
+33 silly audit   'extract-zip': [ '2.0.1' ],
+33 silly audit   extsprintf: [ '1.4.1' ],
+33 silly audit   'fast-deep-equal': [ '3.1.3' ],
+33 silly audit   'fast-glob': [ '3.3.3' ],
+33 silly audit   'fast-json-stable-stringify': [ '2.1.0' ],
+33 silly audit   'fast-levenshtein': [ '2.0.6' ],
+33 silly audit   'fast-uri': [ '3.1.0' ],
+33 silly audit   'fastest-levenshtein': [ '1.0.16' ],
+33 silly audit   fastq: [ '1.19.1' ],
+33 silly audit   'faye-websocket': [ '0.11.4' ],
+33 silly audit   'fb-watchman': [ '2.0.2' ],
+33 silly audit   'fd-slicer': [ '1.1.0' ],
+33 silly audit   'file-entry-cache': [ '6.0.1' ],
+33 silly audit   'file-loader': [ '6.2.0' ],
+33 silly audit   'schema-utils': [ '3.3.0', '4.3.3' ],
+33 silly audit   'file-uri-to-path': [ '1.0.0' ],
+33 silly audit   filelist: [ '1.0.4' ],
+33 silly audit   'fill-range': [ '7.1.1' ],
+33 silly audit   finalhandler: [ '1.3.1' ],
+33 silly audit   'find-cache-dir': [ '4.0.0' ],
+33 silly audit   flat: [ '5.0.2' ],
+33 silly audit   'flat-cache': [ '3.2.0' ],
+33 silly audit   flatted: [ '3.3.3' ],
+33 silly audit   'follow-redirects': [ '1.15.11' ],
+33 silly audit   'for-each': [ '0.3.5' ],
+33 silly audit   'foreground-child': [ '3.3.1' ],
+33 silly audit   'signal-exit': [ '4.1.0', '3.0.7' ],
+33 silly audit   'form-data': [ '4.0.4' ],
+33 silly audit   forwarded: [ '0.2.0' ],
+33 silly audit   fresh: [ '0.5.2' ],
+33 silly audit   'fs-constants': [ '1.0.0' ],
+33 silly audit   'fs-minipass': [ '2.1.0' ],
+33 silly audit   'fs-monkey': [ '1.1.0' ],
+33 silly audit   'fs.realpath': [ '1.0.0' ],
+33 silly audit   fsevents: [ '2.3.3' ],
+33 silly audit   'function-bind': [ '1.1.2' ],
+33 silly audit   'function.prototype.name': [ '1.1.8' ],
+33 silly audit   'functions-have-names': [ '1.2.3' ],
+33 silly audit   'generator-function': [ '2.0.1' ],
+33 silly audit   gensync: [ '1.0.0-beta.2' ],
+33 silly audit   'get-caller-file': [ '2.0.5' ],
+33 silly audit   'get-intrinsic': [ '1.3.0' ],
+33 silly audit   'get-package-type': [ '0.1.0' ],
+33 silly audit   'get-proto': [ '1.0.1' ],
+33 silly audit   'get-symbol-description': [ '1.1.0' ],
+33 silly audit   'github-from-package': [ '0.0.0' ],
+33 silly audit   'glob-to-regexp': [ '0.4.1' ],
+33 silly audit   'global-agent': [ '3.0.0' ],
+33 silly audit   globals: [ '13.24.0' ],
+33 silly audit   globalthis: [ '1.0.4' ],
+33 silly audit   globby: [ '11.1.0' ],
+33 silly audit   gopd: [ '1.2.0' ],
+33 silly audit   got: [ '11.8.6' ],
+33 silly audit   'graceful-fs': [ '4.2.11' ],
+33 silly audit   graphemer: [ '1.4.0' ],
+33 silly audit   'handle-thing': [ '2.0.1' ],
+33 silly audit   handlebars: [ '4.7.8' ],
+33 silly audit   'harmony-reflect': [ '1.6.2' ],
+33 silly audit   'has-bigints': [ '1.1.0' ],
+33 silly audit   'has-flag': [ '4.0.0' ],
+33 silly audit   'has-property-descriptors': [ '1.0.2' ],
+33 silly audit   'has-proto': [ '1.2.0' ],
+33 silly audit   'has-symbols': [ '1.1.0' ],
+33 silly audit   'has-tostringtag': [ '1.0.2' ],
+33 silly audit   hasown: [ '2.0.2' ],
+33 silly audit   he: [ '1.2.0' ],
+33 silly audit   'hosted-git-info': [ '4.1.0' ],
+33 silly audit   'lru-cache': [ '6.0.0', '5.1.1', '10.4.3' ],
+33 silly audit   yallist: [ '4.0.0', '3.1.1' ],
+33 silly audit   'hpack.js': [ '2.1.6' ],
+33 silly audit   'html-encoding-sniffer': [ '3.0.0' ],
+33 silly audit   'html-entities': [ '2.6.0' ],
+33 silly audit   'html-escaper': [ '2.0.2' ],
+33 silly audit   'html-minifier-terser': [ '6.1.0' ],
+33 silly audit   'html-webpack-plugin': [ '5.6.4' ],
+33 silly audit   htmlparser2: [ '6.1.0' ],
+33 silly audit   'http-cache-semantics': [ '4.2.0' ],
+33 silly audit   'http-deceiver': [ '1.2.7' ],
+33 silly audit   'http-errors': [ '2.0.0', '1.6.3' ],
+33 silly audit   'http-parser-js': [ '0.5.10' ],
+33 silly audit   'http-proxy': [ '1.18.1' ],
+33 silly audit   'http-proxy-agent': [ '5.0.0' ],
+33 silly audit   'http-proxy-middleware': [ '2.0.9' ],
+33 silly audit   'http2-wrapper': [ '1.0.3' ],
+33 silly audit   'https-proxy-agent': [ '5.0.1' ],
+33 silly audit   'human-signals': [ '2.1.0' ],
+33 silly audit   'iconv-corefoundation': [ '1.1.7' ],
+33 silly audit   'icss-utils': [ '5.1.0' ],
+33 silly audit   'identity-obj-proxy': [ '3.0.0' ],
+33 silly audit   ieee754: [ '1.2.1' ],
+33 silly audit   ignore: [ '5.3.2' ],
+33 silly audit   'import-fresh': [ '3.3.1' ],
+33 silly audit   'import-local': [ '3.2.0' ],
+33 silly audit   'pkg-dir': [ '4.2.0', '7.0.0' ],
+33 silly audit   imurmurhash: [ '0.1.4' ],
+33 silly audit   'indent-string': [ '4.0.0' ],
+33 silly audit   inflight: [ '1.0.6' ],
+33 silly audit   inherits: [ '2.0.4', '2.0.3' ],
+33 silly audit   ini: [ '1.3.8' ],
+33 silly audit   'internal-slot': [ '1.1.0' ],
+33 silly audit   interpret: [ '3.1.1' ],
+33 silly audit   'ipaddr.js': [ '2.2.0', '1.9.1' ],
+33 silly audit   'is-arguments': [ '1.2.0' ],
+33 silly audit   'is-array-buffer': [ '3.0.5' ],
+33 silly audit   'is-arrayish': [ '0.2.1' ],
+33 silly audit   'is-async-function': [ '2.1.1' ],
+33 silly audit   'is-bigint': [ '1.1.0' ],
+33 silly audit   'is-binary-path': [ '2.1.0' ],
+33 silly audit   'is-boolean-object': [ '1.2.2' ],
+33 silly audit   'is-callable': [ '1.2.7' ],
+33 silly audit   'is-ci': [ '3.0.1' ],
+33 silly audit   'is-core-module': [ '2.16.1' ],
+33 silly audit   'is-data-view': [ '1.0.2' ],
+33 silly audit   'is-date-object': [ '1.1.0' ],
+33 silly audit   'is-docker': [ '2.2.1' ],
+33 silly audit   'is-extglob': [ '2.1.1' ],
+33 silly audit   'is-finalizationregistry': [ '1.1.1' ],
+33 silly audit   'is-fullwidth-code-point': [ '3.0.0' ],
+33 silly audit   'is-generator-fn': [ '2.1.0' ],
+33 silly audit   'is-generator-function': [ '1.1.2' ],
+33 silly audit   'is-glob': [ '4.0.3' ],
+33 silly audit   'is-map': [ '2.0.3' ],
+33 silly audit   'is-negative-zero': [ '2.0.3' ],
+33 silly audit   'is-number': [ '7.0.0' ],
+33 silly audit   'is-number-object': [ '1.1.1' ],
+33 silly audit   'is-obj': [ '2.0.0' ],
+33 silly audit   'is-path-inside': [ '3.0.3' ],
+33 silly audit   'is-plain-obj': [ '3.0.0' ],
+33 silly audit   'is-plain-object': [ '2.0.4' ],
+33 silly audit   'is-potential-custom-element-name': [ '1.0.1' ],
+33 silly audit   'is-regex': [ '1.2.1' ],
+33 silly audit   'is-set': [ '2.0.3' ],
+33 silly audit   'is-shared-array-buffer': [ '1.0.4' ],
+33 silly audit   'is-stream': [ '2.0.1' ],
+33 silly audit   'is-string': [ '1.1.1' ],
+33 silly audit   'is-symbol': [ '1.1.1' ],
+33 silly audit   'is-typed-array': [ '1.1.15' ],
+33 silly audit   'is-weakmap': [ '2.0.2' ],
+33 silly audit   'is-weakref': [ '1.1.1' ],
+33 silly audit   'is-weakset': [ '2.0.4' ],
+33 silly audit   'is-wsl': [ '2.2.0' ],
+33 silly audit   isexe: [ '2.0.0' ],
+33 silly audit   isobject: [ '3.0.1' ],
+33 silly audit   'istanbul-lib-coverage': [ '3.2.2' ],
+33 silly audit   'istanbul-lib-report': [ '3.0.1' ],
+33 silly audit   'istanbul-lib-source-maps': [ '4.0.1' ],
+33 silly audit   'istanbul-reports': [ '3.2.0' ],
+33 silly audit   'iterator.prototype': [ '1.1.5' ],
+33 silly audit   jackspeak: [ '3.4.3' ],
+33 silly audit   jake: [ '10.9.4' ],
+33 silly audit   jest: [ '29.7.0' ],
+33 silly audit   'jest-changed-files': [ '29.7.0' ],
+33 silly audit   'jest-circus': [ '29.7.0' ],
+33 silly audit   'jest-cli': [ '29.7.0' ],
+33 silly audit   'jest-config': [ '29.7.0' ],
+33 silly audit   'jest-diff': [ '29.7.0' ],
+33 silly audit   'jest-docblock': [ '29.7.0' ],
+33 silly audit   'jest-each': [ '29.7.0' ],
+33 silly audit   'jest-environment-jsdom': [ '29.7.0' ],
+33 silly audit   'jest-environment-node': [ '29.7.0' ],
+33 silly audit   'jest-get-type': [ '29.6.3' ],
+33 silly audit   'jest-haste-map': [ '29.7.0' ],
+33 silly audit   'jest-leak-detector': [ '29.7.0' ],
+33 silly audit   'jest-matcher-utils': [ '29.7.0' ],
+33 silly audit   'jest-message-util': [ '29.7.0' ],
+33 silly audit   'jest-mock': [ '29.7.0' ],
+33 silly audit   'jest-pnp-resolver': [ '1.2.3' ],
+33 silly audit   'jest-regex-util': [ '29.6.3' ],
+33 silly audit   'jest-resolve': [ '29.7.0' ],
+33 silly audit   'jest-resolve-dependencies': [ '29.7.0' ],
+33 silly audit   'jest-runner': [ '29.7.0' ],
+33 silly audit   'source-map-support': [ '0.5.13', '0.5.21' ],
+33 silly audit   'jest-runtime': [ '29.7.0' ],
+33 silly audit   'jest-snapshot': [ '29.7.0' ],
+33 silly audit   'jest-util': [ '29.7.0' ],
+33 silly audit   'jest-validate': [ '29.7.0' ],
+33 silly audit   'jest-watcher': [ '29.7.0' ],
+33 silly audit   'jest-worker': [ '29.7.0', '27.5.1' ],
+33 silly audit   'js-tokens': [ '4.0.0' ],
+33 silly audit   jsdom: [ '20.0.3' ],
+33 silly audit   jsesc: [ '3.1.0' ],
+33 silly audit   'json-buffer': [ '3.0.1' ],
+33 silly audit   'json-parse-even-better-errors': [ '2.3.1' ],
+33 silly audit   'json-schema-typed': [ '7.0.3' ],
+33 silly audit   'json-stable-stringify-without-jsonify': [ '1.0.1' ],
+33 silly audit   'json-stringify-safe': [ '5.0.1' ],
+33 silly audit   json5: [ '2.2.3' ],
+33 silly audit   'jsx-ast-utils': [ '3.3.5' ],
+33 silly audit   keyv: [ '4.5.4' ],
+33 silly audit   'kind-of': [ '6.0.3' ],
+33 silly audit   kleur: [ '3.0.3' ],
+33 silly audit   'launch-editor': [ '2.11.1' ],
+33 silly audit   'lazy-val': [ '1.0.5' ],
+33 silly audit   lazystream: [ '1.0.1' ],
+33 silly audit   leven: [ '3.1.0' ],
+33 silly audit   levn: [ '0.4.1' ],
+33 silly audit   'lines-and-columns': [ '1.2.4' ],
+33 silly audit   'loader-runner': [ '4.3.1' ],
+33 silly audit   'loader-utils': [ '2.0.4' ],
+33 silly audit   lodash: [ '4.17.21' ],
+33 silly audit   'lodash.debounce': [ '4.0.8' ],
+33 silly audit   'lodash.defaults': [ '4.2.0' ],
+33 silly audit   'lodash.difference': [ '4.5.0' ],
+33 silly audit   'lodash.flatten': [ '4.4.0' ],
+33 silly audit   'lodash.isplainobject': [ '4.0.6' ],
+33 silly audit   'lodash.memoize': [ '4.1.2' ],
+33 silly audit   'lodash.merge': [ '4.6.2' ],
+33 silly audit   'lodash.union': [ '4.6.0' ],
+33 silly audit   'loose-envify': [ '1.4.0' ],
+33 silly audit   'lower-case': [ '2.0.2' ],
+33 silly audit   'lowercase-keys': [ '2.0.0' ],
+33 silly audit   'lz-string': [ '1.5.0' ],
+33 silly audit   'make-dir': [ '4.0.0' ],
+33 silly audit   'make-error': [ '1.3.6' ],
+33 silly audit   makeerror: [ '1.0.12' ],
+33 silly audit   matcher: [ '3.0.0' ],
+33 silly audit   'math-intrinsics': [ '1.1.0' ],
+33 silly audit   'media-typer': [ '0.3.0' ],
+33 silly audit   memfs: [ '3.5.3' ],
+33 silly audit   'merge-descriptors': [ '1.0.3' ],
+33 silly audit   'merge-stream': [ '2.0.0' ],
+33 silly audit   merge2: [ '1.4.1' ],
+33 silly audit   methods: [ '1.1.2' ],
+33 silly audit   micromatch: [ '4.0.8' ],
+33 silly audit   mime: [ '2.6.0', '1.6.0' ],
+33 silly audit   'mime-db': [ '1.52.0' ],
+33 silly audit   'mime-types': [ '2.1.35' ],
+33 silly audit   'mimic-fn': [ '3.1.0', '2.1.0' ],
+33 silly audit   'min-indent': [ '1.0.1' ],
+33 silly audit   'minimalistic-assert': [ '1.0.1' ],
+33 silly audit   minimist: [ '1.2.8' ],
+33 silly audit   minizlib: [ '2.1.2' ],
+33 silly audit   mkdirp: [ '1.0.4' ],
+33 silly audit   'mkdirp-classic': [ '0.5.3' ],
+33 silly audit   'multicast-dns': [ '7.2.5' ],
+33 silly audit   nanoid: [ '3.3.11' ],
+33 silly audit   'napi-build-utils': [ '2.0.0' ],
+33 silly audit   'natural-compare': [ '1.4.0' ],
+33 silly audit   'neo-async': [ '2.6.2' ],
+33 silly audit   'no-case': [ '3.0.4' ],
+33 silly audit   'node-abi': [ '3.78.0' ],
+33 silly audit   'node-addon-api': [ '1.7.2', '8.5.0' ],
+33 silly audit   'node-forge': [ '1.3.1' ],
+33 silly audit   'node-int64': [ '0.4.0' ],
+33 silly audit   'node-releases': [ '2.0.23' ],
+33 silly audit   'normalize-path': [ '3.0.0' ],
+33 silly audit   'normalize-url': [ '6.1.0' ],
+33 silly audit   'npm-run-path': [ '4.0.1' ],
+33 silly audit   'nth-check': [ '2.1.1' ],
+33 silly audit   nwsapi: [ '2.2.22' ],
+33 silly audit   'object-assign': [ '4.1.1' ],
+33 silly audit   'object-inspect': [ '1.13.4' ],
+33 silly audit   'object-is': [ '1.1.6' ],
+33 silly audit   'object-keys': [ '1.1.1' ],
+33 silly audit   'object.assign': [ '4.1.7' ],
+33 silly audit   'object.entries': [ '1.1.9' ],
+33 silly audit   'object.fromentries': [ '2.0.8' ],
+33 silly audit   'object.values': [ '1.2.1' ],
+33 silly audit   obuf: [ '1.1.2' ],
+33 silly audit   'on-finished': [ '2.4.1' ],
+33 silly audit   'on-headers': [ '1.1.0' ],
+33 silly audit   once: [ '1.4.0' ],
+33 silly audit   onetime: [ '5.1.2' ],
+33 silly audit   open: [ '8.4.2' ],
+33 silly audit   optionator: [ '0.9.4' ],
+33 silly audit   'own-keys': [ '1.0.1' ],
+33 silly audit   'p-cancelable': [ '2.1.1' ],
+33 silly audit   'p-retry': [ '4.6.2' ],
+33 silly audit   retry: [ '0.13.1', '0.12.0' ],
+33 silly audit   'p-try': [ '2.2.0' ],
+33 silly audit   'package-json-from-dist': [ '1.0.1' ],
+33 silly audit   'param-case': [ '3.0.4' ],
+33 silly audit   'parent-module': [ '1.0.1' ],
+33 silly audit   'parse-json': [ '5.2.0' ],
+33 silly audit   parse5: [ '7.3.0' ],
+33 silly audit   parseurl: [ '1.3.3' ],
+33 silly audit   'pascal-case': [ '3.1.2' ],
+33 silly audit   'path-exists': [ '4.0.0', '5.0.0', '3.0.0' ],
+33 silly audit   'path-is-absolute': [ '1.0.1' ],
+33 silly audit   'path-key': [ '3.1.1' ],
+33 silly audit   'path-parse': [ '1.0.7' ],
+33 silly audit   'path-scurry': [ '1.11.1' ],
+33 silly audit   'path-to-regexp': [ '0.1.12' ],
+33 silly audit   'path-type': [ '4.0.0' ],
+33 silly audit   pend: [ '1.2.0' ],
+33 silly audit   picocolors: [ '1.1.1' ],
+33 silly audit   picomatch: [ '2.3.1' ],
+33 silly audit   pirates: [ '4.0.7' ],
+33 silly audit   'yocto-queue': [ '1.2.1', '0.1.0' ],
+33 silly audit   'pkg-up': [ '3.1.0' ],
+33 silly audit   plist: [ '3.1.0' ],
+33 silly audit   'possible-typed-array-names': [ '1.1.0' ],
+33 silly audit   postcss: [ '8.5.6' ],
+33 silly audit   'postcss-modules-extract-imports': [ '3.1.0' ],
+33 silly audit   'postcss-modules-local-by-default': [ '4.2.0' ],
+33 silly audit   'postcss-modules-scope': [ '3.2.1' ],
+33 silly audit   'postcss-modules-values': [ '4.0.0' ],
+33 silly audit   'postcss-selector-parser': [ '7.1.0' ],
+33 silly audit   'postcss-value-parser': [ '4.2.0' ],
+33 silly audit   'prebuild-install': [ '7.1.3' ],
+33 silly audit   'prelude-ls': [ '1.2.1' ],
+33 silly audit   'pretty-error': [ '4.0.0' ],
+33 silly audit   'process-nextick-args': [ '2.0.1' ],
+33 silly audit   progress: [ '2.0.3' ],
+33 silly audit   'promise-retry': [ '2.0.1' ],
+33 silly audit   prompts: [ '2.4.2' ],
+33 silly audit   'prop-types': [ '15.8.1' ],
+33 silly audit   'proxy-addr': [ '2.0.7' ],
+33 silly audit   psl: [ '1.15.0' ],
+33 silly audit   pump: [ '3.0.3' ],
+33 silly audit   punycode: [ '2.3.1' ],
+33 silly audit   'pure-rand': [ '6.1.0' ],
+33 silly audit   qs: [ '6.13.0' ],
+33 silly audit   querystringify: [ '2.2.0' ],
+33 silly audit   'queue-microtask': [ '1.2.3' ],
+33 silly audit   'quick-lru': [ '5.1.1' ],
+33 silly audit   randombytes: [ '2.1.0' ],
+33 silly audit   'range-parser': [ '1.2.1' ],
+33 silly audit   'raw-body': [ '2.5.2' ],
+33 silly audit   rc: [ '1.2.8' ],
+33 silly audit   'strip-json-comments': [ '2.0.1', '3.1.1' ],
+33 silly audit   react: [ '18.3.1' ],
+33 silly audit   'react-dom': [ '18.3.1' ],
+33 silly audit   'read-config-file': [ '6.3.2' ],
+33 silly audit   'readdir-glob': [ '1.1.3' ],
+33 silly audit   readdirp: [ '3.6.0' ],
+33 silly audit   rechoir: [ '0.8.0' ],
+33 silly audit   redent: [ '3.0.0' ],
+33 silly audit   'reflect.getprototypeof': [ '1.0.10' ],
+33 silly audit   regenerate: [ '1.4.2' ],
+33 silly audit   'regenerate-unicode-properties': [ '10.2.2' ],
+33 silly audit   'regexp.prototype.flags': [ '1.5.4' ],
+33 silly audit   'regexpu-core': [ '6.4.0' ],
+33 silly audit   regjsgen: [ '0.8.0' ],
+33 silly audit   regjsparser: [ '0.13.0' ],
+33 silly audit   relateurl: [ '0.2.7' ],
+33 silly audit   renderkid: [ '3.0.0' ],
+33 silly audit   'require-directory': [ '2.1.1' ],
+33 silly audit   'require-from-string': [ '2.0.2' ],
+33 silly audit   'requires-port': [ '1.0.0' ],
+33 silly audit   'resolve-alpn': [ '1.2.1' ],
+33 silly audit   'resolve-cwd': [ '3.0.0' ],
+33 silly audit   'resolve.exports': [ '2.0.3' ],
+33 silly audit   responselike: [ '2.0.1' ],
+33 silly audit   reusify: [ '1.1.0' ],
+33 silly audit   rimraf: [ '3.0.2' ],
+33 silly audit   roarr: [ '2.15.4' ],
+33 silly audit   'run-parallel': [ '1.2.0' ],
+33 silly audit   rxjs: [ '7.8.2' ],
+33 silly audit   'safe-array-concat': [ '1.1.3' ],
+33 silly audit   'safe-push-apply': [ '1.0.0' ],
+33 silly audit   'safe-regex-test': [ '1.1.0' ],
+33 silly audit   'safer-buffer': [ '2.1.2' ],
+33 silly audit   'sanitize-filename': [ '1.6.3' ],
+33 silly audit   sax: [ '1.4.1' ],
+33 silly audit   saxes: [ '6.0.0' ],
+33 silly audit   scheduler: [ '0.23.2' ],
+33 silly audit   'select-hose': [ '2.0.0' ],
+33 silly audit   selfsigned: [ '2.4.1' ],
+33 silly audit   'semver-compare': [ '1.0.0' ],
+33 silly audit   send: [ '0.19.0' ],
+33 silly audit   'serialize-error': [ '7.0.1' ],
+33 silly audit   'serialize-javascript': [ '6.0.2' ],
+33 silly audit   'serve-index': [ '1.9.1' ],
+33 silly audit   setprototypeof: [ '1.1.0', '1.2.0' ],
+33 silly audit   statuses: [ '1.5.0', '2.0.1' ],
+33 silly audit   'serve-static': [ '1.16.2' ],
+33 silly audit   'set-function-length': [ '1.2.2' ],
+33 silly audit   'set-function-name': [ '2.0.2' ],
+33 silly audit   'set-proto': [ '1.0.0' ],
+33 silly audit   'shallow-clone': [ '3.0.1' ],
+33 silly audit   'shebang-command': [ '2.0.0' ],
+33 silly audit   'shebang-regex': [ '3.0.0' ],
+33 silly audit   'shell-quote': [ '1.8.3' ],
+33 silly audit   'side-channel': [ '1.1.0' ],
+33 silly audit   'side-channel-list': [ '1.0.0' ],
+33 silly audit   'side-channel-map': [ '1.0.1' ],
+33 silly audit   'side-channel-weakmap': [ '1.0.2' ],
+33 silly audit   'simple-concat': [ '1.0.1' ],
+33 silly audit   'simple-get': [ '4.0.1' ],
+33 silly audit   'simple-update-notifier': [ '2.0.0' ],
+33 silly audit   sisteransi: [ '1.0.5' ],
+33 silly audit   slash: [ '3.0.0' ],
+33 silly audit   'slice-ansi': [ '3.0.0' ],
+33 silly audit   'smart-buffer': [ '4.2.0' ],
+33 silly audit   sockjs: [ '0.3.24' ],
+33 silly audit   'source-map': [ '0.6.1', '0.7.6' ],
+33 silly audit   'source-map-js': [ '1.2.1' ],
+33 silly audit   'spawn-command': [ '0.0.2' ],
+33 silly audit   spdy: [ '4.0.2' ],
+33 silly audit   'spdy-transport': [ '3.0.0' ],
+33 silly audit   'stack-utils': [ '2.0.6' ],
+33 silly audit   'stat-mode': [ '1.0.0' ],
+33 silly audit   'stop-iteration-iterator': [ '1.1.0' ],
+33 silly audit   'string-length': [ '4.0.2' ],
+33 silly audit   'string.prototype.matchall': [ '4.0.12' ],
+33 silly audit   'string.prototype.repeat': [ '1.0.0' ],
+33 silly audit   'string.prototype.trim': [ '1.2.10' ],
+33 silly audit   'string.prototype.trimend': [ '1.0.9' ],
+33 silly audit   'string.prototype.trimstart': [ '1.0.8' ],
+33 silly audit   'strip-bom': [ '4.0.0' ],
+33 silly audit   'strip-final-newline': [ '2.0.0' ],
+33 silly audit   'strip-indent': [ '3.0.0' ],
+33 silly audit   'style-loader': [ '3.3.4' ],
+33 silly audit   sumchecker: [ '3.0.1' ],
+33 silly audit   'supports-preserve-symlinks-flag': [ '1.0.0' ],
+33 silly audit   'symbol-tree': [ '3.2.4' ],
+33 silly audit   tapable: [ '2.3.0' ],
+33 silly audit   tar: [ '6.2.1' ],
+33 silly audit   'tar-fs': [ '2.1.4' ],
+33 silly audit   'tar-stream': [ '2.2.0' ],
+33 silly audit   'temp-file': [ '3.4.0' ],
+33 silly audit   terser: [ '5.44.0' ],
+33 silly audit   'terser-webpack-plugin': [ '5.3.14' ],
+33 silly audit   'test-exclude': [ '6.0.0' ],
+33 silly audit   'text-table': [ '0.2.0' ],
+33 silly audit   thunky: [ '1.1.0' ],
+33 silly audit   tmp: [ '0.2.5' ],
+33 silly audit   'tmp-promise': [ '3.0.3' ],
+33 silly audit   tmpl: [ '1.0.5' ],
+33 silly audit   'to-regex-range': [ '5.0.1' ],
+33 silly audit   toidentifier: [ '1.0.1' ],
+33 silly audit   'tough-cookie': [ '4.1.4' ],
+33 silly audit   tr46: [ '3.0.0' ],
+33 silly audit   'tree-kill': [ '1.2.2' ],
+33 silly audit   'truncate-utf8-bytes': [ '1.0.2' ],
+33 silly audit   'ts-api-utils': [ '1.4.3' ],
+33 silly audit   'ts-jest': [ '29.4.5' ],
+33 silly audit   'ts-loader': [ '9.5.4' ],
+33 silly audit   'ts-node': [ '10.9.2' ],
+33 silly audit   tslib: [ '2.8.1' ],
+33 silly audit   'tunnel-agent': [ '0.6.0' ],
+33 silly audit   'type-check': [ '0.4.0' ],
+33 silly audit   'type-detect': [ '4.0.8' ],
+33 silly audit   'type-is': [ '1.6.18' ],
+33 silly audit   'typed-array-buffer': [ '1.0.3' ],
+33 silly audit   'typed-array-byte-length': [ '1.0.3' ],
+33 silly audit   'typed-array-byte-offset': [ '1.0.4' ],
+33 silly audit   'typed-array-length': [ '1.0.7' ],
+33 silly audit   typescript: [ '5.9.3' ],
+33 silly audit   'uglify-js': [ '3.19.3' ],
+33 silly audit   'unbox-primitive': [ '1.1.0' ],
+33 silly audit   'undici-types': [ '6.21.0' ],
+33 silly audit   'unicode-canonical-property-names-ecmascript': [ '2.0.1' ],
+33 silly audit   'unicode-match-property-ecmascript': [ '2.0.0' ],
+33 silly audit   'unicode-match-property-value-ecmascript': [ '2.2.1' ],
+33 silly audit   'unicode-property-aliases-ecmascript': [ '2.2.0' ],
+33 silly audit   unpipe: [ '1.0.0' ],
+33 silly audit   'update-browserslist-db': [ '1.1.3' ],
+33 silly audit   'uri-js': [ '4.4.1' ],
+33 silly audit   'url-parse': [ '1.5.10' ],
+33 silly audit   'utf8-byte-length': [ '1.0.5' ],
+33 silly audit   'util-deprecate': [ '1.0.2' ],
+33 silly audit   utila: [ '0.4.0' ],
+33 silly audit   'utils-merge': [ '1.0.1' ],
+33 silly audit   uuid: [ '8.3.2' ],
+33 silly audit   'v8-compile-cache-lib': [ '3.0.1' ],
+33 silly audit   'v8-to-istanbul': [ '9.3.0' ],
+33 silly audit   vary: [ '1.1.2' ],
+33 silly audit   verror: [ '1.10.1' ],
+33 silly audit   'w3c-xmlserializer': [ '4.0.0' ],
+33 silly audit   walker: [ '1.0.8' ],
+33 silly audit   watchpack: [ '2.4.4' ],
+33 silly audit   wbuf: [ '1.7.3' ],
+33 silly audit   'webidl-conversions': [ '7.0.0' ],
+33 silly audit   webpack: [ '5.102.1' ],
+33 silly audit   'webpack-cli': [ '5.1.4' ],
+33 silly audit   'webpack-dev-middleware': [ '5.3.4' ],
+33 silly audit   'webpack-dev-server': [ '4.15.2' ],
+33 silly audit   'webpack-merge': [ '5.10.0' ],
+33 silly audit   'webpack-sources': [ '3.3.3' ],
+33 silly audit   'websocket-driver': [ '0.7.4' ],
+33 silly audit   'websocket-extensions': [ '0.1.4' ],
+33 silly audit   'whatwg-encoding': [ '2.0.0' ],
+33 silly audit   'whatwg-mimetype': [ '3.0.0' ],
+33 silly audit   'whatwg-url': [ '11.0.0' ],
+33 silly audit   which: [ '2.0.2' ],
+33 silly audit   'which-boxed-primitive': [ '1.1.1' ],
+33 silly audit   'which-builtin-type': [ '1.2.1' ],
+33 silly audit   'which-collection': [ '1.0.2' ],
+33 silly audit   'which-typed-array': [ '1.1.19' ],
+33 silly audit   wildcard: [ '2.0.1' ],
+33 silly audit   'word-wrap': [ '1.2.5' ],
+33 silly audit   wordwrap: [ '1.0.0' ],
+33 silly audit   wrappy: [ '1.0.2' ],
+33 silly audit   'write-file-atomic': [ '4.0.2' ],
+33 silly audit   ws: [ '8.18.3' ],
+33 silly audit   'xml-name-validator': [ '4.0.0' ],
+33 silly audit   xmlbuilder: [ '15.1.1' ],
+33 silly audit   xmlchars: [ '2.2.0' ],
+33 silly audit   y18n: [ '5.0.8' ],
+33 silly audit   yargs: [ '17.7.2' ],
+33 silly audit   'yargs-parser': [ '21.1.1' ],
+33 silly audit   yauzl: [ '2.10.0' ],
+33 silly audit   yn: [ '3.1.1' ],
+33 silly audit   'zip-stream': [ '4.1.1' ],
+33 silly audit   'node-windows-audio-capture': [ '2.3.0' ],
+33 silly audit   'node-gyp-build': [ '4.8.4' ]
+33 silly audit }
+34 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\iconv-corefoundation
+35 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\iconv-corefoundation' ]
+36 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\dmg-license
+37 silly reify mark deleted [
+37 silly reify   'D:\\realtime-translator-all\\node_modules\\dmg-license',
+37 silly reify   'D:\\realtime-translator-all\\node_modules\\.bin\\dmg-license',
+37 silly reify   'D:\\realtime-translator-all\\node_modules\\.bin\\dmg-license.cmd',
+37 silly reify   'D:\\realtime-translator-all\\node_modules\\.bin\\dmg-license.ps1'
+37 silly reify ]
+38 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\cli-truncate
+39 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\cli-truncate' ]
+40 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\node-addon-api
+41 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\node-addon-api' ]
+42 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\@types\plist
+43 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\@types\\plist' ]
+44 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\@types\verror
+45 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\@types\\verror' ]
+46 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\crc
+47 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\crc' ]
+48 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\smart-buffer
+49 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\smart-buffer' ]
+50 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\verror
+51 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\verror' ]
+52 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\slice-ansi
+53 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\slice-ansi' ]
+54 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\assert-plus
+55 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\assert-plus' ]
+56 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\extsprintf
+57 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\extsprintf' ]
+58 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\astral-regex
+59 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\astral-regex' ]
+60 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\fsevents
+61 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\fsevents' ]
+62 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\dmg-license
+63 silly reify mark deleted [
+63 silly reify   'D:\\realtime-translator-all\\node_modules\\dmg-license',
+63 silly reify   'D:\\realtime-translator-all\\node_modules\\.bin\\dmg-license',
+63 silly reify   'D:\\realtime-translator-all\\node_modules\\.bin\\dmg-license.cmd',
+63 silly reify   'D:\\realtime-translator-all\\node_modules\\.bin\\dmg-license.ps1'
+63 silly reify ]
+64 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\@types\plist
+65 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\@types\\plist' ]
+66 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\@types\verror
+67 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\@types\\verror' ]
+68 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\crc
+69 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\crc' ]
+70 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\iconv-corefoundation
+71 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\iconv-corefoundation' ]
+72 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\smart-buffer
+73 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\smart-buffer' ]
+74 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\verror
+75 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\verror' ]
+76 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\cli-truncate
+77 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\cli-truncate' ]
+78 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\node-addon-api
+79 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\node-addon-api' ]
+80 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\assert-plus
+81 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\assert-plus' ]
+82 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\extsprintf
+83 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\extsprintf' ]
+84 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\slice-ansi
+85 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\slice-ansi' ]
+86 verbose reify failed optional dependency D:\realtime-translator-all\node_modules\astral-regex
+87 silly reify mark deleted [ 'D:\\realtime-translator-all\\node_modules\\astral-regex' ]
+88 http fetch POST 200 https://registry.npmjs.org/-/npm/v1/security/advisories/bulk 294ms
+89 silly audit report {
+89 silly audit report   electron: [
+89 silly audit report     {
+89 silly audit report       id: 1107272,
+89 silly audit report       url: 'https://github.com/advisories/GHSA-vmqv-hx8q-j7mg',
+89 silly audit report       title: 'Electron has ASAR Integrity Bypass via resource modification',
+89 silly audit report       severity: 'moderate',
+89 silly audit report       vulnerable_versions: '<35.7.5',
+89 silly audit report       cwe: [Array],
+89 silly audit report       cvss: [Object]
+89 silly audit report     }
+89 silly audit report   ],
+89 silly audit report   'webpack-dev-server': [
+89 silly audit report     {
+89 silly audit report       id: 1108429,
+89 silly audit report       url: 'https://github.com/advisories/GHSA-9jgg-88mc-972h',
+89 silly audit report       title: "webpack-dev-server users' source code may be stolen when they access a malicious web site with non-Chromium based browser",
+89 silly audit report       severity: 'moderate',
+89 silly audit report       vulnerable_versions: '<=5.2.0',
+89 silly audit report       cwe: [Array],
+89 silly audit report       cvss: [Object]
+89 silly audit report     },
+89 silly audit report     {
+89 silly audit report       id: 1108430,
+89 silly audit report       url: 'https://github.com/advisories/GHSA-4v9v-hfq4-rm2v',
+89 silly audit report       title: "webpack-dev-server users' source code may be stolen when they access a malicious web site",
+89 silly audit report       severity: 'moderate',
+89 silly audit report       vulnerable_versions: '<=5.2.0',
+89 silly audit report       cwe: [Array],
+89 silly audit report       cvss: [Object]
+89 silly audit report     }
+89 silly audit report   ]
+89 silly audit report }
+90 silly packumentCache corgi:https://registry.npmjs.org/electron cache-miss
+91 silly packumentCache corgi:https://registry.npmjs.org/webpack-dev-server cache-miss
+92 http fetch GET 200 https://registry.npmjs.org/electron 217ms (cache revalidated)
+93 silly packumentCache corgi:https://registry.npmjs.org/electron set size:1886802 disposed:false
+94 http fetch GET 200 https://registry.npmjs.org/webpack-dev-server 236ms (cache revalidated)
+95 silly packumentCache corgi:https://registry.npmjs.org/webpack-dev-server set size:455204 disposed:false
+96 info run node-windows-audio-capture@2.3.0 install node_modules/node-windows-audio-capture node-gyp-build
+97 info run node-windows-audio-capture@2.3.0 install { code: 1, signal: null }
+98 verbose stack Error: command failed
+98 verbose stack     at promiseSpawn (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\promise-spawn\lib\index.js:22:22)
+98 verbose stack     at spawnWithShell (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\promise-spawn\lib\index.js:124:10)
+98 verbose stack     at promiseSpawn (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\promise-spawn\lib\index.js:12:12)
+98 verbose stack     at runScriptPkg (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\run-script\lib\run-script-pkg.js:77:13)
+98 verbose stack     at runScript (C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\run-script\lib\run-script.js:9:12)
+98 verbose stack     at C:\Program Files\nodejs\node_modules\npm\node_modules\@npmcli\arborist\lib\arborist\rebuild.js:329:17
+98 verbose stack     at run (C:\Program Files\nodejs\node_modules\npm\node_modules\promise-call-limit\dist\commonjs\index.js:67:22)
+98 verbose stack     at C:\Program Files\nodejs\node_modules\npm\node_modules\promise-call-limit\dist\commonjs\index.js:84:9
+98 verbose stack     at new Promise (<anonymous>)
+98 verbose stack     at callLimit (C:\Program Files\nodejs\node_modules\npm\node_modules\promise-call-limit\dist\commonjs\index.js:35:69)
+99 verbose pkgid node-windows-audio-capture@2.3.0
+100 error code 1
+101 error path D:\realtime-translator-all\node_modules\node-windows-audio-capture
+102 error command failed
+103 error command C:\WINDOWS\system32\cmd.exe /d /s /c node-gyp-build
+104 error 生成启动时间为 2025/10/14 20:29:44。
+104 error
+104 error 节点 1 上的项目“D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\binding.sln”(默认目标)。
+104 error ValidateSolutionConfiguration:
+104 error   正在生成解决方案配置“Release|x64”。
+104 error 项目“D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\binding.sln”(1)正在节点 1 上生成“D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\audio_addon.vcxproj”(2) (默认目标)。
+104 error PrepareForBuild:
+104 error   正在创建目录“Release\obj\audio_addon\”。
+104 error   已启用结构化输出。编译器诊断的格式设置将反映错误层次结构。有关详细信息，请参阅 https://aka.ms/cpp/structured-output。
+104 error   正在创建目录“Release\obj\audio_addon\audio_addon.tlog\”。
+104 error InitializeBuildStatus:
+104 error   正在创建“Release\obj\audio_addon\audio_addon.tlog\unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+104 error   正在对“Release\obj\audio_addon\audio_addon.tlog\unsuccessfulbuild”执行 Touch 任务。
+104 error MakeDirsForCl:
+104 error   正在创建目录“D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\Release\obj\audio_addon\src\wasapi”。
+104 error   正在创建目录“D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\Release\obj\audio_addon\src\napi”。
+104 error ClCompile:
+104 error   C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\bin\HostX64\x64\CL.exe /c /I"C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\include\node" /I"C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\src" /I"C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\config" /I"C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\openssl\include" /I"C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\uv\include" /I"C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\zlib" /I"C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\v8\include" /I"D:\realtime-translator-all\node_modules\node-windows-audio-capture\node_modules\node-addon-api" /I..\src\wasapi /I..\src\napi /Z7 /nologo /W3 /WX- /diagnostics:column /MP /Ox /Ob2 /Oi /Ot /Oy /GL /D NODE_GYP_MODULE_NAME=audio_addon /D USING_UV_SHARED=1 /D USING_V8_SHARED=1 /D V8_DEPRECATION_WARNINGS=1 /D _GLIBCXX_USE_CXX11_ABI=1 /D _FILE_OFFSET_BITS=64 /D WIN32 /D _CRT_SECURE_NO_DEPRECATE /D _CRT_NONSTDC_NO_DEPRECATE /D _HAS_EXCEPTIONS=0 /D OPENSSL_NO_PINSHARED /D OPENSSL_THREADS /D NAPI_VERSION=8 /D WIN32_LEAN_AND_MEAN /D _WIN32_WINNT=0x0A00 /D NAPI_DISABLE_CPP_EXCEPTIONS /D BUILDING_NODE_EXTENSION /D "HOST_BINARY=\"node.exe\"" /D _WINDLL /GF /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR- /Fo"Release\obj\audio_addon\\src\wasapi\com_initializer.obj" /Fd"Release\obj\audio_addon\vc143.pdb" /external:W3 /Gd /TP /wd4351 /wd4355 /wd4800 /wd4251 /wd4275 /wd4244 /wd4267 /FC /errorReport:queue /Zc:__cplusplus -std:c++17 /std:c++17 ..\src\wasapi\com_initializer.cpp
+104 error   com_initializer.cpp
+104 error   C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\bin\HostX64\x64\CL.exe /c /I"C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\include\node" /I"C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\src" /I"C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\config" /I"C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\openssl\include" /I"C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\uv\include" /I"C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\zlib" /I"C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\v8\include" /I"D:\realtime-translator-all\node_modules\node-windows-audio-capture\node_modules\node-addon-api" /I..\src\wasapi /I..\src\napi /Z7 /nologo /W3 /WX- /diagnostics:column /MP /Ox /Ob2 /Oi /Ot /Oy /GL /D NODE_GYP_MODULE_NAME=audio_addon /D USING_UV_SHARED=1 /D USING_V8_SHARED=1 /D V8_DEPRECATION_WARNINGS=1 /D _GLIBCXX_USE_CXX11_ABI=1 /D _FILE_OFFSET_BITS=64 /D WIN32 /D _CRT_SECURE_NO_DEPRECATE /D _CRT_NONSTDC_NO_DEPRECATE /D _HAS_EXCEPTIONS=0 /D OPENSSL_NO_PINSHARED /D OPENSSL_THREADS /D NAPI_VERSION=8 /D WIN32_LEAN_AND_MEAN /D _WIN32_WINNT=0x0A00 /D NAPI_DISABLE_CPP_EXCEPTIONS /D BUILDING_NODE_EXTENSION /D "HOST_BINARY=\"node.exe\"" /D _WINDLL /GF /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /GR- /Fo"Release\obj\audio_addon\\src\wasapi\audio_params.obj" /Fd"Release\obj\audio_addon\vc143.pdb" /external:W3 /Gd /TP /wd4351 /wd4355 /wd4800 /wd4251 /wd4275 /wd4244 /wd4267 /FC /errorReport:queue /Zc:__cplusplus -std:c++17 /std:c++17 ..\src\wasapi\audio_params.cpp
+104 error   audio_params.cpp
+104 error D:\realtime-translator-all\node_modules\node-windows-audio-capture\src\wasapi\audio_params.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\audio_addon.vcxproj]
+104 error D:\realtime-translator-all\node_modules\node-windows-audio-capture\src\wasapi\audio_params.cpp(10,5): error C2065: “activationParams”: 未声明的标识符 [D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\audio_addon.vcxproj]
+104 error D:\realtime-translator-all\node_modules\node-windows-audio-capture\src\wasapi\audio_params.cpp(19,5): error C2065: “activationParams”: 未声明的标识符 [D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\audio_addon.vcxproj]
+104 error D:\realtime-translator-all\node_modules\node-windows-audio-capture\src\wasapi\audio_params.cpp(22,30): error C2065: “activationParams”: 未声明的标识符 [D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\audio_addon.vcxproj]
+104 error D:\realtime-translator-all\node_modules\node-windows-audio-capture\src\wasapi\audio_params.cpp(23,55): error C2065: “activationParams”: 未声明的标识符 [D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\audio_addon.vcxproj]
+104 error D:\realtime-translator-all\node_modules\node-windows-audio-capture\src\wasapi\audio_params.cpp(25,37): error C2065: “activationParams”: 未声明的标识符 [D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\audio_addon.vcxproj]
+104 error D:\realtime-translator-all\node_modules\node-windows-audio-capture\src\wasapi\audio_params.cpp(25,62): error C2065: “activationParams”: 未声明的标识符 [D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\audio_addon.vcxproj]
+104 error 已完成生成项目“D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\audio_addon.vcxproj”(默认目标)的操作 - 失败。
+104 error 已完成生成项目“D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\binding.sln”(默认目标)的操作 - 失败。
+104 error
+104 error 生成失败。
+104 error
+104 error “D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\binding.sln”(默认目标) (1) ->
+104 error “D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\audio_addon.vcxproj”(默认目标) (2) ->
+104 error (ClCompile 目标) -> 
+104 error   D:\realtime-translator-all\node_modules\node-windows-audio-capture\src\wasapi\audio_params.cpp(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失 [D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\audio_addon.vcxproj]
+104 error
+104 error
+104 error “D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\binding.sln”(默认目标) (1) ->
+104 error “D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\audio_addon.vcxproj”(默认目标) (2) ->
+104 error (ClCompile 目标) -> 
+104 error   D:\realtime-translator-all\node_modules\node-windows-audio-capture\src\wasapi\audio_params.cpp(10,5): error C2065: “activationParams”: 未声明的标识符 [D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\audio_addon.vcxproj]
+104 error   D:\realtime-translator-all\node_modules\node-windows-audio-capture\src\wasapi\audio_params.cpp(19,5): error C2065: “activationParams”: 未声明的标识符 [D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\audio_addon.vcxproj]
+104 error   D:\realtime-translator-all\node_modules\node-windows-audio-capture\src\wasapi\audio_params.cpp(22,30): error C2065: “activationParams”: 未声明的标识符 [D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\audio_addon.vcxproj]
+104 error   D:\realtime-translator-all\node_modules\node-windows-audio-capture\src\wasapi\audio_params.cpp(23,55): error C2065: “activationParams”: 未声明的标识符 [D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\audio_addon.vcxproj]
+104 error   D:\realtime-translator-all\node_modules\node-windows-audio-capture\src\wasapi\audio_params.cpp(25,37): error C2065: “activationParams”: 未声明的标识符 [D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\audio_addon.vcxproj]
+104 error   D:\realtime-translator-all\node_modules\node-windows-audio-capture\src\wasapi\audio_params.cpp(25,62): error C2065: “activationParams”: 未声明的标识符 [D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\audio_addon.vcxproj]
+104 error
+104 error     1 个警告
+104 error     6 个错误
+104 error
+104 error 已用时间 00:00:01.36
+105 error gyp info it worked if it ends with ok
+105 error gyp verb cli [
+105 error gyp verb cli 'C:\\Program Files\\nodejs\\node.exe',
+105 error gyp verb cli 'D:\\realtime-translator-all\\node_modules\\node-windows-audio-capture\\node_modules\\@electron\\node-gyp\\bin\\node-gyp.js',
+105 error gyp verb cli 'rebuild'
+105 error gyp verb cli ]
+105 error gyp info using node-gyp@10.2.0-electron.1
+105 error gyp info using node@20.19.5 | win32 | x64
+105 error gyp verb clean removing "build" directory
+105 error gyp verb find Python checking Python explicitly set from command line or npm configuration
+105 error gyp verb find Python - "--python=" or "npm config get python" is "C:\Users\wu\AppData\Local\Programs\Python\Python311\python.exe"
+105 error gyp verb find Python - executing "C:\Users\wu\AppData\Local\Programs\Python\Python311\python.exe" to get executable path
+105 error gyp sill find Python execFile: exec = "\"C:\\Users\\wu\\AppData\\Local\\Programs\\Python\\Python311\\python.exe\""
+105 error gyp sill find Python execFile: args = ["\"-c\"","\"import sys; sys.stdout.buffer.write(sys.executable.encode('utf-8'));\""]
+105 error gyp sill find Python execFile: opts = {"env":{"ALLUSERSPROFILE":"C:\\ProgramData","APPDATA":"C:\\Users\\wu\\AppData\\Roaming","ChocolateyInstall":"C:\\ProgramData\\chocolatey","ChocolateyLastPathUpdate":"134028722388175652","CHROME_CRASHPAD_PIPE_NAME":"\\\\.\\pipe\\crashpad_16900_BTQHWCDRLLMTDANU","CLion":"D:\\program\\CLion 2024.1.1\\bin;","COLOR":"1","COLORTERM":"truecolor","CommonProgramFiles":"C:\\Program Files\\Common Files","CommonProgramFiles(x86)":"C:\\Program Files (x86)\\Common Files","CommonProgramW6432":"C:\\Program Files\\Common Files","COMPUTERNAME":"WXL","ComSpec":"C:\\WINDOWS\\system32\\cmd.exe","DriverData":"C:\\Windows\\System32\\Drivers\\DriverData","EDITOR":"C:\\WINDOWS\\notepad.exe","EFC_13592_1262719628":"1","EFC_13592_1592913036":"1","EFC_13592_2283032206":"1","EFC_13592_2775293581":"1","EFC_13592_3789132940":"1","GIT_ASKPASS":"d:\\program\\Microsoft VS Code\\resources\\app\\extensions\\git\\dist\\askpass.sh","GIT_PAGER":"cat","HOME":"C:\\Users\\wu","HOMEDRIVE":"C:","HOMEPATH":"\\Users\\wu","IGCCSVC_DB":"AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAAnbwMRmlo7UuqmgJRoe2CHQQAAAACAAAAAAAQZgAAAAEAACAAAAAd8mkI9Job7Bm5/Og47roaxS8RB+AEgZYGXlSvD8ORcwAAAAAOgAAAAAIAACAAAABXnA0Owv8wJqaEwWkeKoFaDHBK8Ur5nZyyVdw3Q2gzxWAAAAB4utopTxdZzvGOVpotxQXnxqX7C3PnFHBuuOk5P9XSS6amONTKCtEZzfuqqCMVAPDhfo06dvXLq/vbkYaai97cSUL82yT1tOLRh5ZpkfX0IPwqeDN5aCdEzHF8FJD9NBNAAAAAaEn+urDb0YTgl6Cf5Vs775Sfn+YmLITIINFnDW2xirQt6YHqal7Mq+VzQRVl7MbftPgA1TCAh0Y8wAF7fZsNbw==","INIT_CWD":"D:\\realtime-translator-all","LANG":"en_US.UTF-8","LOCALAPPDATA":"C:\\Users\\wu\\AppData\\Local","LOGONSERVER":"\\\\WXL","NODE":"C:\\Program Files\\nodejs\\node.exe","NODE_EXE":"C:\\Program Files\\nodejs\\\\node.exe","NPM_CLI_JS":"C:\\Program Files\\nodejs\\\\node_modules\\npm\\bin\\npm-cli.js","npm_command":"install","npm_config_cache":"C:\\Users\\wu\\AppData\\Local\\npm-cache","npm_config_globalconfig":"C:\\Users\\wu\\AppData\\Roaming\\npm\\etc\\npmrc","npm_config_global_prefix":"C:\\Users\\wu\\AppData\\Roaming\\npm","npm_config_init_module":"C:\\Users\\wu\\.npm-init.js","npm_config_local_prefix":"D:\\realtime-translator-all","npm_config_msvs_version":"2022","npm_config_node_gyp":"C:\\Program Files\\nodejs\\node_modules\\npm\\node_modules\\node-gyp\\bin\\node-gyp.js","npm_config_noproxy":"","npm_config_npm_version":"10.8.2","npm_config_prefix":"C:\\Users\\wu\\AppData\\Roaming\\npm","npm_config_python":"C:\\Users\\wu\\AppData\\Local\\Programs\\Python\\Python311\\python.exe","npm_config_userconfig":"C:\\Users\\wu\\.npmrc","npm_config_user_agent":"npm/10.8.2 node/v20.19.5 win32 x64 workspaces/false","npm_execpath":"C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js","npm_lifecycle_event":"install","npm_lifecycle_script":"node-gyp-build","npm_node_execpath":"C:\\Program Files\\nodejs\\node.exe","npm_package_dev":"","npm_package_dev_optional":"","npm_package_engines_node":">=16.0.0","npm_package_integrity":"sha512-kHFBaIID80sfo7NS0U9UZmSym7MNXqbXoaffop59njx7+Y2TK9cYs1KBTv2CUfzgi+21ZpXk2n7jj8sxB16JWQ==","npm_package_json":"D:\\realtime-translator-all\\node_modules\\node-windows-audio-capture\\package.json","npm_package_name":"node-windows-audio-capture","npm_package_optional":"","npm_package_peer":"","npm_package_resolved":"https://github.com/wujelly701/node-windows-audio-capture/tarball/master","npm_package_version":"2.3.0","NPM_PREFIX_JS":"C:\\Program Files\\nodejs\\\\node_modules\\npm\\bin\\npm-prefix.js","NPM_PREFIX_NPM_CLI_JS":"C:\\Users\\wu\\AppData\\Roaming\\npm\\node_modules\\npm\\bin\\npm-cli.js","NUMBER_OF_PROCESSORS":"16","NVM_HOME":"C:\\Users\\wu\\AppData\\Local\\nvm","NVM_SYMLINK":"C:\\nvm4w\\nodejs","OneDrive":"C:\\Users\\wu\\OneDrive","ORIGINAL_XDG_CURRENT_DESKTOP":"undefined","OS":"Windows_NT","Path":"D:\\realtime-translator-all\\node_modules\\node-windows-audio-capture\\node_modules\\.bin;D:\\realtime-translator-all\\node_modules\\node_modules\\.bin;D:\\realtime-translator-all\\node_modules\\.bin;D:\\node_modules\\.bin;C:\\Program Files\\nodejs\\node_modules\\npm\\node_modules\\@npmcli\\run-script\\lib\\node-gyp-bin;C:\\Python313\\Scripts\\;C:\\Python313\\;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\dotnet\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;D:\\Bandizip;D:\\program\\Bandizip;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;D:\\program\\Git\\cmd;C:\\Users\\wu\\AppData\\Local\\nvm;C:\\nvm4w\\nodejs;C:\\ProgramData\\chocolatey\\bin;C:\\Program Files\\nodejs\\;C:\\ProgramData\\chocolatey\\lib\\ffmpeg\\tools\\ffmpeg\\bin;C:\\Users\\wu\\AppData\\Local\\Programs\\Python\\Python310\\Scripts\\;C:\\Users\\wu\\AppData\\Local\\Programs\\Python\\Python310\\;C:\\Users\\wu\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\;C:\\Users\\wu\\AppData\\Local\\Programs\\Python\\Python311\\;C:\\Users\\wu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Program Files\\JetBrains\\PyCharm 2023.2.5\\bin;;D:\\program\\CLion 2024.1.1\\bin;;C:\\Users\\wu\\AppData\\Local\\Programs\\Ollama;C:\\Users\\wu\\AppData\\Local\\Programs\\cursor\\resources\\app\\bin;C:\\Users\\wu\\AppData\\Local\\nvm;C:\\nvm4w\\nodejs;D:\\program\\Microsoft VS Code\\bin;C:\\Users\\wu\\AppData\\Roaming\\npm;C:\\Python313\\Scripts\\;C:\\Python313\\;;c:\\Users\\wu\\AppData\\Roaming\\Code\\User\\globalStorage\\github.copilot-chat\\debugCommand","PATHEXT":".COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC;.PY;.PYW;.CPL","PROCESSOR_ARCHITECTURE":"AMD64","PROCESSOR_IDENTIFIER":"Intel64 Family 6 Model 154 Stepping 3, GenuineIntel","PROCESSOR_LEVEL":"6","PROCESSOR_REVISION":"9a03","ProgramData":"C:\\ProgramData","ProgramFiles":"C:\\Program Files","ProgramFiles(x86)":"C:\\Program Files (x86)","ProgramW6432":"C:\\Program Files","PROMPT":"$P$G","PSModulePath":"C:\\Users\\wu\\Documents\\WindowsPowerShell\\Modules;C:\\Program Files\\WindowsPowerShell\\Modules;C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\Modules","PUBLIC":"C:\\Users\\Public","PyCharm":"C:\\Program Files\\JetBrains\\PyCharm 2023.2.5\\bin;","SESSIONNAME":"Console","SystemDrive":"C:","SystemRoot":"C:\\WINDOWS","TEMP":"C:\\Users\\wu\\AppData\\Local\\Temp","TERM_PROGRAM":"vscode","TERM_PROGRAM_VERSION":"1.105.0","TMP":"C:\\Users\\wu\\AppData\\Local\\Temp","USERDOMAIN":"wxl","USERDOMAIN_ROAMINGPROFILE":"wxl","USERNAME":"wu","USERPROFILE":"C:\\Users\\wu","VSCODE_GIT_ASKPASS_EXTRA_ARGS":"","VSCODE_GIT_ASKPASS_MAIN":"d:\\program\\Microsoft VS Code\\resources\\app\\extensions\\git\\dist\\askpass-main.js","VSCODE_GIT_ASKPASS_NODE":"D:\\program\\Microsoft VS Code\\Code.exe","VSCODE_GIT_IPC_HANDLE":"\\\\.\\pipe\\vscode-git-3fca6d37b2-sock","VSCODE_INJECTION":"1","VSCODE_PYTHON_AUTOACTIVATE_GUARD":"1","windir":"C:\\WINDOWS","ZES_ENABLE_SYSMAN":"1","TERM":"dumb"},"shell":true}
+105 error gyp sill find Python execFile result: err = null
+105 error gyp sill find Python execFile result: stdout = "C:\\Users\\wu\\AppData\\Local\\Programs\\Python\\Python311\\python.exe"
+105 error gyp sill find Python execFile result: stderr = ""
+105 error gyp verb find Python - executable path is "C:\Users\wu\AppData\Local\Programs\Python\Python311\python.exe"
+105 error gyp verb find Python - executing "C:\Users\wu\AppData\Local\Programs\Python\Python311\python.exe" to get version
+105 error gyp sill find Python execFile: exec = "C:\\Users\\wu\\AppData\\Local\\Programs\\Python\\Python311\\python.exe"
+105 error gyp sill find Python execFile: args = ["-c","import sys; print(\"%s.%s.%s\" % sys.version_info[:3]);"]
+105 error gyp sill find Python execFile: opts = {"env":{"ALLUSERSPROFILE":"C:\\ProgramData","APPDATA":"C:\\Users\\wu\\AppData\\Roaming","ChocolateyInstall":"C:\\ProgramData\\chocolatey","ChocolateyLastPathUpdate":"134028722388175652","CHROME_CRASHPAD_PIPE_NAME":"\\\\.\\pipe\\crashpad_16900_BTQHWCDRLLMTDANU","CLion":"D:\\program\\CLion 2024.1.1\\bin;","COLOR":"1","COLORTERM":"truecolor","CommonProgramFiles":"C:\\Program Files\\Common Files","CommonProgramFiles(x86)":"C:\\Program Files (x86)\\Common Files","CommonProgramW6432":"C:\\Program Files\\Common Files","COMPUTERNAME":"WXL","ComSpec":"C:\\WINDOWS\\system32\\cmd.exe","DriverData":"C:\\Windows\\System32\\Drivers\\DriverData","EDITOR":"C:\\WINDOWS\\notepad.exe","EFC_13592_1262719628":"1","EFC_13592_1592913036":"1","EFC_13592_2283032206":"1","EFC_13592_2775293581":"1","EFC_13592_3789132940":"1","GIT_ASKPASS":"d:\\program\\Microsoft VS Code\\resources\\app\\extensions\\git\\dist\\askpass.sh","GIT_PAGER":"cat","HOME":"C:\\Users\\wu","HOMEDRIVE":"C:","HOMEPATH":"\\Users\\wu","IGCCSVC_DB":"AQAAANCMnd8BFdERjHoAwE/Cl+sBAAAAnbwMRmlo7UuqmgJRoe2CHQQAAAACAAAAAAAQZgAAAAEAACAAAAAd8mkI9Job7Bm5/Og47roaxS8RB+AEgZYGXlSvD8ORcwAAAAAOgAAAAAIAACAAAABXnA0Owv8wJqaEwWkeKoFaDHBK8Ur5nZyyVdw3Q2gzxWAAAAB4utopTxdZzvGOVpotxQXnxqX7C3PnFHBuuOk5P9XSS6amONTKCtEZzfuqqCMVAPDhfo06dvXLq/vbkYaai97cSUL82yT1tOLRh5ZpkfX0IPwqeDN5aCdEzHF8FJD9NBNAAAAAaEn+urDb0YTgl6Cf5Vs775Sfn+YmLITIINFnDW2xirQt6YHqal7Mq+VzQRVl7MbftPgA1TCAh0Y8wAF7fZsNbw==","INIT_CWD":"D:\\realtime-translator-all","LANG":"en_US.UTF-8","LOCALAPPDATA":"C:\\Users\\wu\\AppData\\Local","LOGONSERVER":"\\\\WXL","NODE":"C:\\Program Files\\nodejs\\node.exe","NODE_EXE":"C:\\Program Files\\nodejs\\\\node.exe","NPM_CLI_JS":"C:\\Program Files\\nodejs\\\\node_modules\\npm\\bin\\npm-cli.js","npm_command":"install","npm_config_cache":"C:\\Users\\wu\\AppData\\Local\\npm-cache","npm_config_globalconfig":"C:\\Users\\wu\\AppData\\Roaming\\npm\\etc\\npmrc","npm_config_global_prefix":"C:\\Users\\wu\\AppData\\Roaming\\npm","npm_config_init_module":"C:\\Users\\wu\\.npm-init.js","npm_config_local_prefix":"D:\\realtime-translator-all","npm_config_msvs_version":"2022","npm_config_node_gyp":"C:\\Program Files\\nodejs\\node_modules\\npm\\node_modules\\node-gyp\\bin\\node-gyp.js","npm_config_noproxy":"","npm_config_npm_version":"10.8.2","npm_config_prefix":"C:\\Users\\wu\\AppData\\Roaming\\npm","npm_config_python":"C:\\Users\\wu\\AppData\\Local\\Programs\\Python\\Python311\\python.exe","npm_config_userconfig":"C:\\Users\\wu\\.npmrc","npm_config_user_agent":"npm/10.8.2 node/v20.19.5 win32 x64 workspaces/false","npm_execpath":"C:\\Program Files\\nodejs\\node_modules\\npm\\bin\\npm-cli.js","npm_lifecycle_event":"install","npm_lifecycle_script":"node-gyp-build","npm_node_execpath":"C:\\Program Files\\nodejs\\node.exe","npm_package_dev":"","npm_package_dev_optional":"","npm_package_engines_node":">=16.0.0","npm_package_integrity":"sha512-kHFBaIID80sfo7NS0U9UZmSym7MNXqbXoaffop59njx7+Y2TK9cYs1KBTv2CUfzgi+21ZpXk2n7jj8sxB16JWQ==","npm_package_json":"D:\\realtime-translator-all\\node_modules\\node-windows-audio-capture\\package.json","npm_package_name":"node-windows-audio-capture","npm_package_optional":"","npm_package_peer":"","npm_package_resolved":"https://github.com/wujelly701/node-windows-audio-capture/tarball/master","npm_package_version":"2.3.0","NPM_PREFIX_JS":"C:\\Program Files\\nodejs\\\\node_modules\\npm\\bin\\npm-prefix.js","NPM_PREFIX_NPM_CLI_JS":"C:\\Users\\wu\\AppData\\Roaming\\npm\\node_modules\\npm\\bin\\npm-cli.js","NUMBER_OF_PROCESSORS":"16","NVM_HOME":"C:\\Users\\wu\\AppData\\Local\\nvm","NVM_SYMLINK":"C:\\nvm4w\\nodejs","OneDrive":"C:\\Users\\wu\\OneDrive","ORIGINAL_XDG_CURRENT_DESKTOP":"undefined","OS":"Windows_NT","Path":"D:\\realtime-translator-all\\node_modules\\node-windows-audio-capture\\node_modules\\.bin;D:\\realtime-translator-all\\node_modules\\node_modules\\.bin;D:\\realtime-translator-all\\node_modules\\.bin;D:\\node_modules\\.bin;C:\\Program Files\\nodejs\\node_modules\\npm\\node_modules\\@npmcli\\run-script\\lib\\node-gyp-bin;C:\\Python313\\Scripts\\;C:\\Python313\\;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Program Files\\dotnet\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;D:\\Bandizip;D:\\program\\Bandizip;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;D:\\program\\Git\\cmd;C:\\Users\\wu\\AppData\\Local\\nvm;C:\\nvm4w\\nodejs;C:\\ProgramData\\chocolatey\\bin;C:\\Program Files\\nodejs\\;C:\\ProgramData\\chocolatey\\lib\\ffmpeg\\tools\\ffmpeg\\bin;C:\\Users\\wu\\AppData\\Local\\Programs\\Python\\Python310\\Scripts\\;C:\\Users\\wu\\AppData\\Local\\Programs\\Python\\Python310\\;C:\\Users\\wu\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\;C:\\Users\\wu\\AppData\\Local\\Programs\\Python\\Python311\\;C:\\Users\\wu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Program Files\\JetBrains\\PyCharm 2023.2.5\\bin;;D:\\program\\CLion 2024.1.1\\bin;;C:\\Users\\wu\\AppData\\Local\\Programs\\Ollama;C:\\Users\\wu\\AppData\\Local\\Programs\\cursor\\resources\\app\\bin;C:\\Users\\wu\\AppData\\Local\\nvm;C:\\nvm4w\\nodejs;D:\\program\\Microsoft VS Code\\bin;C:\\Users\\wu\\AppData\\Roaming\\npm;C:\\Python313\\Scripts\\;C:\\Python313\\;;c:\\Users\\wu\\AppData\\Roaming\\Code\\User\\globalStorage\\github.copilot-chat\\debugCommand","PATHEXT":".COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC;.PY;.PYW;.CPL","PROCESSOR_ARCHITECTURE":"AMD64","PROCESSOR_IDENTIFIER":"Intel64 Family 6 Model 154 Stepping 3, GenuineIntel","PROCESSOR_LEVEL":"6","PROCESSOR_REVISION":"9a03","ProgramData":"C:\\ProgramData","ProgramFiles":"C:\\Program Files","ProgramFiles(x86)":"C:\\Program Files (x86)","ProgramW6432":"C:\\Program Files","PROMPT":"$P$G","PSModulePath":"C:\\Users\\wu\\Documents\\WindowsPowerShell\\Modules;C:\\Program Files\\WindowsPowerShell\\Modules;C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\Modules","PUBLIC":"C:\\Users\\Public","PyCharm":"C:\\Program Files\\JetBrains\\PyCharm 2023.2.5\\bin;","SESSIONNAME":"Console","SystemDrive":"C:","SystemRoot":"C:\\WINDOWS","TEMP":"C:\\Users\\wu\\AppData\\Local\\Temp","TERM_PROGRAM":"vscode","TERM_PROGRAM_VERSION":"1.105.0","TMP":"C:\\Users\\wu\\AppData\\Local\\Temp","USERDOMAIN":"wxl","USERDOMAIN_ROAMINGPROFILE":"wxl","USERNAME":"wu","USERPROFILE":"C:\\Users\\wu","VSCODE_GIT_ASKPASS_EXTRA_ARGS":"","VSCODE_GIT_ASKPASS_MAIN":"d:\\program\\Microsoft VS Code\\resources\\app\\extensions\\git\\dist\\askpass-main.js","VSCODE_GIT_ASKPASS_NODE":"D:\\program\\Microsoft VS Code\\Code.exe","VSCODE_GIT_IPC_HANDLE":"\\\\.\\pipe\\vscode-git-3fca6d37b2-sock","VSCODE_INJECTION":"1","VSCODE_PYTHON_AUTOACTIVATE_GUARD":"1","windir":"C:\\WINDOWS","ZES_ENABLE_SYSMAN":"1","TERM":"dumb"},"shell":false}
+105 error gyp sill find Python execFile result: err = null
+105 error gyp sill find Python execFile result: stdout = "3.11.9\r\n"
+105 error gyp sill find Python execFile result: stderr = ""
+105 error gyp verb find Python - version is "3.11.9"
+105 error gyp info find Python using Python version 3.11.9 found at "C:\Users\wu\AppData\Local\Programs\Python\Python311\python.exe"
+105 error gyp verb get node dir no --target version specified, falling back to host node version: 20.19.5
+105 error gyp verb install input version string "20.19.5"
+105 error gyp verb install installing version: 20.19.5
+105 error gyp verb install --ensure was passed, so won't reinstall if already installed
+105 error gyp verb install version is already installed, need to check "installVersion"
+105 error gyp verb got "installVersion" 11
+105 error gyp verb needs "installVersion" 11
+105 error gyp verb install version is good
+105 error gyp verb on Windows; need to check node.lib 
+105 error gyp verb get node dir target node version installed: 20.19.5
+105 error gyp verb build dir attempting to create "build" dir: D:\realtime-translator-all\node_modules\node-windows-audio-capture\build
+105 error gyp verb build dir "build" dir needed to be created? Yes
+105 error gyp verb find VS msvs_version was set from command line or npm config
+105 error gyp verb find VS - looking for Visual Studio version 2022
+105 error gyp verb find VS VCINSTALLDIR not set, not running in VS Command Prompt
+105 error gyp sill find VS Running C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe [
+105 error gyp sill find VS '-NoProfile',
+105 error gyp sill find VS '-Command',
+105 error gyp sill find VS '&{@(Get-Module -ListAvailable -Name VSSetup).Version.ToString()}'
+105 error gyp sill find VS ]
+105 error gyp sill find VS Running C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe [
+105 error gyp sill find VS '-NoProfile',
+105 error gyp sill find VS '-Command',
+105 error gyp sill find VS '&{Get-VSSetupInstance  | ConvertTo-Json -Depth 3}'
+105 error gyp sill find VS ]
+105 error gyp sill find VS PS stderr = "Get-VSSetupInstance : �޷�����Get-VSSetupInstance\r\n����ʶ��Ϊ cmdlet���������ű��ļ�������г������\r\n�ơ��������Ƶ�ƴд���������·������ȷ��·����\r\nȷ��Ȼ������һ�Ρ�\r\n����λ�� ��:1 �ַ�: 3\r\n+ &{Get-VSSetupInstance  | ConvertTo-Json -Depth \r\n3}\r\n+   ~~~~~~~~~~~~~~~~~~~\r\n    + CategoryInfo          : ObjectNotFound: (G \r\n   et-VSSetupInstance:String) [], CommandNotFou  \r\n  ndException\r\n    + FullyQualifiedErrorId : CommandNotFoundExc \r\n   eption\r\n \r\n"
+105 error gyp sill find VS PS stdout = ""
+105 error gyp sill find VS SyntaxError: Unexpected end of JSON input
+105 error gyp sill find VS at JSON.parse (<anonymous>)
+105 error gyp sill find VS at VisualStudioFinder.parseData (D:\realtime-translator-all\node_modules\node-windows-audio-capture\node_modules\@electron\node-gyp\lib\find-visualstudio.js:286:21)
+105 error gyp sill find VS at VisualStudioFinder.findNewVSUsingSetupModule (D:\realtime-translator-all\node_modules\node-windows-audio-capture\node_modules\@electron\node-gyp\lib\find-visualstudio.js:202:27)
+105 error gyp sill find VS at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+105 error gyp sill find VS at async VisualStudioFinder.findVisualStudio (D:\realtime-translator-all\node_modules\node-windows-audio-capture\node_modules\@electron\node-gyp\lib\find-visualstudio.js:68:20)
+105 error gyp sill find VS at async createBuildDir (D:\realtime-translator-all\node_modules\node-windows-audio-capture\node_modules\@electron\node-gyp\lib\configure.js:112:18)
+105 error gyp sill find VS at async run (D:\realtime-translator-all\node_modules\node-windows-audio-capture\node_modules\@electron\node-gyp\bin\node-gyp.js:81:18)
+105 error gyp verb find VS could not use PowerShell to find Visual Studio 2017 or newer, try re-running with '--loglevel silly' for more details.
+105 error gyp verb find VS 
+105 error gyp verb find VS Failure details: undefined
+105 error gyp sill find VS Running C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe [
+105 error gyp sill find VS '-ExecutionPolicy',
+105 error gyp sill find VS 'Unrestricted',
+105 error gyp sill find VS '-NoProfile',
+105 error gyp sill find VS '-Command',
+105 error gyp sill find VS "&{Add-Type -Path 'D:\\realtime-translator-all\\node_modules\\node-windows-audio-capture\\node_modules\\@electron\\node-gyp\\lib\\Find-VisualStudio.cs';[VisualStudioConfiguration.Main]::PrintJson()}"
+105 error gyp sill find VS ]
+105 error gyp sill find VS PS stderr = ""
+105 error gyp sill find VS processing installation: "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools"
+105 error gyp sill find VS - version match = ["17.14.36518.9","17","14"]
+105 error gyp sill find VS - found VC.Tools.x86.x64
+105 error gyp sill find VS - found Win10/11SDK: 26100
+105 error gyp sill find VS processing installation: "C:\Program Files (x86)\Microsoft Visual Studio\2019\BuildTools"
+105 error gyp sill find VS - version match = ["16.11.36422.26","16","11"]
+105 error gyp sill find VS - found VC.MSBuild.Base
+105 error gyp sill find VS - found VC.Tools.x86.x64
+105 error gyp sill find VS - found Win10/11SDK: 19041
+105 error gyp sill find VS vsInfo: [
+105 error gyp sill find VS {
+105 error gyp sill find VS version: '17.14.36518.9',
+105 error gyp sill find VS versionMajor: 17,
+105 error gyp sill find VS versionMinor: 14,
+105 error gyp sill find VS versionYear: 2022,
+105 error gyp sill find VS path: 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools',
+105 error gyp sill find VS msBuild: 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe',
+105 error gyp sill find VS toolset: 'v143',
+105 error gyp sill find VS sdk: '10.0.26100.0'
+105 error gyp sill find VS },
+105 error gyp sill find VS {
+105 error gyp sill find VS version: '16.11.36422.26',
+105 error gyp sill find VS versionMajor: 16,
+105 error gyp sill find VS versionMinor: 11,
+105 error gyp sill find VS versionYear: 2019,
+105 error gyp sill find VS path: 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools',
+105 error gyp sill find VS msBuild: 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe',
+105 error gyp sill find VS toolset: 'v142',
+105 error gyp sill find VS sdk: '10.0.19041.0'
+105 error gyp sill find VS }
+105 error gyp sill find VS ]
+105 error gyp verb find VS checking VS2022 (17.14.36518.9) found at:
+105 error gyp verb find VS "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools"
+105 error gyp verb find VS - found "Visual Studio C++ core features"
+105 error gyp verb find VS - found VC++ toolset: v143
+105 error gyp verb find VS - found Windows SDK: 10.0.26100.0
+105 error gyp info find VS using VS2022 (17.14.36518.9) found at:
+105 error gyp info find VS "C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools"
+105 error gyp info find VS run with --verbose for detailed information
+105 error gyp verb build/config.gypi creating config file
+105 error gyp sill build/config.gypi {
+105 error gyp sill build/config.gypi target_defaults: {
+105 error gyp sill build/config.gypi cflags: [],
+105 error gyp sill build/config.gypi default_configuration: 'Release',
+105 error gyp sill build/config.gypi defines: [],
+105 error gyp sill build/config.gypi include_dirs: [],
+105 error gyp sill build/config.gypi libraries: [],
+105 error gyp sill build/config.gypi msbuild_toolset: 'v143',
+105 error gyp sill build/config.gypi msvs_windows_target_platform_version: '10.0.26100.0'
+105 error gyp sill build/config.gypi },
+105 error gyp sill build/config.gypi variables: {
+105 error gyp sill build/config.gypi asan: 0,
+105 error gyp sill build/config.gypi clang: 0,
+105 error gyp sill build/config.gypi coverage: false,
+105 error gyp sill build/config.gypi dcheck_always_on: 0,
+105 error gyp sill build/config.gypi debug_nghttp2: false,
+105 error gyp sill build/config.gypi debug_node: false,
+105 error gyp sill build/config.gypi enable_lto: false,
+105 error gyp sill build/config.gypi enable_pgo_generate: false,
+105 error gyp sill build/config.gypi enable_pgo_use: false,
+105 error gyp sill build/config.gypi error_on_warn: false,
+105 error gyp sill build/config.gypi force_dynamic_crt: 0,
+105 error gyp sill build/config.gypi host_arch: 'x64',
+105 error gyp sill build/config.gypi icu_data_in: '..\\..\\deps\\icu-tmp\\icudt77l.dat',
+105 error gyp sill build/config.gypi icu_endianness: 'l',
+105 error gyp sill build/config.gypi icu_gyp_path: 'tools/icu/icu-generic.gyp',
+105 error gyp sill build/config.gypi icu_path: 'deps/icu-small',
+105 error gyp sill build/config.gypi icu_small: false,
+105 error gyp sill build/config.gypi icu_ver_major: '77',
+105 error gyp sill build/config.gypi is_debug: 0,
+105 error gyp sill build/config.gypi libdir: 'lib',
+105 error gyp sill build/config.gypi llvm_version: '0.0',
+105 error gyp sill build/config.gypi napi_build_version: '9',
+105 error gyp sill build/config.gypi nasm_version: '2.16',
+105 error gyp sill build/config.gypi node_builtin_shareable_builtins: [
+105 error gyp sill build/config.gypi 'deps/cjs-module-lexer/lexer.js',
+105 error gyp sill build/config.gypi 'deps/cjs-module-lexer/dist/lexer.js',
+105 error gyp sill build/config.gypi 'deps/undici/undici.js'
+105 error gyp sill build/config.gypi ],
+105 error gyp sill build/config.gypi node_byteorder: 'little',
+105 error gyp sill build/config.gypi node_debug_lib: false,
+105 error gyp sill build/config.gypi node_enable_d8: false,
+105 error gyp sill build/config.gypi node_enable_v8_vtunejit: false,
+105 error gyp sill build/config.gypi node_fipsinstall: false,
+105 error gyp sill build/config.gypi node_install_corepack: true,
+105 error gyp sill build/config.gypi node_install_npm: true,
+105 error gyp sill build/config.gypi node_library_files: [
+105 error gyp sill build/config.gypi 'lib/_http_agent.js',
+105 error gyp sill build/config.gypi 'lib/_http_client.js',
+105 error gyp sill build/config.gypi 'lib/_http_common.js',
+105 error gyp sill build/config.gypi 'lib/_http_incoming.js',
+105 error gyp sill build/config.gypi 'lib/_http_outgoing.js',
+105 error gyp sill build/config.gypi 'lib/_http_server.js',
+105 error gyp sill build/config.gypi 'lib/_stream_duplex.js',
+105 error gyp sill build/config.gypi 'lib/_stream_passthrough.js',
+105 error gyp sill build/config.gypi 'lib/_stream_readable.js',
+105 error gyp sill build/config.gypi 'lib/_stream_transform.js',
+105 error gyp sill build/config.gypi 'lib/_stream_wrap.js',
+105 error gyp sill build/config.gypi 'lib/_stream_writable.js',
+105 error gyp sill build/config.gypi 'lib/_tls_common.js',
+105 error gyp sill build/config.gypi 'lib/_tls_wrap.js',
+105 error gyp sill build/config.gypi 'lib/assert.js',
+105 error gyp sill build/config.gypi 'lib/assert/strict.js',
+105 error gyp sill build/config.gypi 'lib/async_hooks.js',
+105 error gyp sill build/config.gypi 'lib/buffer.js',
+105 error gyp sill build/config.gypi 'lib/child_process.js',
+105 error gyp sill build/config.gypi 'lib/cluster.js',
+105 error gyp sill build/config.gypi 'lib/console.js',
+105 error gyp sill build/config.gypi 'lib/constants.js',
+105 error gyp sill build/config.gypi 'lib/crypto.js',
+105 error gyp sill build/config.gypi 'lib/dgram.js',
+105 error gyp sill build/config.gypi 'lib/diagnostics_channel.js',
+105 error gyp sill build/config.gypi 'lib/dns.js',
+105 error gyp sill build/config.gypi 'lib/dns/promises.js',
+105 error gyp sill build/config.gypi 'lib/domain.js',
+105 error gyp sill build/config.gypi 'lib/events.js',
+105 error gyp sill build/config.gypi 'lib/fs.js',
+105 error gyp sill build/config.gypi 'lib/fs/promises.js',
+105 error gyp sill build/config.gypi 'lib/http.js',
+105 error gyp sill build/config.gypi 'lib/http2.js',
+105 error gyp sill build/config.gypi 'lib/https.js',
+105 error gyp sill build/config.gypi 'lib/inspector.js',
+105 error gyp sill build/config.gypi 'lib/inspector/promises.js',
+105 error gyp sill build/config.gypi 'lib/internal/abort_controller.js',
+105 error gyp sill build/config.gypi 'lib/internal/assert.js',
+105 error gyp sill build/config.gypi 'lib/internal/assert/assertion_error.js',
+105 error gyp sill build/config.gypi 'lib/internal/assert/calltracker.js',
+105 error gyp sill build/config.gypi 'lib/internal/assert/utils.js',
+105 error gyp sill build/config.gypi 'lib/internal/async_hooks.js',
+105 error gyp sill build/config.gypi 'lib/internal/blob.js',
+105 error gyp sill build/config.gypi 'lib/internal/blocklist.js',
+105 error gyp sill build/config.gypi 'lib/internal/bootstrap/node.js',
+105 error gyp sill build/config.gypi 'lib/internal/bootstrap/realm.js',
+105 error gyp sill build/config.gypi 'lib/internal/bootstrap/shadow_realm.js',
+105 error gyp sill build/config.gypi 'lib/internal/bootstrap/switches/does_not_own_process_state.js',
+105 error gyp sill build/config.gypi 'lib/internal/bootstrap/switches/does_own_process_state.js',
+105 error gyp sill build/config.gypi 'lib/internal/bootstrap/switches/is_main_thread.js',
+105 error gyp sill build/config.gypi 'lib/internal/bootstrap/switches/is_not_main_thread.js',
+105 error gyp sill build/config.gypi 'lib/internal/bootstrap/web/exposed-wildcard.js',
+105 error gyp sill build/config.gypi 'lib/internal/bootstrap/web/exposed-window-or-worker.js',
+105 error gyp sill build/config.gypi 'lib/internal/buffer.js',
+105 error gyp sill build/config.gypi 'lib/internal/child_process.js',
+105 error gyp sill build/config.gypi 'lib/internal/child_process/serialization.js',
+105 error gyp sill build/config.gypi 'lib/internal/cli_table.js',
+105 error gyp sill build/config.gypi 'lib/internal/cluster/child.js',
+105 error gyp sill build/config.gypi 'lib/internal/cluster/primary.js',
+105 error gyp sill build/config.gypi 'lib/internal/cluster/round_robin_handle.js',
+105 error gyp sill build/config.gypi 'lib/internal/cluster/shared_handle.js',
+105 error gyp sill build/config.gypi 'lib/internal/cluster/utils.js',
+105 error gyp sill build/config.gypi 'lib/internal/cluster/worker.js',
+105 error gyp sill build/config.gypi 'lib/internal/console/constructor.js',
+105 error gyp sill build/config.gypi 'lib/internal/console/global.js',
+105 error gyp sill build/config.gypi 'lib/internal/constants.js',
+105 error gyp sill build/config.gypi 'lib/internal/crypto/aes.js',
+105 error gyp sill build/config.gypi 'lib/internal/crypto/certificate.js',
+105 error gyp sill build/config.gypi 'lib/internal/crypto/cfrg.js',
+105 error gyp sill build/config.gypi 'lib/internal/crypto/cipher.js',
+105 error gyp sill build/config.gypi 'lib/internal/crypto/diffiehellman.js',
+105 error gyp sill build/config.gypi 'lib/internal/crypto/ec.js',
+105 error gyp sill build/config.gypi 'lib/internal/crypto/hash.js',
+105 error gyp sill build/config.gypi 'lib/internal/crypto/hashnames.js',
+105 error gyp sill build/config.gypi 'lib/internal/crypto/hkdf.js',
+105 error gyp sill build/config.gypi 'lib/internal/crypto/keygen.js',
+105 error gyp sill build/config.gypi 'lib/internal/crypto/keys.js',
+105 error gyp sill build/config.gypi 'lib/internal/crypto/mac.js',
+105 error gyp sill build/config.gypi 'lib/internal/crypto/pbkdf2.js',
+105 error gyp sill build/config.gypi 'lib/internal/crypto/random.js',
+105 error gyp sill build/config.gypi 'lib/internal/crypto/rsa.js',
+105 error gyp sill build/config.gypi 'lib/internal/crypto/scrypt.js',
+105 error gyp sill build/config.gypi 'lib/internal/crypto/sig.js',
+105 error gyp sill build/config.gypi 'lib/internal/crypto/util.js',
+105 error gyp sill build/config.gypi 'lib/internal/crypto/webcrypto.js',
+105 error gyp sill build/config.gypi 'lib/internal/crypto/webidl.js',
+105 error gyp sill build/config.gypi 'lib/internal/crypto/x509.js',
+105 error gyp sill build/config.gypi 'lib/internal/debugger/inspect.js',
+105 error gyp sill build/config.gypi 'lib/internal/debugger/inspect_client.js',
+105 error gyp sill build/config.gypi 'lib/internal/debugger/inspect_repl.js',
+105 error gyp sill build/config.gypi 'lib/internal/dgram.js',
+105 error gyp sill build/config.gypi 'lib/internal/dns/callback_resolver.js',
+105 error gyp sill build/config.gypi 'lib/internal/dns/promises.js',
+105 error gyp sill build/config.gypi 'lib/internal/dns/utils.js',
+105 error gyp sill build/config.gypi 'lib/internal/encoding.js',
+105 error gyp sill build/config.gypi 'lib/internal/error_serdes.js',
+105 error gyp sill build/config.gypi 'lib/internal/errors.js',
+105 error gyp sill build/config.gypi 'lib/internal/event_target.js',
+105 error gyp sill build/config.gypi 'lib/internal/events/abort_listener.js',
+105 error gyp sill build/config.gypi 'lib/internal/events/symbols.js',
+105 error gyp sill build/config.gypi ... 218 more items
+105 error gyp sill build/config.gypi ],
+105 error gyp sill build/config.gypi node_module_version: 115,
+105 error gyp sill build/config.gypi node_no_browser_globals: false,
+105 error gyp sill build/config.gypi node_prefix: '\\usr\\local',
+105 error gyp sill build/config.gypi node_release_urlbase: 'https://nodejs.org/download/release/',
+105 error gyp sill build/config.gypi node_shared: false,
+105 error gyp sill build/config.gypi node_shared_ada: false,
+105 error gyp sill build/config.gypi node_shared_brotli: false,
+105 error gyp sill build/config.gypi node_shared_cares: false,
+105 error gyp sill build/config.gypi node_shared_http_parser: false,
+105 error gyp sill build/config.gypi node_shared_libuv: false,
+105 error gyp sill build/config.gypi node_shared_nghttp2: false,
+105 error gyp sill build/config.gypi node_shared_nghttp3: false,
+105 error gyp sill build/config.gypi node_shared_ngtcp2: false,
+105 error gyp sill build/config.gypi node_shared_openssl: false,
+105 error gyp sill build/config.gypi node_shared_simdjson: false,
+105 error gyp sill build/config.gypi node_shared_simdutf: false,
+105 error gyp sill build/config.gypi node_shared_uvwasi: false,
+105 error gyp sill build/config.gypi node_shared_zlib: false,
+105 error gyp sill build/config.gypi node_tag: '',
+105 error gyp sill build/config.gypi node_target_type: 'executable',
+105 error gyp sill build/config.gypi node_use_bundled_v8: true,
+105 error gyp sill build/config.gypi node_use_node_code_cache: true,
+105 error gyp sill build/config.gypi node_use_node_snapshot: true,
+105 error gyp sill build/config.gypi node_use_openssl: true,
+105 error gyp sill build/config.gypi node_use_v8_platform: true,
+105 error gyp sill build/config.gypi node_with_ltcg: true,
+105 error gyp sill build/config.gypi node_without_node_options: false,
+105 error gyp sill build/config.gypi node_write_snapshot_as_array_literals: true,
+105 error gyp sill build/config.gypi openssl_is_fips: false,
+105 error gyp sill build/config.gypi openssl_quic: false,
+105 error gyp sill build/config.gypi ossfuzz: false,
+105 error gyp sill build/config.gypi shlib_suffix: 'so.115',
+105 error gyp sill build/config.gypi single_executable_application: true,
+105 error gyp sill build/config.gypi target_arch: 'x64',
+105 error gyp sill build/config.gypi ubsan: 0,
+105 error gyp sill build/config.gypi use_prefix_to_find_headers: false,
+105 error gyp sill build/config.gypi v8_enable_31bit_smis_on_64bit_arch: 0,
+105 error gyp sill build/config.gypi v8_enable_extensible_ro_snapshot: 0,
+105 error gyp sill build/config.gypi v8_enable_external_code_space: 0,
+105 error gyp sill build/config.gypi v8_enable_gdbjit: 0,
+105 error gyp sill build/config.gypi v8_enable_hugepage: 0,
+105 error gyp sill build/config.gypi v8_enable_i18n_support: 1,
+105 error gyp sill build/config.gypi v8_enable_inspector: 1,
+105 error gyp sill build/config.gypi v8_enable_javascript_promise_hooks: 1,
+105 error gyp sill build/config.gypi v8_enable_lite_mode: 0,
+105 error gyp sill build/config.gypi v8_enable_maglev: 0,
+105 error gyp sill build/config.gypi v8_enable_object_print: 1,
+105 error gyp sill build/config.gypi v8_enable_pointer_compression: 0,
+105 error gyp sill build/config.gypi v8_enable_pointer_compression_shared_cage: 0,
+105 error gyp sill build/config.gypi v8_enable_sandbox: 0,
+105 error gyp sill build/config.gypi v8_enable_shared_ro_heap: 1,
+105 error gyp sill build/config.gypi v8_enable_short_builtin_calls: 1,
+105 error gyp sill build/config.gypi v8_enable_v8_checks: 0,
+105 error gyp sill build/config.gypi v8_enable_webassembly: 1,
+105 error gyp sill build/config.gypi v8_no_strict_aliasing: 1,
+105 error gyp sill build/config.gypi v8_optimized_debug: 1,
+105 error gyp sill build/config.gypi v8_promise_internal_field_count: 1,
+105 error gyp sill build/config.gypi v8_random_seed: 0,
+105 error gyp sill build/config.gypi v8_trace_maps: 0,
+105 error gyp sill build/config.gypi v8_use_siphash: 1,
+105 error gyp sill build/config.gypi want_separate_host_toolset: 0,
+105 error gyp sill build/config.gypi nodedir: 'C:\\Users\\wu\\AppData\\Local\\node-gyp\\Cache\\20.19.5',
+105 error gyp sill build/config.gypi python: 'C:\\Users\\wu\\AppData\\Local\\Programs\\Python\\Python311\\python.exe',
+105 error gyp sill build/config.gypi standalone_static_library: 1,
+105 error gyp sill build/config.gypi msbuild_path: 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe',
+105 error gyp sill build/config.gypi cache: 'C:\\Users\\wu\\AppData\\Local\\npm-cache',
+105 error gyp sill build/config.gypi globalconfig: 'C:\\Users\\wu\\AppData\\Roaming\\npm\\etc\\npmrc',
+105 error gyp sill build/config.gypi global_prefix: 'C:\\Users\\wu\\AppData\\Roaming\\npm',
+105 error gyp sill build/config.gypi init_module: 'C:\\Users\\wu\\.npm-init.js',
+105 error gyp sill build/config.gypi local_prefix: 'D:\\realtime-translator-all',
+105 error gyp sill build/config.gypi node_gyp: 'C:\\Program Files\\nodejs\\node_modules\\npm\\node_modules\\node-gyp\\bin\\node-gyp.js',
+105 error gyp sill build/config.gypi npm_version: '10.8.2',
+105 error gyp sill build/config.gypi prefix: 'C:\\Users\\wu\\AppData\\Roaming\\npm',
+105 error gyp sill build/config.gypi userconfig: 'C:\\Users\\wu\\.npmrc',
+105 error gyp sill build/config.gypi user_agent: 'npm/10.8.2 node/v20.19.5 win32 x64 workspaces/false'
+105 error gyp sill build/config.gypi }
+105 error gyp sill build/config.gypi }
+105 error gyp verb build/config.gypi writing out config file: D:\realtime-translator-all\node_modules\node-windows-audio-capture\build\config.gypi
+105 error gyp verb config.gypi checking for gypi file: D:\realtime-translator-all\node_modules\node-windows-audio-capture\config.gypi
+105 error gyp verb common.gypi checking for gypi file: D:\realtime-translator-all\node_modules\node-windows-audio-capture\common.gypi
+105 error gyp verb gyp gyp format was not specified; forcing "msvs"
+105 error gyp info spawn C:\Users\wu\AppData\Local\Programs\Python\Python311\python.exe
+105 error gyp info spawn args [
+105 error gyp info spawn args 'D:\\realtime-translator-all\\node_modules\\node-windows-audio-capture\\node_modules\\@electron\\node-gyp\\gyp\\gyp_main.py',
+105 error gyp info spawn args 'binding.gyp',
+105 error gyp info spawn args '-f',
+105 error gyp info spawn args 'msvs',
+105 error gyp info spawn args '-I',
+105 error gyp info spawn args 'D:\\realtime-translator-all\\node_modules\\node-windows-audio-capture\\build\\config.gypi',
+105 error gyp info spawn args '-I',
+105 error gyp info spawn args 'D:\\realtime-translator-all\\node_modules\\node-windows-audio-capture\\node_modules\\@electron\\node-gyp\\addon.gypi',
+105 error gyp info spawn args '-I',
+105 error gyp info spawn args 'C:\\Users\\wu\\AppData\\Local\\node-gyp\\Cache\\20.19.5\\include\\node\\common.gypi',
+105 error gyp info spawn args '-Dlibrary=shared_library',
+105 error gyp info spawn args '-Dvisibility=default',
+105 error gyp info spawn args '-Dnode_root_dir=C:\\Users\\wu\\AppData\\Local\\node-gyp\\Cache\\20.19.5',
+105 error gyp info spawn args '-Dnode_gyp_dir=D:\\realtime-translator-all\\node_modules\\node-windows-audio-capture\\node_modules\\@electron\\node-gyp',
+105 error gyp info spawn args '-Dnode_lib_file=C:\\\\Users\\\\wu\\\\AppData\\\\Local\\\\node-gyp\\\\Cache\\\\20.19.5\\\\<(target_arch)\\\\node.lib',
+105 error gyp info spawn args '-Dmodule_root_dir=D:\\realtime-translator-all\\node_modules\\node-windows-audio-capture',
+105 error gyp info spawn args '-Dnode_engine=v8',
+105 error gyp info spawn args '--depth=.',
+105 error gyp info spawn args '--no-parallel',
+105 error gyp info spawn args '--generator-output',
+105 error gyp info spawn args 'D:\\realtime-translator-all\\node_modules\\node-windows-audio-capture\\build',
+105 error gyp info spawn args '-Goutput_dir=.'
+105 error gyp info spawn args ]
+105 error gyp verb build type Release
+105 error gyp verb architecture x64
+105 error gyp verb node dev dir C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5
+105 error gyp verb python C:\Users\wu\AppData\Local\Programs\Python\Python311\python.exe
+105 error gyp verb found first Solution file build/binding.sln
+105 error gyp verb using MSBuild: C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe
+105 error gyp info spawn C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe
+105 error gyp info spawn args [
+105 error gyp info spawn args 'build/binding.sln',
+105 error gyp info spawn args '/nologo',
+105 error gyp info spawn args '/p:Configuration=Release;Platform=x64'
+105 error gyp info spawn args ]
+105 error gyp ERR! build error 
+105 error gyp ERR! stack Error: `C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe` failed with exit code: 1
+105 error gyp ERR! stack at ChildProcess.<anonymous> (D:\realtime-translator-all\node_modules\node-windows-audio-capture\node_modules\@electron\node-gyp\lib\build.js:215:23)
+105 error gyp ERR! stack at ChildProcess.emit (node:events:524:28)
+105 error gyp ERR! stack at ChildProcess._handle.onexit (node:internal/child_process:293:12)
+105 error gyp ERR! System Windows_NT 10.0.26100
+105 error gyp ERR! command "C:\\Program Files\\nodejs\\node.exe" "D:\\realtime-translator-all\\node_modules\\node-windows-audio-capture\\node_modules\\@electron\\node-gyp\\bin\\node-gyp.js" "rebuild"
+105 error gyp ERR! cwd D:\realtime-translator-all\node_modules\node-windows-audio-capture
+105 error gyp ERR! node -v v20.19.5
+105 error gyp ERR! node-gyp -v v10.2.0-electron.1
+105 error gyp ERR! not ok
+106 silly unfinished npm timer reify 1760444592204
+107 silly unfinished npm timer reify:build 1760444978568
+108 silly unfinished npm timer build 1760444978568
+109 silly unfinished npm timer build:deps 1760444978568
+110 silly unfinished npm timer build:run:install 1760444978574
+111 silly unfinished npm timer build:run:install:node_modules/node-windows-audio-capture 1760444978575
+112 verbose cwd D:\realtime-translator-all
+113 verbose os Windows_NT 10.0.26100
+114 verbose node v20.19.5
+115 verbose npm  v10.8.2
+116 verbose exit 1
+117 verbose code 1
+118 error A complete log of this run can be found in: C:\Users\wu\AppData\Local\npm-cache\_logs\2025-10-14T12_23_11_816Z-debug-0.log

@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D16.x-brightgreen.svg)](https://nodejs.org/)
 [![Windows](https://img.shields.io/badge/Windows-10%2F11-blue.svg)](https://www.microsoft.com/windows)
-[![Version](https://img.shields.io/badge/version-2.3.0-blue.svg)](https://github.com/wujelly701/node-windows-audio-capture/releases/tag/v2.3.0)
+[![Version](https://img.shields.io/badge/version-2.4.0--alpha-orange.svg)](https://github.com/wujelly701/node-windows-audio-capture/tree/feature/device-management)
 
 Production-ready Windows 音频捕获 Node.js Native Addon，基于 WASAPI 标准 Loopback 模式实现。
 
@@ -11,7 +11,54 @@ Production-ready Windows 音频捕获 Node.js Native Addon，基于 WASAPI 标�
 > 
 > 📖 [查看 ASR 兼容性路线图 →](docs/ASR_COMPATIBILITY_ROADMAP.md) | [格式转换示例 →](#示例-7音频格式转换-v22-) | [Gummy API 集成 →](#示例-6与阿里云-gummy-api-集成-)
 
-## 🎯 v2.3.0 新特性 🆕
+## 🎯 v2.4.0 新特性 🆕🔥
+
+**🔌 设备热插拔检测** - 实时监控音频设备变化！
+
+- **热插拔检测**: 实时检测 USB 音频设备插拔 🔌
+- **设备事件通知**: 5 种设备事件类型
+- **自动设备切换**: 监听默认设备变化，自动切换音频源
+- **设备状态监控**: 实时获取设备启用/禁用状态
+- **完整 TypeScript 支持**: 全新类型定义
+
+**事件类型**:
+- 🟢 `deviceAdded` - 设备连接
+- 🔴 `deviceRemoved` - 设备断开
+- 🔵 `defaultDeviceChanged` - 系统默认设备变更
+- 🟡 `deviceStateChanged` - 设备状态变化
+- 🟣 `devicePropertyChanged` - 设备属性修改
+
+**使用示例**:
+```javascript
+const { AudioCapture } = require('node-windows-audio-capture');
+
+// 监控设备事件
+AudioCapture.startDeviceMonitoring((event) => {
+  console.log(`设备事件: ${event.type}`, event.deviceId);
+  
+  if (event.type === 'defaultDeviceChanged') {
+    // 自动切换到新的默认设备
+    console.log('默认设备已更改，重新开始捕获...');
+  }
+});
+
+// 获取所有设备
+const devices = await AudioCapture.getAudioDevices();
+
+// 获取默认设备
+const defaultId = await AudioCapture.getDefaultDeviceId();
+```
+
+[📖 查看设备热插拔完整文档 →](docs/DEVICE_HOTPLUG_GUIDE.md) | [📖 查看示例代码 →](examples/device-events.js) | [📖 查看测试文档 →](docs/DEVICE_EVENTS_TESTING.md)
+
+**安装 v2.4.0 (Alpha)**:
+```bash
+npm install https://github.com/wujelly701/node-windows-audio-capture/tarball/feature/device-management
+```
+
+---
+
+## 🎯 v2.3.0 特性
 
 **🎧 音频设备选择** - 多设备音频捕获！
 
@@ -1343,19 +1390,34 @@ npm run lint
 - [x] 完整测试套件（53个测试，98.1%通过率）
 - [x] 详细文档和示例
 
+### v2.3.0 完成 ✅
+
+- [x] 音频设备枚举和选择
+- [x] 多设备同时捕获支持
+- [x] 设备信息查询（ID、名称、状态）
+- [x] 向后兼容（不指定设备时使用系统默认）
+- [x] 完整文档和示例
+
+### v2.4.0 完成 ✅
+
+- [x] 设备热插拔检测（实时监控 USB 音频设备）
+- [x] 5 种设备事件类型（添加、移除、状态变化等）
+- [x] IMMNotificationClient COM 接口集成
+- [x] ThreadSafeFunction 事件回调
+- [x] 完整集成测试和文档
+- [x] TypeScript 类型定义更新
+
 ### 计划中 🚀
 
-#### 中期（v2.3）- **性能优化与功能扩展** �
+#### 中期（v2.5）- **性能优化** ⚡
 - [ ] **降采样算法优化**（更高质量的Sinc插值）⭐ 重点
 - [ ] **内存使用优化**（减少拷贝，使用内存池）⭐ 重点
 - [ ] **多线程并行处理**（提升格式转换性能）⭐ 重点
-- [ ] **设备选择功能**（支持选择特定音频设备）⭐ 重点
 - [ ] 更多采样率支持（8kHz、24kHz、32kHz等）
 - [ ] 音频效果处理（降噪、增益、均衡器）
-- [ ] 更多音频格式（Opus/MP3/FLAC编码器，如有需求）
 - [ ] npm 发布和 CI/CD 配置
 
-**目标**：提升性能，扩展功能，保持底层库专注性
+**目标**：提升性能，优化内存使用
 
 #### 长期（v3.0）- **跨平台支持** 🌐
 - [ ] **macOS 支持**（Core Audio集成）⭐ 重点
@@ -1382,7 +1444,6 @@ npm run lint
 ## 🔒 已知限制
 
 - **仅 Windows 平台**：目前只支持 Windows 10/11（v3.0将支持macOS和Linux）
-- **默认音频设备**：当前只能捕获默认音频设备（v2.3将支持设备选择）
 - **需要编译环境**：从源码安装需要 Visual Studio 和 Windows SDK
 - **多进程应用静音持久化** (v2.1): 多进程应用（Chrome、Edge）重启后可能需要手动取消静音，详见 [FAQ](docs/FAQ.md)
 

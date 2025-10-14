@@ -4,7 +4,7 @@
  */
 
 const { EventEmitter } = require('events');
-const addon = require('./build/Release/audio_addon.node');
+const addon = require('node-gyp-build')(__dirname);
 
 /**
  * AudioCapture 类 - 音频捕获器

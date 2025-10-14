@@ -10,9 +10,11 @@
         "src/wasapi/activation_handler.cpp",
         "src/wasapi/capture_thread.cpp",
         "src/wasapi/error_handler.cpp",
+        "src/wasapi/device_enumerator.cpp",
         "src/napi/addon.cpp",
         "src/napi/audio_processor.cpp",
-        "src/napi/process_enumerator.cpp"
+        "src/napi/process_enumerator.cpp",
+        "src/napi/device_manager.cpp"
       ],
       "include_dirs": [
         "<!@(node -p \"require('node-addon-api').include\")",

@@ -63,13 +63,13 @@ async function runBenchmark(quality, iterations = 10) {
   
   // 预热
   for (let i = 0; i < 3; i++) {
-    resampler.process(testAudio);
+    resampler.resample(testAudio);
   }
   
   // 基准测试
   for (let i = 0; i < iterations; i++) {
     const start = process.hrtime.bigint();
-    const output = resampler.process(testAudio);
+    const output = resampler.resample(testAudio);
     const end = process.hrtime.bigint();
     
     const elapsedMs = Number(end - start) / 1000000;
@@ -87,7 +87,7 @@ async function runBenchmark(quality, iterations = 10) {
   );
   
   // 计算音频质量指标
-  const output = resampler.process(testAudio);
+  const output = resampler.resample(testAudio);
   const thdN = calculateTHDN(output, 16000);
   
   // 计算 CPU 占用（处理 1 秒音频所需时间）

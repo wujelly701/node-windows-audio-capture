@@ -1,0 +1,11 @@
+{
+  "simple": {
+    "error": "resampler.process is not a function"
+  },
+  "linear": {
+    "error": "resampler.process is not a function"
+  },
+  "sinc": {
+    "error": "resampler.process is not a function"
+  }
+}

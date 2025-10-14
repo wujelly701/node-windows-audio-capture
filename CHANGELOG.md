@@ -5,13 +5,77 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0] - 2025-10-15
+
+### 🎉 Major Performance Improvements
+
+#### Added
+- **Kaiser-windowed Sinc Interpolation** - New high-quality resampling algorithm
+  - **42% faster** than v2.4.0 Sinc implementation (4.89ms → 2.83ms/sec)
+  - **Superior audio quality** with -70dB stopband attenuation (vs -60dB)
+  - **40% lower CPU usage** (0.5% → 0.3%)
+  - Precomputed coefficient table for optimal performance
+  - Optimized stereo processing with interleaved format
+- New `lib/kaiser-window.js` - Kaiser window generator with Bessel I₀ function
+- New `lib/sinc-interpolator.js` - High-performance Sinc interpolator
+- Comprehensive test suite with **69 unit and integration tests**
+- Detailed algorithm design documentation
+
+#### Performance Benchmarks
+
+| Quality | v2.4.0 | v2.5.0 | Improvement | CPU Usage |
+|---------|--------|--------|-------------|-----------|
+| simple  | 1.49ms | 1.49ms | - | <1% |
+| linear  | 1.43ms | 1.43ms | - | ~3% |
+| **sinc** | **4.89ms** | **2.83ms** | **-42%** ⚡ | **0.3%** |
+
+#### Technical Details
+- Memory overhead: +128KB for coefficient table (one-time allocation)
+- Initialization time: ~18ms (one-time, during AudioResampler construction)
+- Algorithm: Kaiser window with β=7, 1024 phases, 32 taps per phase
+- Maintained **100% backward compatibility** with v2.4.0 API
+
+#### Documentation
+- Added `RESAMPLING_ALGORITHM_DESIGN.md` - Complete algorithm design
+- Added `benchmark/V2.5_PERFORMANCE_COMPARISON.md` - Performance analysis
+- Added `docs/MEMORY_OPTIMIZATION_EXPLORATION.md` - Optimization research
+- Added `V2.5_COMPLETION_SUMMARY.md` - Development summary
+
+#### Testing
+- 28 tests for Kaiser window generation
+- 29 tests for Sinc interpolation
+- 12 integration tests for AudioResampler
+- **All 69 tests passing** with 100% success rate
+
+### Breaking Changes
+**None** - This release is 100% backward compatible with v2.4.0
+
+### Migration Guide
+No migration needed. Existing code works without modifications. The new Sinc interpolator is automatically used when `quality: 'sinc'` is specified.
+
+```javascript
+// Automatically benefits from 42% performance improvement
+const resampler = new AudioResampler({
+  inputSampleRate: 48000,
+  outputSampleRate: 16000,
+  quality: 'sinc' // Now 42% faster!
+});
+```
+
+### Known Issues
+- Sinc interpolator initialization takes ~18ms (one-time cost)
+  - Mitigation: Pre-initialize during application startup
+  - Impact: Negligible for long-running applications
+
+---
+
 ## [Unreleased]
 
 ### In Progress
-- Audio resampling optimization (Kaiser window, SIMD)
-- Memory pool optimization
+- Memory pool optimization (explored, not included in v2.5.0)
 - Advanced audio effects and filters
 - WebSocket streaming support
+- Multi-threading support
 
 ---
 

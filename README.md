@@ -3,15 +3,44 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D16.x-brightgreen.svg)](https://nodejs.org/)
 [![Windows](https://img.shields.io/badge/Windows-10%2F11-blue.svg)](https://www.microsoft.com/windows)
-[![Version](https://img.shields.io/badge/version-2.4.0--alpha-orange.svg)](https://github.com/wujelly701/node-windows-audio-capture/tree/feature/device-management)
+[![Version](https://img.shields.io/badge/version-2.5.0-brightgreen.svg)](https://github.com/wujelly701/node-windows-audio-capture/releases/tag/v2.5.0)
 
 Production-ready Windows 音频捕获 Node.js Native Addon，基于 WASAPI 标准 Loopback 模式实现。
 
 > **🎙️ ASR 语音识别专用**: 专为语音识别场景优化，支持阿里云/百度/腾讯/OpenAI Whisper 等主流 ASR API。
+> **⚡ v2.5.0 性能版**: Sinc 重采样性能提升 42%，CPU 使用率降低 40%！
 > 
 > 📖 [查看 ASR 兼容性路线图 →](docs/ASR_COMPATIBILITY_ROADMAP.md) | [格式转换示例 →](#示例-7音频格式转换-v22-) | [Gummy API 集成 →](#示例-6与阿里云-gummy-api-集成-)
 
-## 🎯 v2.4.0 新特性 🆕🔥
+## 🎯 v2.5.0 新特性 🚀🔥
+
+**⚡ 性能优化版** - Kaiser 窗函数 Sinc 插值，性能提升 42%！
+
+- **高性能重采样**: Sinc 插值速度提升 **42%** (4.89ms → 2.83ms/秒) ⚡
+- **低 CPU 占用**: CPU 使用率降低 **40%** (0.5% → 0.3%)
+- **卓越音质**: -70dB 阻带衰减（vs -60dB baseline）
+- **快速初始化**: ~18ms 一次性系数表预计算
+- **智能优化**: 1024 相位 × 32 阶数，128KB 系数表
+- **100% 兼容**: 无破坏性变更，零迁移成本
+
+**性能对比**:
+| 质量级别 | v2.4.0 | v2.5.0 | 提升幅度 |
+|---------|--------|--------|---------|
+| sinc    | 4.89ms | 2.83ms | **-42%** ⚡ |
+| CPU 占用 | 0.5%   | 0.3%   | **-40%** � |
+| 实时因子 | 204x   | 353x   | **+73%** 🚀 |
+
+**技术亮点**:
+- Kaiser 窗函数（β=7）优化频域响应
+- Bessel I₀ 函数精确计算
+- 预计算系数表零运行时开销
+- 支持单声道/立体声优化路径
+
+[📖 查看完整 v2.5 发布说明 →](docs/V2.5_RELEASE_NOTES.md) | [� 查看性能分析 →](benchmark/V2.5_PERFORMANCE_COMPARISON.md)
+
+---
+
+## 🎯 v2.4.0 特性
 
 **🔌 设备热插拔检测** - 实时监控音频设备变化！
 
@@ -50,11 +79,6 @@ const defaultId = await AudioCapture.getDefaultDeviceId();
 ```
 
 [📖 查看设备热插拔完整文档 →](docs/DEVICE_HOTPLUG_GUIDE.md) | [📖 查看示例代码 →](examples/device-events.js) | [📖 查看测试文档 →](docs/DEVICE_EVENTS_TESTING.md)
-
-**安装 v2.4.0 (Alpha)**:
-```bash
-npm install https://github.com/wujelly701/node-windows-audio-capture/tarball/feature/device-management
-```
 
 ---
 
@@ -144,10 +168,11 @@ capture.on('data', (event) => {
 - 🎯 **进程音频过滤** (v2.0)：只捕获指定进程的音频，支持应用级音频隔离
 - 🔇 **动态静音控制** (v2.1)：自动静音其他进程，实现 90%+ 音频纯净度
 - 📋 **允许/阻止列表** (v2.1)：精细化控制哪些进程被静音
-- 🎼 **内置格式转换** (v2.2)：一键配置 ASR 格式，支持 8 大主流服务 ✨ NEW
-- � **智能降采样** (v2.2)：48kHz → 16kHz，3 种质量级别 ✨ NEW
-- �🔄 **事件驱动架构**：基于 EventEmitter，支持 data、error、started、stopped 等事件
-- ⚡ **极致性能**：<5ms 延迟、91.7% 大小减少、12:1 压缩比 🚀 IMPROVED
+- 🎼 **内置格式转换** (v2.2)：一键配置 ASR 格式，支持 8 大主流服务
+- 📈 **智能降采样** (v2.2)：48kHz → 16kHz，3 种质量级别
+- ⚡ **高性能 Sinc 重采样** (v2.5)：**42% 性能提升**，**40% CPU 降低** 🚀 NEW
+- 🎚️ **Kaiser 窗函数优化** (v2.5)：-70dB 阻带衰减，卓越音质 ✨ NEW
+- 🔄 **事件驱动架构**：基于 EventEmitter，支持 data、error、started、stopped 等事件
 - 🎛️ **状态管理**：支持 start、stop、pause、resume 操作，完整的状态跟踪
 - 📊 **设备和进程枚举**：获取默认音频设备信息和系统进程列表
 - 🛡️ **完善的错误处理**：详细的错误消息和异常处理

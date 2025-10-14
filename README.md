@@ -3,15 +3,44 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D16.x-brightgreen.svg)](https://nodejs.org/)
 [![Windows](https://img.shields.io/badge/Windows-10%2F11-blue.svg)](https://www.microsoft.com/windows)
-[![Version](https://img.shields.io/badge/version-2.4.0--alpha-orange.svg)](https://github.com/wujelly701/node-windows-audio-capture/tree/feature/device-management)
+[![Version](https://img.shields.io/badge/version-2.5.0-brightgreen.svg)](https://github.com/wujelly701/node-windows-audio-capture/releases/tag/v2.5.0)
 
 Production-ready Windows 音频捕获 Node.js Native Addon，基于 WASAPI 标准 Loopback 模式实现。
 
 > **🎙️ ASR 语音识别专用**: 专为语音识别场景优化，支持阿里云/百度/腾讯/OpenAI Whisper 等主流 ASR API。
+> **⚡ v2.5.0 性能版**: Sinc 重采样性能提升 42%，CPU 使用率降低 40%！
 > 
 > 📖 [查看 ASR 兼容性路线图 →](docs/ASR_COMPATIBILITY_ROADMAP.md) | [格式转换示例 →](#示例-7音频格式转换-v22-) | [Gummy API 集成 →](#示例-6与阿里云-gummy-api-集成-)
 
-## 🎯 v2.4.0 新特性 🆕🔥
+## 🎯 v2.5.0 新特性 🚀🔥
+
+**⚡ 性能优化版** - Kaiser 窗函数 Sinc 插值，性能提升 42%！
+
+- **高性能重采样**: Sinc 插值速度提升 **42%** (4.89ms → 2.83ms/秒) ⚡
+- **低 CPU 占用**: CPU 使用率降低 **40%** (0.5% → 0.3%)
+- **卓越音质**: -70dB 阻带衰减（vs -60dB baseline）
+- **快速初始化**: ~18ms 一次性系数表预计算
+- **智能优化**: 1024 相位 × 32 阶数，128KB 系数表
+- **100% 兼容**: 无破坏性变更，零迁移成本
+
+**性能对比**:
+| 质量级别 | v2.4.0 | v2.5.0 | 提升幅度 |
+|---------|--------|--------|---------|
+| sinc    | 4.89ms | 2.83ms | **-42%** ⚡ |
+| CPU 占用 | 0.5%   | 0.3%   | **-40%** � |
+| 实时因子 | 204x   | 353x   | **+73%** 🚀 |
+
+**技术亮点**:
+- Kaiser 窗函数（β=7）优化频域响应
+- Bessel I₀ 函数精确计算
+- 预计算系数表零运行时开销
+- 支持单声道/立体声优化路径
+
+[📖 查看完整 v2.5 发布说明 →](docs/V2.5_RELEASE_NOTES.md) | [� 查看性能分析 →](benchmark/V2.5_PERFORMANCE_COMPARISON.md)
+
+---
+
+## 🎯 v2.4.0 特性
 
 **🔌 设备热插拔检测** - 实时监控音频设备变化！
 
@@ -50,11 +79,6 @@ const defaultId = await AudioCapture.getDefaultDeviceId();
 ```
 
 [📖 查看设备热插拔完整文档 →](docs/DEVICE_HOTPLUG_GUIDE.md) | [📖 查看示例代码 →](examples/device-events.js) | [📖 查看测试文档 →](docs/DEVICE_EVENTS_TESTING.md)
-
-**安装 v2.4.0 (Alpha)**:
-```bash
-npm install https://github.com/wujelly701/node-windows-audio-capture/tarball/feature/device-management
-```
 
 ---
 
@@ -144,10 +168,11 @@ capture.on('data', (event) => {
 - 🎯 **进程音频过滤** (v2.0)：只捕获指定进程的音频，支持应用级音频隔离
 - 🔇 **动态静音控制** (v2.1)：自动静音其他进程，实现 90%+ 音频纯净度
 - 📋 **允许/阻止列表** (v2.1)：精细化控制哪些进程被静音
-- 🎼 **内置格式转换** (v2.2)：一键配置 ASR 格式，支持 8 大主流服务 ✨ NEW
-- � **智能降采样** (v2.2)：48kHz → 16kHz，3 种质量级别 ✨ NEW
-- �🔄 **事件驱动架构**：基于 EventEmitter，支持 data、error、started、stopped 等事件
-- ⚡ **极致性能**：<5ms 延迟、91.7% 大小减少、12:1 压缩比 🚀 IMPROVED
+- 🎼 **内置格式转换** (v2.2)：一键配置 ASR 格式，支持 8 大主流服务
+- 📈 **智能降采样** (v2.2)：48kHz → 16kHz，3 种质量级别
+- ⚡ **高性能 Sinc 重采样** (v2.5)：**42% 性能提升**，**40% CPU 降低** 🚀 NEW
+- 🎚️ **Kaiser 窗函数优化** (v2.5)：-70dB 阻带衰减，卓越音质 ✨ NEW
+- 🔄 **事件驱动架构**：基于 EventEmitter，支持 data、error、started、stopped 等事件
 - 🎛️ **状态管理**：支持 start、stop、pause、resume 操作，完整的状态跟踪
 - 📊 **设备和进程枚举**：获取默认音频设备信息和系统进程列表
 - 🛡️ **完善的错误处理**：详细的错误消息和异常处理
@@ -1407,17 +1432,48 @@ npm run lint
 - [x] 完整集成测试和文档
 - [x] TypeScript 类型定义更新
 
+### v2.5.0 完成 ✅ 🎉
+
+**性能优化版** - Kaiser 窗函数 Sinc 插值，性能提升 42%！
+
+- [x] **Kaiser 窗函数 Sinc 插值** - 42% 性能提升 ⚡
+- [x] **CPU 使用率优化** - 降低 40% (0.5% → 0.3%)
+- [x] **音质提升** - -70dB 阻带衰减（vs -60dB baseline）
+- [x] **Bessel I₀ 函数实现** - 1e-6 精度
+- [x] **预计算系数表** - 128KB，零运行时开销
+- [x] **单/立体声优化路径** - 分离的优化代码
+- [x] **BufferPool 探索与文档** - 经验总结和教训
+- [x] **69 个测试全部通过** - 100% 测试覆盖率
+- [x] **100% 向后兼容** - 零迁移成本
+
+**成果**：
+- 实时因子: 204x → 353x (+73%)
+- 初始化时间: ~18ms（一次性）
+- 文档: 16 份完整技术文档
+
+[📖 查看完整 v2.5 发布说明 →](docs/V2.5_RELEASE_NOTES.md)
+
 ### 计划中 🚀
 
-#### 中期（v2.5）- **性能优化** ⚡
-- [ ] **降采样算法优化**（更高质量的Sinc插值）⭐ 重点
-- [ ] **内存使用优化**（减少拷贝，使用内存池）⭐ 重点
-- [ ] **多线程并行处理**（提升格式转换性能）⭐ 重点
+#### 短期（v2.6）- **内存与生态优化** 🔧
+- [ ] **零拷贝流式架构探索**（减少内存分配）⭐ 重点
+- [ ] **V8 GC 行为深度分析**（实际负载下的性能特征）
+- [ ] **npm 发布和 CI/CD 配置**（自动化构建和发布）
+- [ ] **预构建二进制优化**（支持更多 Node.js 版本）
 - [ ] 更多采样率支持（8kHz、24kHz、32kHz等）
 - [ ] 音频效果处理（降噪、增益、均衡器）
-- [ ] npm 发布和 CI/CD 配置
 
-**目标**：提升性能，优化内存使用
+**目标**：进一步优化内存使用，完善发布流程
+
+#### 中期（v2.7-2.9）- **质量与性能增强** 🎚️
+- [ ] **可配置 Kaiser 参数**（quality/performance trade-off）
+- [ ] **自适应窗函数**（基于信号特征）
+- [ ] **SIMD 优化**（如 Node.js 支持 SIMD intrinsics）
+- [ ] **多线程重采样**（大缓冲区并行处理）
+- [ ] **GPU 加速探索**（WebGPU 成熟后）
+- [ ] **流式重采样 API**（无需预分配大缓冲区）
+
+**目标**：音质与性能进一步提升
 
 #### 长期（v3.0）- **跨平台支持** 🌐
 - [ ] **macOS 支持**（Core Audio集成）⭐ 重点

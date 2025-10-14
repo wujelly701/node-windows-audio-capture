@@ -158,6 +158,9 @@
     <ClCompile Include="..\src\wasapi\error_handler.cpp">
       <ObjectFileName>$(IntDir)\src\wasapi\error_handler.obj</ObjectFileName>
     </ClCompile>
+    <ClCompile Include="..\src\wasapi\device_enumerator.cpp">
+      <ObjectFileName>$(IntDir)\src\wasapi\device_enumerator.obj</ObjectFileName>
+    </ClCompile>
     <ClCompile Include="..\src\napi\addon.cpp">
       <ObjectFileName>$(IntDir)\src\napi\addon.obj</ObjectFileName>
     </ClCompile>
@@ -166,6 +169,9 @@
     </ClCompile>
     <ClCompile Include="..\src\napi\process_enumerator.cpp">
       <ObjectFileName>$(IntDir)\src\napi\process_enumerator.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\napi\device_manager.cpp">
+      <ObjectFileName>$(IntDir)\src\napi\device_manager.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="D:\node-windows-audio-capture\node_modules\@electron\node-gyp\src\win_delay_load_hook.cc"/>
   </ItemGroup>

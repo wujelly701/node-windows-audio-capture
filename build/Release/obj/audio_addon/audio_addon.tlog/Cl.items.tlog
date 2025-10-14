@@ -5,7 +5,9 @@ D:\node-windows-audio-capture\src\wasapi\audio_session_manager.cpp;D:\node-windo
 D:\node-windows-audio-capture\src\wasapi\activation_handler.cpp;D:\node-windows-audio-capture\build\Release\obj\audio_addon\src\wasapi\activation_handler.obj
 D:\node-windows-audio-capture\src\wasapi\capture_thread.cpp;D:\node-windows-audio-capture\build\Release\obj\audio_addon\src\wasapi\capture_thread.obj
 D:\node-windows-audio-capture\src\wasapi\error_handler.cpp;D:\node-windows-audio-capture\build\Release\obj\audio_addon\src\wasapi\error_handler.obj
+D:\node-windows-audio-capture\src\wasapi\device_enumerator.cpp;D:\node-windows-audio-capture\build\Release\obj\audio_addon\src\wasapi\device_enumerator.obj
 D:\node-windows-audio-capture\src\napi\addon.cpp;D:\node-windows-audio-capture\build\Release\obj\audio_addon\src\napi\addon.obj
 D:\node-windows-audio-capture\src\napi\audio_processor.cpp;D:\node-windows-audio-capture\build\Release\obj\audio_addon\src\napi\audio_processor.obj
 D:\node-windows-audio-capture\src\napi\process_enumerator.cpp;D:\node-windows-audio-capture\build\Release\obj\audio_addon\src\napi\process_enumerator.obj
+D:\node-windows-audio-capture\src\napi\device_manager.cpp;D:\node-windows-audio-capture\build\Release\obj\audio_addon\src\napi\device_manager.obj
 D:\node-windows-audio-capture\node_modules\@electron\node-gyp\src\win_delay_load_hook.cc;D:\node-windows-audio-capture\build\Release\obj\audio_addon\win_delay_load_hook.obj

@@ -48,8 +48,8 @@ jobs:
     - name: Run tests
       run: |
         echo "⚠️ Note: Audio hardware tests will fail in CI (no audio devices)"
-        echo "Running tests..."
-        npm test -- --verbose --forceExit --testPathIgnorePatterns="device|integration" || echo "Tests completed with expected failures"
+        echo "Running unit tests only (skipping device/integration tests)..."
+        npm test -- --verbose --forceExit --testPathIgnorePatterns=device --testPathIgnorePatterns=integration || echo "Tests completed with expected failures"
       env:
         CI: true
       timeout-minutes: 10

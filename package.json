@@ -28,7 +28,9 @@
     "test:verbose": "jest --verbose",
     "example:basic": "node examples/basic.js",
     "example:process": "node examples/process-capture.js",
-    "example:events": "node examples/events.js"
+    "example:events": "node examples/events.js",
+    "analyze:memory": "node scripts/memory-analysis.js",
+    "analyze:quick": "node --expose-gc scripts/quick-memory-test.js"
   },
   "repository": {
     "type": "git",
@@ -60,7 +62,8 @@
     "mocha": "^10.0.0",
     "prebuildify": "^6.0.0",
     "sinon": "^17.0.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "v8-profiler-next": "^1.10.0"
   },
   "binary": {
     "napi_versions": [

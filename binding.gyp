@@ -15,7 +15,8 @@
         "src/napi/addon.cpp",
         "src/napi/audio_processor.cpp",
         "src/napi/process_enumerator.cpp",
-        "src/napi/device_manager.cpp"
+        "src/napi/device_manager.cpp",
+        "src/napi/external_buffer.cpp"
       ],
       "include_dirs": [
         "<!@(node -p \"require('node-addon-api').include\")",

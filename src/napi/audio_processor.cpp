@@ -1,4 +1,5 @@
 ﻿#include "audio_processor.h"
+#include "external_buffer.h"
 #include <napi.h>
 #include <vector>
 #include <windows.h>
@@ -9,6 +10,9 @@
 #include "../wasapi/capture_thread.h"
 #include "../wasapi/audio_client.h"
 #include "../wasapi/audio_params.h"
+
+using AudioCapture::ExternalBuffer;
+using AudioCapture::ExternalBufferFactory;
 
 Napi::Object AudioProcessor::Init(Napi::Env env, Napi::Object exports) {
     Napi::Function func = DefineClass(env, "AudioProcessor", {
@@ -50,6 +54,13 @@ AudioProcessor::AudioProcessor(const Napi::CallbackInfo& info) : Napi::ObjectWra
         processId_ = options.Get("processId").As<Napi::Number>().Uint32Value();
     } else {
         processId_ = 0;  // 默认捕获所有进程音频
+    }
+    
+    // v2.6: 获取 zero-copy 模式开关（可选，默认 false 保持向后兼容）
+    if (options.Has("useExternalBuffer")) {
+        useExternalBuffer_ = options.Get("useExternalBuffer").As<Napi::Boolean>().Value();
+    } else {
+        useExternalBuffer_ = false;
     }
     
     // 获取音频数据回调函数（可选）
@@ -94,6 +105,22 @@ AudioProcessor::~AudioProcessor() {
 
 Napi::Value AudioProcessor::Start(const Napi::CallbackInfo& info) {
     Napi::Env env = info.Env();
+    
+    // Get callback function from argument (if provided)
+    if (info.Length() > 0 && info[0].IsFunction()) {
+        Napi::Function callback = info[0].As<Napi::Function>();
+        
+        // Create ThreadSafeFunction if not already created
+        if (!tsfn_) {
+            tsfn_ = Napi::ThreadSafeFunction::New(
+                env,
+                callback,
+                "AudioDataCallback",
+                0,      // Unlimited queue
+                1       // Single thread
+            );
+        }
+    }
     
     // v2.0: 根据 processId 选择初始化模式
     bool initSuccess = false;
@@ -265,16 +292,45 @@ void AudioProcessor::OnAudioData(const std::vector<uint8_t>& data) {
         return;  // 没有设置回调函数
     }
     
-    // 复制数据到堆（避免栈数据被释放）
-    auto* dataPtr = new std::vector<uint8_t>(data);
-    
-    // 调用 ThreadSafeFunction（异步传递数据到 JS 线程）
-    tsfn_.NonBlockingCall(dataPtr, [](Napi::Env env, Napi::Function jsCallback, std::vector<uint8_t>* data) {
-        // 创建 Buffer 传递给 JS
-        Napi::Buffer<uint8_t> buffer = Napi::Buffer<uint8_t>::Copy(env, data->data(), data->size());
-        jsCallback.Call({ buffer });
-        delete data;  // 释放堆内存
-    });
+    if (useExternalBuffer_) {
+        // v2.6: Zero-Copy 模式 - 使用 External Buffer
+        // 创建 External Buffer（由 Buffer Pool 管理）
+        auto extBuffer = ExternalBufferFactory::Instance().Create();
+        if (!extBuffer) {
+            // Pool exhausted, fallback to copy mode
+            auto* dataPtr = new std::vector<uint8_t>(data);
+            tsfn_.NonBlockingCall(dataPtr, [](Napi::Env env, Napi::Function jsCallback, std::vector<uint8_t>* data) {
+                Napi::Buffer<uint8_t> buffer = Napi::Buffer<uint8_t>::Copy(env, data->data(), data->size());
+                jsCallback.Call({ buffer });
+                delete data;
+            });
+            return;
+        }
+        
+        // 拷贝数据到 External Buffer
+        memcpy(extBuffer->data(), data.data(), data.size());
+        
+        // 调用 ThreadSafeFunction（传递 External Buffer 原始指针）
+        // Note: shared_ptr 会在 lambda 中被捕获，保持引用计数
+        auto* rawPtr = extBuffer.get();
+        tsfn_.NonBlockingCall(rawPtr, [extBuffer](Napi::Env env, Napi::Function jsCallback, ExternalBuffer* rawPtr) {
+            // 创建 Node.js Buffer（zero-copy，由 V8 管理生命周期）
+            Napi::Value buffer = rawPtr->ToBuffer(env);
+            jsCallback.Call({ buffer });
+            // shared_ptr 在 lambda 结束时释放，extBuffer 将在 V8 GC finalize 时自动释放
+        });
+    } else {
+        // 传统模式：复制数据到堆（保持向后兼容）
+        auto* dataPtr = new std::vector<uint8_t>(data);
+        
+        // 调用 ThreadSafeFunction（异步传递数据到 JS 线程）
+        tsfn_.NonBlockingCall(dataPtr, [](Napi::Env env, Napi::Function jsCallback, std::vector<uint8_t>* data) {
+            // 创建 Buffer 传递给 JS
+            Napi::Buffer<uint8_t> buffer = Napi::Buffer<uint8_t>::Copy(env, data->data(), data->size());
+            jsCallback.Call({ buffer });
+            delete data;  // 释放堆内存
+        });
+    }
 }
 
 // ====== v2.1: 动态音频会话静音控制 ======

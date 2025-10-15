@@ -176,7 +176,10 @@
     <ClCompile Include="..\src\napi\device_manager.cpp">
       <ObjectFileName>$(IntDir)\src\napi\device_manager.obj</ObjectFileName>
     </ClCompile>
-    <ClCompile Include="D:\node-windows-audio-capture\node_modules\@electron\node-gyp\src\win_delay_load_hook.cc"/>
+    <ClCompile Include="..\src\napi\external_buffer.cpp">
+      <ObjectFileName>$(IntDir)\src\napi\external_buffer.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="D:\node-windows-audio-capture\node_modules\node-gyp\src\win_delay_load_hook.cc"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets"/>

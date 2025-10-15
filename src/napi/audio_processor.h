@@ -3,6 +3,7 @@
 #include <memory>
 #include "../wasapi/capture_thread.h"
 #include "../wasapi/audio_client.h"
+#include "external_buffer.h"
 
 class AudioProcessor : public Napi::ObjectWrap<AudioProcessor> {
 public:
@@ -16,6 +17,7 @@ private:
     DWORD processId_ = 0;
     Napi::ThreadSafeFunction tsfn_;
     bool comInitialized_ = false;
+    bool useExternalBuffer_ = false;  // Zero-copy 模式开关
     
     // N-API 方法声明
     Napi::Value Start(const Napi::CallbackInfo& info);

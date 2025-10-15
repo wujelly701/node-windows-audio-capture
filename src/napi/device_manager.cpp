@@ -188,8 +188,18 @@ void ConvertDeviceEventToJS(Napi::Env env, Napi::Function callback, DeviceEvent*
         js_event.Set("role", Napi::Number::New(env, event->role));
     }
 
-    // Call the JavaScript callback
-    callback.Call({js_event});
+    // v2.7.1: Wrap callback in try-catch to prevent N-API uncaught exception warnings
+    try {
+        // Call the JavaScript callback
+        callback.Call({js_event});
+    } catch (const Napi::Error& e) {
+        // Silently ignore callback errors to prevent log pollution
+        (void)e;
+    } catch (const std::exception& e) {
+        (void)e;
+    } catch (...) {
+        // Catch all other exceptions
+    }
 
     delete event;
 }

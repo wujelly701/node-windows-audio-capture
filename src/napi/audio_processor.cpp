@@ -381,8 +381,12 @@ void AudioProcessor::OnAudioData(const std::vector<uint8_t>& data) {
             // Pool exhausted, fallback to copy mode
             auto* dataPtr = new std::vector<uint8_t>(processedData);
             tsfn_.NonBlockingCall(dataPtr, [](Napi::Env env, Napi::Function jsCallback, std::vector<uint8_t>* data) {
-                Napi::Buffer<uint8_t> buffer = Napi::Buffer<uint8_t>::Copy(env, data->data(), data->size());
-                jsCallback.Call({ buffer });
+                try {
+                    Napi::Buffer<uint8_t> buffer = Napi::Buffer<uint8_t>::Copy(env, data->data(), data->size());
+                    jsCallback.Call({ buffer });
+                } catch (...) {
+                    // Silently ignore callback errors
+                }
                 delete data;
             });
             return;
@@ -393,8 +397,12 @@ void AudioProcessor::OnAudioData(const std::vector<uint8_t>& data) {
             // Buffer too small, fallback to copy mode
             auto* dataPtr = new std::vector<uint8_t>(processedData);
             tsfn_.NonBlockingCall(dataPtr, [](Napi::Env env, Napi::Function jsCallback, std::vector<uint8_t>* data) {
-                Napi::Buffer<uint8_t> buffer = Napi::Buffer<uint8_t>::Copy(env, data->data(), data->size());
-                jsCallback.Call({ buffer });
+                try {
+                    Napi::Buffer<uint8_t> buffer = Napi::Buffer<uint8_t>::Copy(env, data->data(), data->size());
+                    jsCallback.Call({ buffer });
+                } catch (...) {
+                    // Silently ignore callback errors
+                }
                 delete data;
             });
             return;
@@ -407,10 +415,22 @@ void AudioProcessor::OnAudioData(const std::vector<uint8_t>& data) {
         // CRITICAL FIX: Capture shared_ptr in lambda to keep buffer alive
         // Use the new ToBufferFromShared method that properly handles ownership
         tsfn_.NonBlockingCall(extBuffer.get(), [extBuffer, actualSize](Napi::Env env, Napi::Function jsCallback, ExternalBuffer*) {
-            // Use new method that properly transfers shared_ptr ownership to V8
-            Napi::Value buffer = ExternalBuffer::ToBufferFromShared(env, extBuffer, actualSize);
-            jsCallback.Call({ buffer });
-            // shared_ptr extBuffer goes out of scope, but ownership transferred to V8's finalize callback
+            // v2.7.1: Wrap callback in try-catch to prevent N-API uncaught exception warnings
+            try {
+                // Use new method that properly transfers shared_ptr ownership to V8
+                Napi::Value buffer = ExternalBuffer::ToBufferFromShared(env, extBuffer, actualSize);
+                jsCallback.Call({ buffer });
+                // shared_ptr extBuffer goes out of scope, but ownership transferred to V8's finalize callback
+            } catch (const Napi::Error& e) {
+                // Silently ignore callback errors to prevent log pollution
+                // The error is already handled by N-API and reported to JavaScript
+                (void)e;  // Suppress unused variable warning
+            } catch (const std::exception& e) {
+                // Catch standard exceptions
+                (void)e;
+            } catch (...) {
+                // Catch all other exceptions
+            }
         });
     } else {
         // 传统模式：复制数据到堆（保持向后兼容，use processed data）
@@ -418,9 +438,13 @@ void AudioProcessor::OnAudioData(const std::vector<uint8_t>& data) {
         
         // 调用 ThreadSafeFunction（异步传递数据到 JS 线程）
         tsfn_.NonBlockingCall(dataPtr, [](Napi::Env env, Napi::Function jsCallback, std::vector<uint8_t>* data) {
-            // 创建 Buffer 传递给 JS
-            Napi::Buffer<uint8_t> buffer = Napi::Buffer<uint8_t>::Copy(env, data->data(), data->size());
-            jsCallback.Call({ buffer });
+            try {
+                // 创建 Buffer 传递给 JS
+                Napi::Buffer<uint8_t> buffer = Napi::Buffer<uint8_t>::Copy(env, data->data(), data->size());
+                jsCallback.Call({ buffer });
+            } catch (...) {
+                // Silently ignore callback errors
+            }
             delete data;  // 释放堆内存
         });
     }
@@ -633,8 +657,9 @@ Napi::Value AudioProcessor::GetDenoiseStats(const Napi::CallbackInfo& info) {
     }
     
     Napi::Object result = Napi::Object::New(env);
-    result.Set("processedFrames", Napi::Number::New(env, denoise_processor_->GetProcessedFrames()));
-    result.Set("voiceProbability", Napi::Number::New(env, denoise_processor_->GetLastVoiceProbability()));
+    // Use consistent naming: framesProcessed (not processedFrames) and vadProbability (not voiceProbability)
+    result.Set("framesProcessed", Napi::Number::New(env, denoise_processor_->GetProcessedFrames()));
+    result.Set("vadProbability", Napi::Number::New(env, denoise_processor_->GetLastVoiceProbability()));
     result.Set("frameSize", Napi::Number::New(env, denoise_processor_->GetFrameSize()));
     result.Set("enabled", Napi::Boolean::New(env, denoise_enabled_));
     

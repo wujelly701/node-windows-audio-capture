@@ -26,7 +26,9 @@ Napi::Object AudioProcessor::Init(Napi::Env env, Napi::Object exports) {
         InstanceMethod("setBlockList", &AudioProcessor::SetBlockList),
         InstanceMethod("isMutingOtherProcesses", &AudioProcessor::IsMutingOtherProcesses),
         InstanceMethod("getAllowList", &AudioProcessor::GetAllowList),
-        InstanceMethod("getBlockList", &AudioProcessor::GetBlockList)
+        InstanceMethod("getBlockList", &AudioProcessor::GetBlockList),
+        // v2.6: Zero-copy buffer pool statistics
+        InstanceMethod("getPoolStats", &AudioProcessor::GetPoolStats)
     });
     exports.Set("AudioProcessor", func);
     exports.Set("getDeviceInfo", Napi::Function::New(env, AudioProcessor::GetDeviceInfo));
@@ -61,6 +63,11 @@ AudioProcessor::AudioProcessor(const Napi::CallbackInfo& info) : Napi::ObjectWra
         useExternalBuffer_ = options.Get("useExternalBuffer").As<Napi::Boolean>().Value();
     } else {
         useExternalBuffer_ = false;
+    }
+    
+    // v2.6: 如果启用 zero-copy，初始化 External Buffer Factory
+    if (useExternalBuffer_) {
+        ExternalBufferFactory::Instance().Initialize(4096, 10); // 4KB buffers, pool of 10
     }
     
     // 获取音频数据回调函数（可选）
@@ -307,15 +314,27 @@ void AudioProcessor::OnAudioData(const std::vector<uint8_t>& data) {
             return;
         }
         
-        // 拷贝数据到 External Buffer
-        memcpy(extBuffer->data(), data.data(), data.size());
+        // 检查缓冲区大小是否足够
+        if (data.size() > extBuffer->size()) {
+            // Buffer too small, fallback to copy mode
+            auto* dataPtr = new std::vector<uint8_t>(data);
+            tsfn_.NonBlockingCall(dataPtr, [](Napi::Env env, Napi::Function jsCallback, std::vector<uint8_t>* data) {
+                Napi::Buffer<uint8_t> buffer = Napi::Buffer<uint8_t>::Copy(env, data->data(), data->size());
+                jsCallback.Call({ buffer });
+                delete data;
+            });
+            return;
+        }
         
-        // 调用 ThreadSafeFunction（传递 External Buffer 原始指针）
+        // 拷贝数据到 External Buffer
+        size_t actualSize = data.size();
+        memcpy(extBuffer->data(), data.data(), actualSize);
+        
+        // 调用 ThreadSafeFunction（传递 External Buffer shared_ptr + actual size）
         // Note: shared_ptr 会在 lambda 中被捕获，保持引用计数
-        auto* rawPtr = extBuffer.get();
-        tsfn_.NonBlockingCall(rawPtr, [extBuffer](Napi::Env env, Napi::Function jsCallback, ExternalBuffer* rawPtr) {
-            // 创建 Node.js Buffer（zero-copy，由 V8 管理生命周期）
-            Napi::Value buffer = rawPtr->ToBuffer(env);
+        tsfn_.NonBlockingCall(extBuffer.get(), [extBuffer, actualSize](Napi::Env env, Napi::Function jsCallback, ExternalBuffer* rawPtr) {
+            // 使用 ToBuffer(actual_size) 创建 Node.js Buffer（zero-copy，只暴露实际数据大小）
+            Napi::Value buffer = rawPtr->ToBuffer(env, actualSize);
             jsCallback.Call({ buffer });
             // shared_ptr 在 lambda 结束时释放，extBuffer 将在 V8 GC finalize 时自动释放
         });
@@ -459,6 +478,36 @@ Napi::Value AudioProcessor::GetBlockList(const Napi::CallbackInfo& info) {
     for (size_t i = 0; i < pids.size(); i++) {
         result[static_cast<uint32_t>(i)] = Napi::Number::New(env, pids[i]);
     }
+    
+    return result;
+}
+
+// ====== v2.6: Zero-copy buffer pool statistics ======
+
+Napi::Value AudioProcessor::GetPoolStats(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (!useExternalBuffer_) {
+        // Not using external buffer mode - return null
+        return env.Null();
+    }
+    
+    // Get statistics from ExternalBufferFactory
+    auto stats = ExternalBufferFactory::Instance().GetStats();
+    
+    // Create JavaScript object with statistics
+    Napi::Object result = Napi::Object::New(env);
+    result.Set("poolHits", Napi::Number::New(env, stats.pool_hits));
+    result.Set("poolMisses", Napi::Number::New(env, stats.pool_misses));
+    result.Set("dynamicAllocations", Napi::Number::New(env, stats.dynamic_allocations));
+    result.Set("currentPoolSize", Napi::Number::New(env, stats.current_pool_size));
+    result.Set("maxPoolSize", Napi::Number::New(env, stats.max_pool_size));
+    
+    // Calculate hit rate
+    uint64_t total_requests = stats.pool_hits + stats.pool_misses;
+    double hit_rate = (total_requests > 0) ? 
+        (static_cast<double>(stats.pool_hits) / total_requests * 100.0) : 0.0;
+    result.Set("hitRate", Napi::Number::New(env, hit_rate));
     
     return result;
 }

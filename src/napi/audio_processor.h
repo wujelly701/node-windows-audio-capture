@@ -33,6 +33,9 @@ private:
     Napi::Value GetAllowList(const Napi::CallbackInfo& info);
     Napi::Value GetBlockList(const Napi::CallbackInfo& info);
     
+    // v2.6: Zero-copy buffer pool statistics
+    Napi::Value GetPoolStats(const Napi::CallbackInfo& info);
+    
     // 静态方法：设备枚举
     static Napi::Value GetDeviceInfo(const Napi::CallbackInfo& info);
     

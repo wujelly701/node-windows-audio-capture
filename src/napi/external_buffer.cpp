@@ -62,6 +62,35 @@ Napi::Value ExternalBuffer::ToBuffer(Napi::Env env) {
     return buffer;
 }
 
+Napi::Value ExternalBuffer::ToBuffer(Napi::Env env, size_t actual_size) {
+    // Create external buffer with custom size (zero-copy - shares C++ memory)
+    // Validate size
+    if (actual_size > size_) {
+        actual_size = size_; // Clamp to buffer size
+    }
+    
+    AddRef(); // Increment ref count before passing to JavaScript
+    
+    // Use static finalize callback for proper cleanup
+    auto finalizer = [](Napi::Env env, uint8_t* data, ExternalBuffer* hint) {
+        // Called by V8 when buffer is garbage collected
+        if (hint) {
+            hint->Release(); // Decrement ref count, may delete buffer
+        }
+    };
+    
+    // Create external buffer with custom size and finalize callback
+    auto buffer = Napi::Buffer<uint8_t>::New(
+        env,
+        static_cast<uint8_t*>(data_),
+        actual_size,  // Use actual size instead of full buffer size
+        finalizer,
+        this // hint passed to finalizer
+    );
+    
+    return buffer;
+}
+
 void ExternalBuffer::AddRef() {
     ref_count_.fetch_add(1, std::memory_order_relaxed);
 }

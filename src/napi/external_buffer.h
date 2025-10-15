@@ -38,6 +38,7 @@ public:
 
     // Create N-API value (zero-copy)
     Napi::Value ToBuffer(Napi::Env env);
+    Napi::Value ToBuffer(Napi::Env env, size_t actual_size); // With custom size
 
     // Reference counting for safety
     void AddRef();

@@ -31,6 +31,7 @@ class AudioCapture extends EventEmitter {
             sampleRate: options.sampleRate || 44100,
             channels: options.channels || 2,
             bitDepth: options.bitDepth || 16,
+            useExternalBuffer: options.useExternalBuffer || false, // v2.6: zero-copy mode
         };
         
         this._processor = null;
@@ -39,10 +40,17 @@ class AudioCapture extends EventEmitter {
         
         // 创建 Native AudioProcessor 实例
         try {
-            this._processor = new addon.AudioProcessor({
+            const processorOptions = {
                 processId: this.options.processId,
                 callback: this._onAudioData.bind(this)
-            });
+            };
+            
+            // v2.6: Add useExternalBuffer if specified
+            if (options.useExternalBuffer !== undefined) {
+                processorOptions.useExternalBuffer = Boolean(options.useExternalBuffer);
+            }
+            
+            this._processor = new addon.AudioProcessor(processorOptions);
         } catch (error) {
             this.emit('error', new Error(`Failed to create AudioProcessor: ${error.message}`));
         }
@@ -253,6 +261,30 @@ class AudioCapture extends EventEmitter {
             return addon.enumerateProcesses();
         } catch (error) {
             throw new Error(`Failed to enumerate processes: ${error.message}`);
+        }
+    }
+
+    /**
+     * v2.6: 获取缓冲池统计信息（仅零拷贝模式）
+     * @returns {Object|null} 缓冲池统计信息，非零拷贝模式返回 null
+     * 
+     * 返回对象包含以下属性：
+     * - poolHits: 从缓冲池成功获取缓冲区的次数
+     * - poolMisses: 缓冲池为空，回退到动态分配的次数
+     * - dynamicAllocations: 动态分配的总次数
+     * - currentPoolSize: 当前缓冲池中缓冲区数量
+     * - maxPoolSize: 缓冲池最大容量
+     * - hitRate: 缓冲池命中率百分比（0-100）
+     */
+    getPoolStats() {
+        if (!this._processor) {
+            throw new Error('AudioProcessor not initialized');
+        }
+        
+        try {
+            return this._processor.getPoolStats();
+        } catch (error) {
+            throw new Error(`Failed to get pool statistics: ${error.message}`);
         }
     }
 }

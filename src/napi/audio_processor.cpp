@@ -67,7 +67,9 @@ AudioProcessor::AudioProcessor(const Napi::CallbackInfo& info) : Napi::ObjectWra
     
     // v2.6: 如果启用 zero-copy，初始化 External Buffer Factory
     if (useExternalBuffer_) {
-        ExternalBufferFactory::Instance().Initialize(4096, 10); // 4KB buffers, pool of 10
+        // Increased pool size to 100 for better performance (was 10)
+        // With 100 packets/sec throughput, pool of 10 was too small (2% hit rate)
+        ExternalBufferFactory::Instance().Initialize(4096, 100); // 4KB buffers, pool of 100
     }
     
     // 获取音频数据回调函数（可选）
@@ -330,13 +332,13 @@ void AudioProcessor::OnAudioData(const std::vector<uint8_t>& data) {
         size_t actualSize = data.size();
         memcpy(extBuffer->data(), data.data(), actualSize);
         
-        // 调用 ThreadSafeFunction（传递 External Buffer shared_ptr + actual size）
-        // Note: shared_ptr 会在 lambda 中被捕获，保持引用计数
-        tsfn_.NonBlockingCall(extBuffer.get(), [extBuffer, actualSize](Napi::Env env, Napi::Function jsCallback, ExternalBuffer* rawPtr) {
-            // 使用 ToBuffer(actual_size) 创建 Node.js Buffer（zero-copy，只暴露实际数据大小）
-            Napi::Value buffer = rawPtr->ToBuffer(env, actualSize);
+        // CRITICAL FIX: Capture shared_ptr in lambda to keep buffer alive
+        // Use the new ToBufferFromShared method that properly handles ownership
+        tsfn_.NonBlockingCall(extBuffer.get(), [extBuffer, actualSize](Napi::Env env, Napi::Function jsCallback, ExternalBuffer*) {
+            // Use new method that properly transfers shared_ptr ownership to V8
+            Napi::Value buffer = ExternalBuffer::ToBufferFromShared(env, extBuffer, actualSize);
             jsCallback.Call({ buffer });
-            // shared_ptr 在 lambda 结束时释放，extBuffer 将在 V8 GC finalize 时自动释放
+            // shared_ptr extBuffer goes out of scope, but ownership transferred to V8's finalize callback
         });
     } else {
         // 传统模式：复制数据到堆（保持向后兼容）

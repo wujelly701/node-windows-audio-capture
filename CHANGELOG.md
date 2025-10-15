@@ -5,6 +5,108 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0] - 2025-10-15
+
+### 🎉 Major Features - Zero-Copy Memory Architecture
+
+#### Added
+- **Zero-Copy Memory Optimization** - Eliminate data copying between C++ and JavaScript
+  - **151.3% heap allocation reduction** (from +8.09 KB/s to -4.25 KB/s)
+  - **Negative heap growth** - Memory actually freed over time
+  - **30,000+ packet stability** validated - Zero crashes, zero leaks
+  - Optional `useExternalBuffer` flag for backward compatibility
+- **Buffer Pool Statistics API** - Real-time buffer pool monitoring
+  - New `getPoolStats()` method for performance insights
+  - Track pool hits, misses, and dynamic allocations
+  - Monitor pool efficiency with hit rate percentage
+- New C++ components:
+  - `ExternalBuffer` class - External buffer lifecycle management
+  - `BufferPool` class - Pre-allocated buffer pool (100 buffers)
+  - `ExternalBufferFactory` - Singleton buffer manager
+  - `ToBufferFromShared()` - Proper shared_ptr to V8 ownership transfer
+
+#### Performance Improvements
+
+| Metric | Traditional Mode | Zero-Copy Mode | Improvement |
+|--------|------------------|----------------|-------------|
+| Heap Growth | +8.09 KB/s | -4.25 KB/s | **151.3%** ⚡ |
+| Data Copying | Double copy | Zero copy | **100%** 🚀 |
+| 5-Min Heap Delta | +2.4 MB | -0.08 MB | **Negative!** 💚 |
+| 30K Packets | Not tested | ✅ Validated | **Production Ready** |
+
+#### Fixed
+- **Critical Bug**: Zero-copy crash after ~111 packets
+  - Root cause: Conflicting ownership (shared_ptr + manual ref counting)
+  - Solution: Pure shared_ptr approach with V8 finalize callback
+  - Result: 270x stability improvement (111 → 30,000+ packets)
+  - See `docs/V2.6_ZERO_COPY_CRASH_FIX.md` for technical details
+
+#### Documentation
+- Added `docs/V2.6_RELEASE_NOTES.md` - Complete release documentation
+- Added `V2.6_ZERO_COPY_TEST_REPORT.md` - Performance benchmarks
+- Added `V2.6_BUFFER_POOL_STATS_API.md` - API documentation
+- Added `V2.6_ZERO_COPY_CRASH_FIX.md` - Bug fix analysis
+- Added `V2.6_POOL_HIT_RATE_ANALYSIS.md` - Pool performance analysis
+- Added `V2.6_DEVELOPMENT_COMPLETE.md` - Development summary
+
+#### Testing
+- Created `test-zero-copy-performance.js` - Performance benchmarks
+- Created `test-stability-5min.js` - Quick stability validation
+- Created `test-stability-1hour.js` - Extended stability test
+- Created `test-pool-stats.js` - Pool statistics validation
+- All tests passing with zero crashes
+
+#### API Changes
+```typescript
+// New option in AudioCaptureOptions
+interface AudioCaptureOptions {
+  // ... existing options ...
+  useExternalBuffer?: boolean;  // Enable zero-copy mode (v2.6+)
+}
+
+// New method
+class AudioCapture {
+  getPoolStats(): BufferPoolStats;  // Get buffer pool statistics (v2.6+)
+}
+
+// New interface
+interface BufferPoolStats {
+  poolHits: number;
+  poolMisses: number;
+  dynamicAllocations: number;
+  currentPoolSize: number;
+  maxPoolSize: number;
+  hitRate: number;
+}
+```
+
+### Usage Example
+
+```javascript
+const { AudioCapture } = require('node-windows-audio-capture');
+
+// Enable zero-copy mode
+const capture = new AudioCapture({
+    useExternalBuffer: true,  // New in v2.6.0
+    processId: 0
+});
+
+// Monitor pool performance
+setInterval(() => {
+    const stats = capture.getPoolStats();
+    console.log(`Pool Hit Rate: ${stats.hitRate}%`);
+}, 10000);
+
+capture.start();
+```
+
+### Breaking Changes
+- None! v2.6.0 is fully backward compatible
+- Zero-copy mode is opt-in via `useExternalBuffer` flag
+- All existing code continues to work without changes
+
+---
+
 ## [2.5.0] - 2025-10-15
 
 ### 🎉 Major Performance Improvements

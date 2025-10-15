@@ -39,6 +39,9 @@ public:
     // Create N-API value (zero-copy)
     Napi::Value ToBuffer(Napi::Env env);
     Napi::Value ToBuffer(Napi::Env env, size_t actual_size); // With custom size
+    
+    // NEW: Create N-API buffer from shared_ptr (proper ownership transfer)
+    static Napi::Value ToBufferFromShared(Napi::Env env, std::shared_ptr<ExternalBuffer> buffer, size_t actual_size);
 
     // Reference counting for safety
     void AddRef();

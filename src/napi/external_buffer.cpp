@@ -91,6 +91,40 @@ Napi::Value ExternalBuffer::ToBuffer(Napi::Env env, size_t actual_size) {
     return buffer;
 }
 
+// Static method: Create buffer from shared_ptr (proper ownership transfer)
+Napi::Value ExternalBuffer::ToBufferFromShared(Napi::Env env, std::shared_ptr<ExternalBuffer> buffer, size_t actual_size) {
+    if (!buffer) {
+        return env.Null();
+    }
+    
+    // Validate size
+    if (actual_size > buffer->size_) {
+        actual_size = buffer->size_;
+    }
+    
+    // Create a heap-allocated copy of shared_ptr to keep buffer alive
+    // This shared_ptr will be deleted in the finalize callback
+    auto* shared_ptr_copy = new std::shared_ptr<ExternalBuffer>(buffer);
+    
+    // Finalize callback that properly releases the shared_ptr
+    auto finalizer = [](Napi::Env env, uint8_t* data, std::shared_ptr<ExternalBuffer>* hint) {
+        // When V8 GC runs, release the shared_ptr
+        // This may trigger buffer return to pool or deletion
+        delete hint; // Destroys shared_ptr, decrements ref count
+    };
+    
+    // Create N-API external buffer
+    auto napi_buffer = Napi::Buffer<uint8_t>::New(
+        env,
+        static_cast<uint8_t*>(buffer->data_),
+        actual_size,
+        finalizer,
+        shared_ptr_copy // Pass shared_ptr as hint
+    );
+    
+    return napi_buffer;
+}
+
 void ExternalBuffer::AddRef() {
     ref_count_.fetch_add(1, std::memory_order_relaxed);
 }
@@ -169,21 +203,19 @@ void BufferPool::Release(ExternalBuffer* buffer) {
         // Reset buffer content for reuse (optional, for security)
         // std::memset(buffer->data(), 0, buffer->size());
         
-        // IMPORTANT: We need to create a shared_ptr that doesn't delete
-        // the buffer, since it's already managed. Use a custom deleter.
-        // Actually, better approach: keep weak ownership tracking
-        
-        // For now: Just recreate shared_ptr with proper ownership
-        // This assumes the buffer was allocated with new
+        // CRITICAL FIX: Use a custom deleter that does NOTHING
+        // The buffer should NOT be deleted when returned to pool
+        // It will only be deleted when the pool itself is destroyed
         available_buffers_.push_back(std::shared_ptr<ExternalBuffer>(
             buffer,
             [](ExternalBuffer* ptr) {
-                // Custom deleter: actually delete the buffer
-                delete ptr;
+                // NO-OP deleter: buffer is managed by pool, don't delete here
+                // The buffer will be deleted in ~BufferPool()
             }
         ));
     } else {
         // Pool full - delete the buffer
+        // This only happens for dynamically allocated buffers beyond pool size
         delete buffer;
     }
 }

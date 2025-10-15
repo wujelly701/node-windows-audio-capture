@@ -3,16 +3,16 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D14.x-brightgreen.svg)](https://nodejs.org/)
 [![Windows](https://img.shields.io/badge/Windows-10%2F11-blue.svg)](https://www.microsoft.com/windows)
-[![Version](https://img.shields.io/badge/version-2.7.0-brightgreen.svg)](https://github.com/wujelly701/node-windows-audio-capture/releases/tag/v2.7.0)
+[![Version](https://img.shields.io/badge/version-2.8.0--alpha-orange.svg)](https://github.com/wujelly701/node-windows-audio-capture)
 [![Release](https://img.shields.io/github/v/release/wujelly701/node-windows-audio-capture?color=blue)](https://github.com/wujelly701/node-windows-audio-capture/releases/latest)
 
 Production-ready Windows 音频捕获 Node.js Native Addon，基于 WASAPI 标准 Loopback 模式实现。
 
+> **⚡ v2.8.0 AGC 增益控制**: 自动调整音频增益，保持一致输出电平（< 5ms 延迟，< 0.5% CPU）
 > **🔊 v2.7.0 降噪 + 智能池**: RNNoise AI 降噪 + 自适应 Buffer Pool（Hit Rate 0.67% → 3.14%，371.6% 提升！）
 > **🎙️ ASR 语音识别专用**: 专为语音识别场景优化，支持阿里云/百度/腾讯/OpenAI Whisper 等主流 ASR API。
-> **🚀 v2.6.0 零拷贝架构**: 内存分配减少 151%，堆增长从 +8 KB/s 变为 -4 KB/s（负增长！）
 > 
-> 📖 [查看 v2.7.0 Release Notes →](https://github.com/wujelly701/node-windows-audio-capture/releases/tag/v2.7.0) | [v2.7 开发总结 →](V2.7_ADAPTIVE_POOL_SUMMARY.md) | [ASR 兼容性路线图 →](docs/ASR_COMPATIBILITY_ROADMAP.md)
+> � [查看 v2.8.0 开发计划 →](V2.8_IMPLEMENTATION_PLAN.md) | [v2.7.0 Release Notes →](https://github.com/wujelly701/node-windows-audio-capture/releases/tag/v2.7.0)
 
 ## 🎯 v2.7.0 新特性 - RNNoise 降噪 + 自适应 Buffer Pool 🚀🔥
 
@@ -197,7 +197,132 @@ setInterval(() => {
 
 ---
 
-## 🎯 v2.5.0 新特性 🚀🔥
+## �️ v2.8.0 新特性 - AGC (自动增益控制) ⚡ LATEST
+
+**⚡ 智能增益管理** - 保持一致的音频输出电平！
+
+### 核心特性
+
+#### 🎛️ AGC (Automatic Gain Control)
+- **实时增益调整**: 基于 RMS 的自动增益控制算法
+- **智能平滑**: 可配置的攻击/释放时间，避免突变
+- **削波保护**: 自动检测和防止音频削波
+- **低延迟**: < 5ms 处理延迟
+- **低开销**: < 0.5% CPU 占用
+
+```javascript
+const capture = new AudioCapture({ processId: 0 });
+
+// 启用 AGC
+capture.setAGCEnabled(true);
+
+// 自定义配置
+capture.setAGCOptions({
+  targetLevel: -18,    // 目标输出电平 (dBFS)
+  maxGain: 25,         // 最大增益 (dB)
+  minGain: -5,         // 最小增益 (dB)
+  attackTime: 10,      // 攻击时间 (ms)
+  releaseTime: 100     // 释放时间 (ms)
+});
+
+// 获取实时统计
+const stats = capture.getAGCStats();
+console.log(`当前增益: ${stats.currentGain.toFixed(2)} dB`);
+console.log(`输入电平: ${stats.averageLevel.toFixed(2)} dBFS`);
+```
+
+#### 🔊 AGC + 降噪完美组合
+
+同时使用 AGC 和 RNNoise 降噪，获得最佳音频质量：
+
+```javascript
+const capture = new AudioCapture({
+  processId: 0,
+  useExternalBuffer: true,
+  bufferPoolStrategy: 'adaptive'
+});
+
+// 启用降噪 (先去除噪音)
+capture.setDenoiseEnabled(true);
+
+// 启用 AGC (再调整音量)
+capture.setAGCEnabled(true);
+capture.setAGCOptions({
+  targetLevel: -20,
+  maxGain: 20,
+  attackTime: 10,
+  releaseTime: 100
+});
+
+// 监控处理效果
+setInterval(() => {
+  const denoiseStats = capture.getDenoiseStats();
+  const agcStats = capture.getAGCStats();
+  
+  console.log('降噪 - 语音概率:', (denoiseStats.vadProbability * 100).toFixed(1) + '%');
+  console.log('AGC  - 当前增益:', agcStats.currentGain.toFixed(2), 'dB');
+  console.log('AGC  - 输入电平:', agcStats.averageLevel.toFixed(2), 'dBFS');
+}, 2000);
+
+await capture.start();
+```
+
+### AGC 配置场景
+
+**1. 音乐播放（平滑自然）**:
+```javascript
+capture.setAGCOptions({
+  targetLevel: -20,   // 标准电平
+  maxGain: 15,        // 温和增益
+  minGain: -8,        // 适度衰减
+  attackTime: 20,     // 较慢攻击
+  releaseTime: 150    // 平滑释放
+});
+```
+
+**2. 语音通话（快速响应）**:
+```javascript
+capture.setAGCOptions({
+  targetLevel: -18,   // 稍微响亮
+  maxGain: 25,        // 更大增益范围
+  minGain: -5,        // 限制衰减
+  attackTime: 8,      // 快速攻击
+  releaseTime: 80     // 快速释放
+});
+```
+
+**3. 游戏音效（中等响应）**:
+```javascript
+capture.setAGCOptions({
+  targetLevel: -20,
+  maxGain: 20,
+  minGain: -10,
+  attackTime: 12,
+  releaseTime: 100
+});
+```
+
+### 性能指标
+
+| 指标 | 数值 | 说明 |
+|------|------|------|
+| 处理延迟 | < 5ms | 实时音频处理 |
+| CPU 开销 | < 0.5% | 单核占用率 |
+| 增益范围 | -20 to +30 dB | 可配置 |
+| 响应速度 | 5-200 ms | 攻击/释放时间 |
+| 削波检测 | 实时 | >= 0.99 threshold |
+
+**测试结果**（test-agc.js）:
+- ✅ 96,000 帧处理成功
+- ✅ 增益从 0 dB 增加到 3.63 dB
+- ✅ 无性能下降
+- ✅ 无削波检测
+
+**[📖 查看完整 AGC 示例 →](examples/agc-example.js)** | **[📖 查看 API 文档 →](docs/api.md#v28-agc-自动增益控制)**
+
+---
+
+## �🎯 v2.5.0 新特性 🚀🔥
 
 **⚡ 性能优化版** - Kaiser 窗函数 Sinc 插值，性能提升 42%！
 
@@ -355,8 +480,11 @@ capture.on('data', (event) => {
 - 📋 **允许/阻止列表** (v2.1)：精细化控制哪些进程被静音
 - 🎼 **内置格式转换** (v2.2)：一键配置 ASR 格式，支持 8 大主流服务
 - 📈 **智能降采样** (v2.2)：48kHz → 16kHz，3 种质量级别
-- ⚡ **高性能 Sinc 重采样** (v2.5)：**42% 性能提升**，**40% CPU 降低** 🚀 NEW
-- 🎚️ **Kaiser 窗函数优化** (v2.5)：-70dB 阻带衰减，卓越音质 ✨ NEW
+- ⚡ **高性能 Sinc 重采样** (v2.5)：**42% 性能提升**，**40% CPU 降低** 🚀
+- 🎚️ **Kaiser 窗函数优化** (v2.5)：-70dB 阻带衰减，卓越音质 ✨
+- 🔊 **AI 降噪** (v2.7)：RNNoise 深度学习算法，15-25 dB 降噪效果 🎙️ NEW
+- 📊 **自适应 Buffer Pool** (v2.7)：371.6% Hit Rate 提升，智能内存管理 🚀 NEW
+- 🎛️ **AGC 自动增益** (v2.8)：RMS-based 增益控制，保持一致输出电平 ⚡ NEW
 - 🔄 **事件驱动架构**：基于 EventEmitter，支持 data、error、started、stopped 等事件
 - 🎛️ **状态管理**：支持 start、stop、pause、resume 操作，完整的状态跟踪
 - 📊 **设备和进程枚举**：获取默认音频设备信息和系统进程列表

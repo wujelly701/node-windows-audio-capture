@@ -881,13 +881,429 @@ await capture.start();
 
 ---
 
+## v2.7: 音频降噪 (RNNoise)
+
+### `setDenoiseEnabled(enabled)`
+
+启用或禁用 AI 降噪功能（基于 RNNoise）。
+
+**签名：**
+
+```typescript
+setDenoiseEnabled(enabled: boolean): void
+```
+
+**参数：**
+
+- `enabled` (boolean) - true 启用降噪，false 禁用
+
+**抛出错误：**
+
+- `TypeError` - 参数类型错误
+- `Error` - 降噪处理器初始化失败
+
+**示例：**
+
+```javascript
+const capture = new AudioCapture({ processId: 0 });
+
+// 启用降噪
+capture.setDenoiseEnabled(true);
+
+// 或在构造时启用
+const captureWithDenoise = new AudioCapture({
+  processId: 0,
+  effects: { denoise: true }
+});
+```
+
+**详细说明：**
+
+- 使用 RNNoise 深度学习算法进行实时降噪
+- 典型降噪效果：15-25 dB
+- CPU 开销：3-5%
+- 延迟：< 10ms（480 samples @ 48kHz）
+- 适用于去除背景噪音、键盘声、风扇声等
+
+---
+
+### `getDenoiseEnabled()`
+
+获取当前降噪状态。
+
+**签名：**
+
+```typescript
+getDenoiseEnabled(): boolean
+```
+
+**返回值：**
+
+- `boolean` - true 如果降噪已启用
+
+**示例：**
+
+```javascript
+if (capture.getDenoiseEnabled()) {
+  console.log('降噪已启用');
+}
+```
+
+---
+
+### `getDenoiseStats()`
+
+获取降噪处理统计信息。
+
+**签名：**
+
+```typescript
+getDenoiseStats(): DenoiseStats | null
+```
+
+**返回值：**
+
+- `DenoiseStats` - 统计信息对象
+- `null` - 如果降噪未启用
+
+**DenoiseStats 接口：**
+
+```typescript
+interface DenoiseStats {
+  framesProcessed: number;    // 已处理的音频帧数
+  vadProbability: number;     // 语音活动检测概率 (0.0-1.0)
+  frameSize: number;          // 帧大小（固定 480）
+  enabled: boolean;           // 当前状态
+}
+```
+
+**示例：**
+
+```javascript
+capture.setDenoiseEnabled(true);
+
+// 定期检查统计信息
+setInterval(() => {
+  const stats = capture.getDenoiseStats();
+  if (stats) {
+    console.log(`已处理: ${stats.framesProcessed} 帧`);
+    console.log(`语音概率: ${(stats.vadProbability * 100).toFixed(1)}%`);
+    
+    if (stats.vadProbability > 0.5) {
+      console.log('✓ 检测到语音');
+    } else {
+      console.log('✗ 噪声/静音');
+    }
+  }
+}, 1000);
+```
+
+---
+
+## v2.8: AGC (自动增益控制)
+
+### `setAGCEnabled(enabled)`
+
+启用或禁用 AGC（自动增益控制）。
+
+**签名：**
+
+```typescript
+setAGCEnabled(enabled: boolean): void
+```
+
+**参数：**
+
+- `enabled` (boolean) - true 启用 AGC，false 禁用
+
+**抛出错误：**
+
+- `TypeError` - 参数类型错误
+
+**示例：**
+
+```javascript
+const capture = new AudioCapture({ processId: 0 });
+
+// 启用 AGC
+capture.setAGCEnabled(true);
+```
+
+**详细说明：**
+
+- AGC 会动态调整音频增益以保持一致的输出电平
+- 适用于音量不稳定的音频源
+- 实时处理，延迟 < 5ms
+- CPU 开销 < 0.5%
+
+---
+
+### `getAGCEnabled()`
+
+获取当前 AGC 状态。
+
+**签名：**
+
+```typescript
+getAGCEnabled(): boolean
+```
+
+**返回值：**
+
+- `boolean` - true 如果 AGC 已启用
+
+**示例：**
+
+```javascript
+if (capture.getAGCEnabled()) {
+  console.log('AGC 已启用');
+}
+```
+
+---
+
+### `setAGCOptions(options)`
+
+设置 AGC 配置参数。
+
+**签名：**
+
+```typescript
+setAGCOptions(options: AGCOptions): void
+```
+
+**参数：**
+
+- `options` (AGCOptions) - AGC 配置对象
+
+**AGCOptions 接口：**
+
+```typescript
+interface AGCOptions {
+  targetLevel?: number;    // 目标输出电平 (dBFS), 默认 -20
+  maxGain?: number;        // 最大增益 (dB), 默认 20
+  minGain?: number;        // 最小增益 (dB), 默认 -10
+  attackTime?: number;     // 攻击时间 (ms), 默认 10
+  releaseTime?: number;    // 释放时间 (ms), 默认 100
+}
+```
+
+**参数说明：**
+
+- `targetLevel`: 目标输出电平，单位 dBFS
+  - 推荐范围：-30 到 -10 dBFS
+  - 典型值：-20 dBFS
+  - 值越大，输出越响亮
+
+- `maxGain`: 最大增益，单位 dB
+  - 防止过度放大噪声
+  - 推荐范围：10-30 dB
+  - 典型值：20 dB
+
+- `minGain`: 最小增益，单位 dB
+  - 防止过度衰减
+  - 推荐范围：-20 到 0 dB
+  - 典型值：-10 dB
+
+- `attackTime`: 攻击时间，单位毫秒
+  - 增益增加的速度（信号变小时）
+  - 较小值：快速响应，但可能不够平滑
+  - 典型值：5-20 ms
+
+- `releaseTime`: 释放时间，单位毫秒
+  - 增益减少的速度（信号变大时）
+  - 较大值：更平滑，但响应较慢
+  - 典型值：50-200 ms
+
+**抛出错误：**
+
+- `TypeError` - 参数类型错误
+- `Error` - AGC 未初始化
+
+**示例：**
+
+```javascript
+// 配置 AGC 参数
+capture.setAGCOptions({
+  targetLevel: -18,    // 稍微响亮一些
+  maxGain: 25,         // 允许更大增益
+  minGain: -5,         // 限制衰减
+  attackTime: 15,      // 中等攻击速度
+  releaseTime: 120     // 平滑释放
+});
+
+// 针对不同场景的预设配置
+
+// 1. 音乐播放（平滑、自然）
+capture.setAGCOptions({
+  targetLevel: -20,
+  maxGain: 15,
+  minGain: -8,
+  attackTime: 20,
+  releaseTime: 150
+});
+
+// 2. 语音通话（快速响应）
+capture.setAGCOptions({
+  targetLevel: -18,
+  maxGain: 25,
+  minGain: -5,
+  attackTime: 8,
+  releaseTime: 80
+});
+
+// 3. 游戏音效（中等响应）
+capture.setAGCOptions({
+  targetLevel: -20,
+  maxGain: 20,
+  minGain: -10,
+  attackTime: 12,
+  releaseTime: 100
+});
+```
+
+---
+
+### `getAGCOptions()`
+
+获取当前 AGC 配置参数。
+
+**签名：**
+
+```typescript
+getAGCOptions(): AGCOptions | null
+```
+
+**返回值：**
+
+- `AGCOptions` - 配置对象
+- `null` - 如果 AGC 未初始化
+
+**示例：**
+
+```javascript
+const options = capture.getAGCOptions();
+if (options) {
+  console.log('AGC 配置:');
+  console.log(`  目标电平: ${options.targetLevel} dBFS`);
+  console.log(`  增益范围: ${options.minGain} 到 ${options.maxGain} dB`);
+  console.log(`  攻击时间: ${options.attackTime} ms`);
+  console.log(`  释放时间: ${options.releaseTime} ms`);
+}
+```
+
+---
+
+### `getAGCStats()`
+
+获取 AGC 处理统计信息。
+
+**签名：**
+
+```typescript
+getAGCStats(): AGCStats | null
+```
+
+**返回值：**
+
+- `AGCStats` - 统计信息对象
+- `null` - 如果 AGC 未初始化
+
+**AGCStats 接口：**
+
+```typescript
+interface AGCStats {
+  enabled: boolean;          // AGC 是否启用
+  currentGain: number;       // 当前应用的增益 (dB)
+  averageLevel: number;      // 平均输入电平 (dBFS)
+  rmsLinear: number;         // 当前 RMS 值（线性）
+  clipping: boolean;         // 是否检测到削波
+  framesProcessed: number;   // 已处理的帧数
+}
+```
+
+**示例：**
+
+```javascript
+capture.setAGCEnabled(true);
+
+// 定期监控 AGC 状态
+setInterval(() => {
+  const stats = capture.getAGCStats();
+  if (stats) {
+    console.log(`当前增益: ${stats.currentGain.toFixed(2)} dB`);
+    console.log(`输入电平: ${stats.averageLevel.toFixed(2)} dBFS`);
+    console.log(`RMS: ${stats.rmsLinear.toFixed(6)}`);
+    
+    if (stats.clipping) {
+      console.warn('⚠️  警告: 检测到削波! 考虑降低 maxGain');
+    }
+    
+    console.log(`已处理: ${stats.framesProcessed.toLocaleString()} 帧`);
+  }
+}, 1000);
+```
+
+**完整示例：AGC + 降噪组合**
+
+```javascript
+const { AudioCapture } = require('node-windows-audio-capture');
+
+// 创建捕获实例
+const capture = new AudioCapture({
+  processId: 0,  // 系统音频
+  useExternalBuffer: true,
+  bufferPoolStrategy: 'adaptive'
+});
+
+// 启用降噪
+capture.setDenoiseEnabled(true);
+
+// 启用并配置 AGC
+capture.setAGCEnabled(true);
+capture.setAGCOptions({
+  targetLevel: -18,
+  maxGain: 25,
+  attackTime: 10,
+  releaseTime: 100
+});
+
+// 监控处理效果
+setInterval(() => {
+  const denoiseStats = capture.getDenoiseStats();
+  const agcStats = capture.getAGCStats();
+  
+  console.log('\n=== 音频处理状态 ===');
+  
+  if (denoiseStats) {
+    console.log('降噪:');
+    console.log(`  语音概率: ${(denoiseStats.vadProbability * 100).toFixed(1)}%`);
+    console.log(`  已处理: ${denoiseStats.framesProcessed} 帧`);
+  }
+  
+  if (agcStats) {
+    console.log('AGC:');
+    console.log(`  当前增益: ${agcStats.currentGain.toFixed(2)} dB`);
+    console.log(`  输入电平: ${agcStats.averageLevel.toFixed(2)} dBFS`);
+    console.log(`  削波状态: ${agcStats.clipping ? '⚠️  是' : '✓ 否'}`);
+  }
+}, 2000);
+
+// 开始捕获
+await capture.start();
+```
+
+---
+
 ## 参考链接
 
 - [README.md](../README.md) - 项目主文档
 - [示例代码](../examples/) - 完整示例
 - [N-API 文档](https://nodejs.org/api/n-api.html) - Node.js 原生扩展 API
 - [WASAPI 文档](https://docs.microsoft.com/en-us/windows/win32/coreaudio/wasapi) - Windows 音频 API
+- [RNNoise 论文](https://arxiv.org/abs/1709.08243) - 深度学习降噪算法
+- [AGC 算法](https://en.wikipedia.org/wiki/Automatic_gain_control) - 自动增益控制
 
 ---
 
-**最后更新**: 2025-10-13
+**最后更新**: 2025-10-16 (v2.8.0)

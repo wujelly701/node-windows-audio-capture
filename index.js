@@ -338,6 +338,107 @@ class AudioCapture extends EventEmitter {
             throw new Error(`Failed to get denoise statistics: ${error.message}`);
         }
     }
+
+    /**
+     * v2.8: 启用或禁用 AGC (自动增益控制)
+     * @param {boolean} enabled - true 启用，false 禁用
+     */
+    setAGCEnabled(enabled) {
+        if (!this._processor) {
+            throw new Error('AudioProcessor not initialized');
+        }
+        
+        if (typeof enabled !== 'boolean') {
+            throw new TypeError('enabled must be a boolean');
+        }
+        
+        try {
+            this._processor.setAGCEnabled(enabled);
+        } catch (error) {
+            throw new Error(`Failed to set AGC state: ${error.message}`);
+        }
+    }
+
+    /**
+     * v2.8: 获取当前 AGC 状态
+     * @returns {boolean} true 如果 AGC 已启用，否则 false
+     */
+    getAGCEnabled() {
+        if (!this._processor) {
+            throw new Error('AudioProcessor not initialized');
+        }
+        
+        try {
+            return this._processor.getAGCEnabled();
+        } catch (error) {
+            throw new Error(`Failed to get AGC state: ${error.message}`);
+        }
+    }
+
+    /**
+     * v2.8: 设置 AGC 配置选项
+     * @param {Object} options - AGC 配置参数
+     * @param {number} [options.targetLevel] - 目标输出电平 (dBFS)
+     * @param {number} [options.maxGain] - 最大增益 (dB)
+     * @param {number} [options.minGain] - 最小增益 (dB)
+     * @param {number} [options.attackTime] - 攻击时间 (ms)
+     * @param {number} [options.releaseTime] - 释放时间 (ms)
+     */
+    setAGCOptions(options) {
+        if (!this._processor) {
+            throw new Error('AudioProcessor not initialized');
+        }
+        
+        if (typeof options !== 'object' || options === null) {
+            throw new TypeError('options must be an object');
+        }
+        
+        try {
+            this._processor.setAGCOptions(options);
+        } catch (error) {
+            throw new Error(`Failed to set AGC options: ${error.message}`);
+        }
+    }
+
+    /**
+     * v2.8: 获取当前 AGC 配置选项
+     * @returns {Object} AGC 配置对象
+     */
+    getAGCOptions() {
+        if (!this._processor) {
+            throw new Error('AudioProcessor not initialized');
+        }
+        
+        try {
+            return this._processor.getAGCOptions();
+        } catch (error) {
+            throw new Error(`Failed to get AGC options: ${error.message}`);
+        }
+    }
+
+    /**
+     * v2.8: 获取 AGC 处理统计信息
+     * @returns {Object} AGC 统计信息
+     * 
+     * 返回对象包含以下属性：
+     * - enabled: AGC 是否启用
+     * - currentGain: 当前应用的增益 (dB)
+     * - averageLevel: 平均输入电平 (dBFS)
+     * - rmsLinear: 当前 RMS 值（线性）
+     * - clipping: 是否检测到削波
+     * - framesProcessed: 已处理的音频帧数
+     */
+    getAGCStats() {
+        if (!this._processor) {
+            throw new Error('AudioProcessor not initialized');
+        }
+        
+        try {
+            return this._processor.getAGCStats();
+        } catch (error) {
+            throw new Error(`Failed to get AGC statistics: ${error.message}`);
+        }
+    }
 }
 
 /**

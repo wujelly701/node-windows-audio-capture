@@ -314,6 +314,90 @@ export interface DenoiseStats {
 }
 
 /**
+ * v2.8: AGC 配置选项
+ * @since 2.8.0
+ */
+export interface AGCOptions {
+    /**
+     * 目标输出电平（dBFS）
+     * - 推荐范围：-30 到 -10 dBFS
+     * - 典型值：-20 dBFS
+     * @default -20
+     */
+    targetLevel?: number;
+    
+    /**
+     * 最大增益（dB）
+     * - 防止过度放大噪声
+     * - 推荐范围：10-30 dB
+     * @default 20
+     */
+    maxGain?: number;
+    
+    /**
+     * 最小增益（dB）
+     * - 防止过度衰减
+     * - 推荐范围：-20 到 0 dB
+     * @default -10
+     */
+    minGain?: number;
+    
+    /**
+     * 攻击时间（ms）
+     * - 增益增加的速度（信号变小时）
+     * - 较小值：快速响应，但可能不平滑
+     * - 典型值：5-20 ms
+     * @default 10
+     */
+    attackTime?: number;
+    
+    /**
+     * 释放时间（ms）
+     * - 增益减少的速度（信号变大时）
+     * - 较大值：更平滑，但响应较慢
+     * - 典型值：50-200 ms
+     * @default 100
+     */
+    releaseTime?: number;
+}
+
+/**
+ * v2.8: AGC 统计信息
+ * @since 2.8.0
+ */
+export interface AGCStats {
+    /**
+     * AGC 是否启用
+     */
+    enabled: boolean;
+    
+    /**
+     * 当前应用的增益（dB）
+     */
+    currentGain: number;
+    
+    /**
+     * 平均输入电平（dBFS）
+     */
+    averageLevel: number;
+    
+    /**
+     * 当前 RMS 值（线性刻度）
+     */
+    rmsLinear: number;
+    
+    /**
+     * 是否检测到削波（clipping）
+     */
+    clipping: boolean;
+    
+    /**
+     * 已处理的音频帧数
+     */
+    framesProcessed: number;
+}
+
+/**
  * AudioCapture 类 - 音频捕获器
  * 
  * @example
@@ -451,6 +535,43 @@ export declare class AudioCapture extends EventEmitter {
      * @since 2.7.0
      */
     getDenoiseStats(): DenoiseStats | null;
+    
+    /**
+     * v2.8: 启用或禁用 AGC（自动增益控制）
+     * @param enabled - true 启用，false 禁用
+     * @since 2.8.0
+     */
+    setAGCEnabled(enabled: boolean): void;
+    
+    /**
+     * v2.8: 获取当前 AGC 状态
+     * @returns 如果启用返回 true，否则返回 false
+     * @since 2.8.0
+     */
+    getAGCEnabled(): boolean;
+    
+    /**
+     * v2.8: 设置 AGC 配置选项
+     * @param options - AGC 配置参数
+     * @throws {TypeError} 如果参数类型不正确
+     * @throws {Error} 如果 AGC 处理器未初始化
+     * @since 2.8.0
+     */
+    setAGCOptions(options: AGCOptions): void;
+    
+    /**
+     * v2.8: 获取当前 AGC 配置选项
+     * @returns AGC 配置对象，如果 AGC 未初始化则返回 null
+     * @since 2.8.0
+     */
+    getAGCOptions(): AGCOptions | null;
+    
+    /**
+     * v2.8: 获取 AGC 处理统计信息
+     * @returns 统计信息对象，如果 AGC 未初始化则返回 null
+     * @since 2.8.0
+     */
+    getAGCStats(): AGCStats | null;
     
     /**
      * 音频数据事件

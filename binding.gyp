@@ -18,6 +18,7 @@
         "src/napi/device_manager.cpp",
         "src/napi/external_buffer.cpp",
         "src/napi/audio_effects.cpp",
+        "src/napi/agc_processor.cpp",
         "deps/rnnoise/src/celt_lpc.c",
         "deps/rnnoise/src/denoise.c",
         "deps/rnnoise/src/kiss_fft.c",

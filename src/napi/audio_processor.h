@@ -6,6 +6,7 @@
 #include "../wasapi/audio_client.h"
 #include "external_buffer.h"
 #include "audio_effects.h"  // v2.7: Audio effects (RNNoise)
+#include "agc_processor.h"  // v2.8: AGC (Automatic Gain Control)
 
 class AudioProcessor : public Napi::ObjectWrap<AudioProcessor> {
 public:
@@ -24,6 +25,9 @@ private:
     // v2.7: Audio effects
     std::unique_ptr<AudioCapture::DenoiseProcessor> denoise_processor_;
     bool denoise_enabled_ = false;
+    
+    // v2.8: AGC (Automatic Gain Control)
+    std::unique_ptr<wasapi_capture::SimpleAGC> agc_processor_;
     
     // v2.7: Buffer pool adaptive optimization
     bool useAdaptivePool_ = false;  // Adaptive pool strategy enabled
@@ -50,6 +54,13 @@ private:
     Napi::Value SetDenoiseEnabled(const Napi::CallbackInfo& info);
     Napi::Value GetDenoiseEnabled(const Napi::CallbackInfo& info);
     Napi::Value GetDenoiseStats(const Napi::CallbackInfo& info);
+    
+    // v2.8: AGC (Automatic Gain Control)
+    Napi::Value SetAGCEnabled(const Napi::CallbackInfo& info);
+    Napi::Value GetAGCEnabled(const Napi::CallbackInfo& info);
+    Napi::Value SetAGCOptions(const Napi::CallbackInfo& info);
+    Napi::Value GetAGCOptions(const Napi::CallbackInfo& info);
+    Napi::Value GetAGCStats(const Napi::CallbackInfo& info);
     
     // 静态方法：设备枚举
     static Napi::Value GetDeviceInfo(const Napi::CallbackInfo& info);

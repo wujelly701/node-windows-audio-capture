@@ -48,7 +48,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\include\node;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\src;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\config;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\openssl\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\uv\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\zlib;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\v8\include;D:\node-windows-audio-capture\node_modules\node-addon-api;..\src\wasapi;..\src\napi;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\include\node;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\src;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\config;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\openssl\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\uv\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\zlib;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\v8\include;D:\node-windows-audio-capture\node_modules\node-addon-api;..\src\wasapi;..\src\napi;..\deps\rnnoise\include;..\deps\rnnoise\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/Zc:__cplusplus -std:c++17 /std:c++17 %(AdditionalOptions)</AdditionalOptions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <BufferSecurityCheck>true</BufferSecurityCheck>
@@ -84,13 +84,13 @@
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\include\node;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\src;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\config;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\openssl\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\uv\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\zlib;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\v8\include;D:\node-windows-audio-capture\node_modules\node-addon-api;..\src\wasapi;..\src\napi;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\include\node;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\src;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\config;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\openssl\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\uv\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\zlib;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\v8\include;D:\node-windows-audio-capture\node_modules\node-addon-api;..\src\wasapi;..\src\napi;..\deps\rnnoise\include;..\deps\rnnoise\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=audio_addon;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;_GLIBCXX_USE_CXX11_ABI=1;_FILE_OFFSET_BITS=64;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;NAPI_VERSION=8;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0A00;NAPI_DISABLE_CPP_EXCEPTIONS;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;DEBUG;_DEBUG;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\include\node;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\src;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\config;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\openssl\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\uv\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\zlib;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\v8\include;D:\node-windows-audio-capture\node_modules\node-addon-api;..\src\wasapi;..\src\napi;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\include\node;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\src;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\config;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\openssl\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\uv\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\zlib;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\v8\include;D:\node-windows-audio-capture\node_modules\node-addon-api;..\src\wasapi;..\src\napi;..\deps\rnnoise\include;..\deps\rnnoise\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/Zc:__cplusplus -std:c++17 /std:c++17 %(AdditionalOptions)</AdditionalOptions>
       <BufferSecurityCheck>true</BufferSecurityCheck>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
@@ -129,7 +129,7 @@
       <TargetMachine>MachineX64</TargetMachine>
     </Link>
     <ResourceCompile>
-      <AdditionalIncludeDirectories>C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\include\node;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\src;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\config;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\openssl\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\uv\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\zlib;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\v8\include;D:\node-windows-audio-capture\node_modules\node-addon-api;..\src\wasapi;..\src\napi;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\include\node;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\src;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\config;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\openssl\openssl\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\uv\include;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\zlib;C:\Users\wu\AppData\Local\node-gyp\Cache\20.19.5\deps\v8\include;D:\node-windows-audio-capture\node_modules\node-addon-api;..\src\wasapi;..\src\napi;..\deps\rnnoise\include;..\deps\rnnoise\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>NODE_GYP_MODULE_NAME=audio_addon;USING_UV_SHARED=1;USING_V8_SHARED=1;V8_DEPRECATION_WARNINGS=1;_GLIBCXX_USE_CXX11_ABI=1;_FILE_OFFSET_BITS=64;WIN32;_CRT_SECURE_NO_DEPRECATE;_CRT_NONSTDC_NO_DEPRECATE;_HAS_EXCEPTIONS=0;OPENSSL_NO_PINSHARED;OPENSSL_THREADS;NAPI_VERSION=8;WIN32_LEAN_AND_MEAN;_WIN32_WINNT=0x0A00;NAPI_DISABLE_CPP_EXCEPTIONS;BUILDING_NODE_EXTENSION;HOST_BINARY=&quot;node.exe&quot;;%(PreprocessorDefinitions);%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
   </ItemDefinitionGroup>
@@ -178,6 +178,42 @@
     </ClCompile>
     <ClCompile Include="..\src\napi\external_buffer.cpp">
       <ObjectFileName>$(IntDir)\src\napi\external_buffer.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\napi\audio_effects.cpp">
+      <ObjectFileName>$(IntDir)\src\napi\audio_effects.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\src\napi\agc_processor.cpp">
+      <ObjectFileName>$(IntDir)\src\napi\agc_processor.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\deps\rnnoise\src\celt_lpc.c">
+      <ObjectFileName>$(IntDir)\deps\rnnoise\src\celt_lpc.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\deps\rnnoise\src\denoise.c">
+      <ObjectFileName>$(IntDir)\deps\rnnoise\src\denoise.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\deps\rnnoise\src\kiss_fft.c">
+      <ObjectFileName>$(IntDir)\deps\rnnoise\src\kiss_fft.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\deps\rnnoise\src\nnet.c">
+      <ObjectFileName>$(IntDir)\deps\rnnoise\src\nnet.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\deps\rnnoise\src\nnet_default.c">
+      <ObjectFileName>$(IntDir)\deps\rnnoise\src\nnet_default.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\deps\rnnoise\src\parse_lpcnet_weights.c">
+      <ObjectFileName>$(IntDir)\deps\rnnoise\src\parse_lpcnet_weights.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\deps\rnnoise\src\pitch.c">
+      <ObjectFileName>$(IntDir)\deps\rnnoise\src\pitch.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\deps\rnnoise\src\rnn.c">
+      <ObjectFileName>$(IntDir)\deps\rnnoise\src\rnn.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\deps\rnnoise\src\rnnoise_data.c">
+      <ObjectFileName>$(IntDir)\deps\rnnoise\src\rnnoise_data.obj</ObjectFileName>
+    </ClCompile>
+    <ClCompile Include="..\deps\rnnoise\src\rnnoise_tables.c">
+      <ObjectFileName>$(IntDir)\deps\rnnoise\src\rnnoise_tables.obj</ObjectFileName>
     </ClCompile>
     <ClCompile Include="D:\node-windows-audio-capture\node_modules\node-gyp\src\win_delay_load_hook.cc"/>
   </ItemGroup>

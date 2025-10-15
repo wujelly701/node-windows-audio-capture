@@ -32,7 +32,13 @@ Napi::Object AudioProcessor::Init(Napi::Env env, Napi::Object exports) {
         // v2.7: Audio effects (RNNoise denoising)
         InstanceMethod("setDenoiseEnabled", &AudioProcessor::SetDenoiseEnabled),
         InstanceMethod("getDenoiseEnabled", &AudioProcessor::GetDenoiseEnabled),
-        InstanceMethod("getDenoiseStats", &AudioProcessor::GetDenoiseStats)
+        InstanceMethod("getDenoiseStats", &AudioProcessor::GetDenoiseStats),
+        // v2.8: AGC (Automatic Gain Control)
+        InstanceMethod("setAGCEnabled", &AudioProcessor::SetAGCEnabled),
+        InstanceMethod("getAGCEnabled", &AudioProcessor::GetAGCEnabled),
+        InstanceMethod("setAGCOptions", &AudioProcessor::SetAGCOptions),
+        InstanceMethod("getAGCOptions", &AudioProcessor::GetAGCOptions),
+        InstanceMethod("getAGCStats", &AudioProcessor::GetAGCStats)
     });
     exports.Set("AudioProcessor", func);
     exports.Set("getDeviceInfo", Napi::Function::New(env, AudioProcessor::GetDeviceInfo));
@@ -133,6 +139,10 @@ AudioProcessor::AudioProcessor(const Napi::CallbackInfo& info) : Napi::ObjectWra
     client_->SetAudioDataCallback([this](const std::vector<uint8_t>& data) {
         this->OnAudioData(data);
     });
+    
+    // v2.8: Initialize AGC processor
+    agc_processor_ = std::make_unique<wasapi_capture::SimpleAGC>();
+    agc_processor_->Initialize(48000);  // Default sample rate, will be updated in Start()
 }
 
 AudioProcessor::~AudioProcessor() {
@@ -369,6 +379,22 @@ void AudioProcessor::OnAudioData(const std::vector<uint8_t>& data) {
             } catch (const std::exception& e) {
                 // Denoise failed, continue with original data
                 // Could log error here if needed
+            }
+        }
+    }
+    
+    // v2.8: Apply AGC (Automatic Gain Control) if enabled
+    if (agc_processor_ && agc_processor_->IsEnabled()) {
+        size_t sampleCount = processedData.size() / sizeof(float);
+        if (sampleCount > 0) {
+            try {
+                float* audioData = reinterpret_cast<float*>(processedData.data());
+                // Assuming stereo audio (2 channels) - adjust if needed
+                int frameCount = static_cast<int>(sampleCount / 2);
+                int channels = 2;
+                agc_processor_->Process(audioData, frameCount, channels);
+            } catch (const std::exception& e) {
+                // AGC failed, continue with original data
             }
         }
     }
@@ -662,6 +688,112 @@ Napi::Value AudioProcessor::GetDenoiseStats(const Napi::CallbackInfo& info) {
     result.Set("vadProbability", Napi::Number::New(env, denoise_processor_->GetLastVoiceProbability()));
     result.Set("frameSize", Napi::Number::New(env, denoise_processor_->GetFrameSize()));
     result.Set("enabled", Napi::Boolean::New(env, denoise_enabled_));
+    
+    return result;
+}
+
+// ====== v2.8: AGC (Automatic Gain Control) ======
+
+Napi::Value AudioProcessor::SetAGCEnabled(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (info.Length() < 1 || !info[0].IsBoolean()) {
+        Napi::TypeError::New(env, "Boolean argument expected").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    bool enabled = info[0].As<Napi::Boolean>().Value();
+    
+    if (agc_processor_) {
+        agc_processor_->SetEnabled(enabled);
+    }
+    
+    return env.Undefined();
+}
+
+Napi::Value AudioProcessor::GetAGCEnabled(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (agc_processor_) {
+        return Napi::Boolean::New(env, agc_processor_->IsEnabled());
+    }
+    
+    return Napi::Boolean::New(env, false);
+}
+
+Napi::Value AudioProcessor::SetAGCOptions(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (info.Length() < 1 || !info[0].IsObject()) {
+        Napi::TypeError::New(env, "Object argument expected").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    if (!agc_processor_) {
+        Napi::Error::New(env, "AGC processor not initialized").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    Napi::Object options = info[0].As<Napi::Object>();
+    wasapi_capture::SimpleAGC::Options agc_options = agc_processor_->GetOptions();
+    
+    // Update options from JavaScript object
+    if (options.Has("targetLevel")) {
+        agc_options.target_level_db = options.Get("targetLevel").As<Napi::Number>().FloatValue();
+    }
+    if (options.Has("maxGain")) {
+        agc_options.max_gain_db = options.Get("maxGain").As<Napi::Number>().FloatValue();
+    }
+    if (options.Has("minGain")) {
+        agc_options.min_gain_db = options.Get("minGain").As<Napi::Number>().FloatValue();
+    }
+    if (options.Has("attackTime")) {
+        agc_options.attack_time_ms = options.Get("attackTime").As<Napi::Number>().FloatValue();
+    }
+    if (options.Has("releaseTime")) {
+        agc_options.release_time_ms = options.Get("releaseTime").As<Napi::Number>().FloatValue();
+    }
+    
+    agc_processor_->SetOptions(agc_options);
+    
+    return env.Undefined();
+}
+
+Napi::Value AudioProcessor::GetAGCOptions(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (!agc_processor_) {
+        return env.Null();
+    }
+    
+    const auto& options = agc_processor_->GetOptions();
+    
+    Napi::Object result = Napi::Object::New(env);
+    result.Set("targetLevel", Napi::Number::New(env, options.target_level_db));
+    result.Set("maxGain", Napi::Number::New(env, options.max_gain_db));
+    result.Set("minGain", Napi::Number::New(env, options.min_gain_db));
+    result.Set("attackTime", Napi::Number::New(env, options.attack_time_ms));
+    result.Set("releaseTime", Napi::Number::New(env, options.release_time_ms));
+    
+    return result;
+}
+
+Napi::Value AudioProcessor::GetAGCStats(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (!agc_processor_) {
+        return env.Null();
+    }
+    
+    auto stats = agc_processor_->GetStats();
+    
+    Napi::Object result = Napi::Object::New(env);
+    result.Set("enabled", Napi::Boolean::New(env, stats.enabled));
+    result.Set("currentGain", Napi::Number::New(env, stats.current_gain_db));
+    result.Set("averageLevel", Napi::Number::New(env, stats.average_level_db));
+    result.Set("rmsLinear", Napi::Number::New(env, stats.rms_linear));
+    result.Set("clipping", Napi::Boolean::New(env, stats.clipping));
+    result.Set("framesProcessed", Napi::Number::New(env, static_cast<double>(stats.frames_processed)));
     
     return result;
 }

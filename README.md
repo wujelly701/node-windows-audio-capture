@@ -4,6 +4,7 @@
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D14.x-brightgreen.svg)](https://nodejs.org/)
 [![Windows](https://img.shields.io/badge/Windows-10%2F11-blue.svg)](https://www.microsoft.com/windows)
 [![Version](https://img.shields.io/badge/version-2.7.0-brightgreen.svg)](https://github.com/wujelly701/node-windows-audio-capture/releases/tag/v2.7.0)
+[![Release](https://img.shields.io/github/v/release/wujelly701/node-windows-audio-capture?color=blue)](https://github.com/wujelly701/node-windows-audio-capture/releases/latest)
 
 Production-ready Windows 音频捕获 Node.js Native Addon，基于 WASAPI 标准 Loopback 模式实现。
 
@@ -11,7 +12,7 @@ Production-ready Windows 音频捕获 Node.js Native Addon，基于 WASAPI 标�
 > **🎙️ ASR 语音识别专用**: 专为语音识别场景优化，支持阿里云/百度/腾讯/OpenAI Whisper 等主流 ASR API。
 > **🚀 v2.6.0 零拷贝架构**: 内存分配减少 151%，堆增长从 +8 KB/s 变为 -4 KB/s（负增长！）
 > 
-> 📖 [查看 v2.7 发布说明 →](V2.7_ADAPTIVE_POOL_SUMMARY.md) | [v2.6 发布说明 →](docs/V2.6_RELEASE_NOTES.md) | [ASR 兼容性路线图 →](docs/ASR_COMPATIBILITY_ROADMAP.md)
+> 📖 [查看 v2.7.0 Release Notes →](https://github.com/wujelly701/node-windows-audio-capture/releases/tag/v2.7.0) | [v2.7 开发总结 →](V2.7_ADAPTIVE_POOL_SUMMARY.md) | [ASR 兼容性路线图 →](docs/ASR_COMPATIBILITY_ROADMAP.md)
 
 ## 🎯 v2.7.0 新特性 - RNNoise 降噪 + 自适应 Buffer Pool 🚀🔥
 

@@ -73,11 +73,19 @@
     "binding.gyp",
     "src/**/*.h",
     "src/**/*.cpp",
+    "lib/**/*.js",
     "examples/*.js",
     "README.md",
     "LICENSE",
-    "TESTING.md"
+    "TESTING.md",
+    "CHANGELOG.md",
+    "docs/api.md",
+    "docs/troubleshooting.md"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "author": "wujelly701",
   "license": "MIT"
 }

@@ -13,6 +13,16 @@ prebuilds/
 coverage/
 .nyc_output/
 test/**/*.log
+test/
+tests/
+test-*.js
+diagnose-*.js
+check-*.js
+fix-*.js
+find-*.js
+simple-*.js
+compile-test.bat
+jest.config.js
 
 # Development
 .vscode/
@@ -36,6 +46,18 @@ test/**/*.log
 node-windows-audio-capture-task.md
 Production-Ready Node.js Audio Capture Addon.md
 PROJECT_SUMMARY.md
+COMPLETION_REPORT.md
+PROCESS_LOOPBACK_ANALYSIS.md
+PROCESS_LOOPBACK_STATUS.md
+V2_*.md
+V2.1_*.md
+V2.2_*.md
+V2.6_*.md
+RELEASE_CHECKLIST*.md
+GITHUB_RELEASE_*.md
+temp.md
+分片续写与截断恢复-模板.md
+大模型LLM实时桌面翻译软件*.md
 
 # Temporary files
 *.tmp

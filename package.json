@@ -1,7 +1,7 @@
 {
   "name": "node-windows-audio-capture",
-  "version": "2.6.0",
-  "description": "Production-ready Node.js Windows audio capture addon using WASAPI (Loopback mode, EventEmitter-based, N-API)",
+  "version": "2.7.0",
+  "description": "Production-ready Node.js Windows audio capture addon with RNNoise AI denoising and adaptive buffer pool (WASAPI Loopback, EventEmitter-based, N-API)",
   "main": "index.js",
   "types": "index.d.ts",
   "keywords": [

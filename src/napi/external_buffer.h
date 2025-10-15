@@ -56,10 +56,20 @@ private:
 };
 
 /**
+ * v2.7: Pool Adjustment Strategy
+ */
+enum class PoolStrategy {
+    Fixed,      // Fixed pool size (original behavior)
+    Adaptive    // v2.7: Dynamically adjust pool size based on usage
+};
+
+/**
  * Buffer Pool
  * 
  * Pre-allocates a fixed number of buffers for high-frequency allocations.
  * Falls back to dynamic allocation when pool is exhausted.
+ * 
+ * v2.7: Supports adaptive pool sizing to optimize hit rate (target: 2-5%)
  */
 class BufferPool {
 public:
@@ -79,14 +89,25 @@ public:
         uint64_t dynamic_allocations;
         size_t current_pool_size;
         size_t max_pool_size;
+        double hit_rate;  // NEW: Calculated hit rate percentage
     };
 
     Stats GetStats() const;
     void ResetStats();
 
+    // v2.7: Adaptive pool management
+    void SetStrategy(PoolStrategy strategy) { strategy_ = strategy; }
+    void SetMinMaxPoolSize(size_t min_size, size_t max_size);
+    void EvaluateAndAdjust(); // Periodic evaluation (called every 10s)
+
 private:
+    void AdjustPoolSize(); // Internal: grow or shrink pool based on stats
+    
     size_t buffer_size_;
-    size_t pool_size_;
+    size_t pool_size_;        // Current target pool size
+    size_t min_pool_size_;    // v2.7: Minimum pool size (default: 10)
+    size_t max_pool_size_;    // v2.7: Maximum pool size (default: 200)
+    PoolStrategy strategy_;   // v2.7: Adjustment strategy
 
     std::vector<std::shared_ptr<ExternalBuffer>> available_buffers_;
     mutable std::mutex pool_mutex_;
@@ -95,12 +116,17 @@ private:
     mutable std::atomic<uint64_t> pool_hits_{0};
     mutable std::atomic<uint64_t> pool_misses_{0};
     mutable std::atomic<uint64_t> dynamic_allocations_{0};
+    
+    // v2.7: Evaluation tracking
+    uint64_t last_eval_hits_{0};
+    uint64_t last_eval_misses_{0};
 };
 
 /**
  * External Buffer Factory
  * 
  * Singleton factory for creating external buffers with proper lifecycle management.
+ * v2.7: Supports adaptive pool sizing for optimal performance
  */
 class ExternalBufferFactory {
 public:
@@ -108,12 +134,21 @@ public:
 
     // Initialize with buffer pool
     void Initialize(size_t buffer_size = 4096, size_t pool_size = 10);
+    
+    // v2.7: Initialize with adaptive strategy
+    void InitializeAdaptive(size_t buffer_size = 4096, 
+                           size_t initial_pool_size = 50,
+                           size_t min_pool_size = 50,
+                           size_t max_pool_size = 200);
 
     // Create external buffer (using pool if available)
     std::shared_ptr<ExternalBuffer> Create();
 
     // Get buffer pool statistics
     BufferPool::Stats GetStats() const;
+    
+    // v2.7: Trigger pool evaluation (call periodically, e.g. every 10s)
+    void EvaluatePool();
 
     // Cleanup (called on module unload)
     void Cleanup();

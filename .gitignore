@@ -20,12 +20,19 @@ build/**/*.lastbuildstate
 # Prebuilds (binary files - large)
 prebuilds/**/*.node
 
+# Node modules cache
+node_modules/**/__pycache__/
+node_modules/**/*.pyc
+
 # Test and development files
 test-*.js
 test-*.ts
 diagnose-*.js
 fix-*.js
 simple-*.js
+
+# Test output
+test-output/
 
 # Coverage
 coverage/

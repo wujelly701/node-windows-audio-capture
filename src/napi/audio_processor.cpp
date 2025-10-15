@@ -28,7 +28,11 @@ Napi::Object AudioProcessor::Init(Napi::Env env, Napi::Object exports) {
         InstanceMethod("getAllowList", &AudioProcessor::GetAllowList),
         InstanceMethod("getBlockList", &AudioProcessor::GetBlockList),
         // v2.6: Zero-copy buffer pool statistics
-        InstanceMethod("getPoolStats", &AudioProcessor::GetPoolStats)
+        InstanceMethod("getPoolStats", &AudioProcessor::GetPoolStats),
+        // v2.7: Audio effects (RNNoise denoising)
+        InstanceMethod("setDenoiseEnabled", &AudioProcessor::SetDenoiseEnabled),
+        InstanceMethod("getDenoiseEnabled", &AudioProcessor::GetDenoiseEnabled),
+        InstanceMethod("getDenoiseStats", &AudioProcessor::GetDenoiseStats)
     });
     exports.Set("AudioProcessor", func);
     exports.Set("getDeviceInfo", Napi::Function::New(env, AudioProcessor::GetDeviceInfo));
@@ -65,11 +69,48 @@ AudioProcessor::AudioProcessor(const Napi::CallbackInfo& info) : Napi::ObjectWra
         useExternalBuffer_ = false;
     }
     
-    // v2.6: 如果启用 zero-copy，初始化 External Buffer Factory
+    // v2.7: Check if adaptive pool is requested
+    if (options.Has("bufferPoolStrategy") && 
+        options.Get("bufferPoolStrategy").IsString()) {
+        std::string strategy = options.Get("bufferPoolStrategy").As<Napi::String>().Utf8Value();
+        useAdaptivePool_ = (strategy == "adaptive");
+    }
+    
+    // v2.6/v2.7: Initialize External Buffer Factory based on strategy
     if (useExternalBuffer_) {
-        // Increased pool size to 100 for better performance (was 10)
-        // With 100 packets/sec throughput, pool of 10 was too small (2% hit rate)
-        ExternalBufferFactory::Instance().Initialize(4096, 100); // 4KB buffers, pool of 100
+        if (useAdaptivePool_) {
+            // v2.7: Adaptive strategy - dynamically adjust pool size (50-200)
+            size_t initial_pool_size = 50;  // Start conservative
+            size_t min_pool_size = 50;
+            size_t max_pool_size = 200;
+            
+            // Allow user to override defaults
+            if (options.Has("bufferPoolSize")) {
+                initial_pool_size = options.Get("bufferPoolSize").As<Napi::Number>().Uint32Value();
+            }
+            if (options.Has("bufferPoolMin")) {
+                min_pool_size = options.Get("bufferPoolMin").As<Napi::Number>().Uint32Value();
+            }
+            if (options.Has("bufferPoolMax")) {
+                max_pool_size = options.Get("bufferPoolMax").As<Napi::Number>().Uint32Value();
+            }
+            
+            ExternalBufferFactory::Instance().InitializeAdaptive(
+                4096, initial_pool_size, min_pool_size, max_pool_size
+            );
+            
+            // Initialize evaluation timer
+            last_pool_eval_time_ = std::chrono::steady_clock::now();
+            
+        } else {
+            // v2.6: Fixed strategy - use explicit pool size or default to 100
+            size_t pool_size = 100;
+            if (options.Has("bufferPoolSize")) {
+                pool_size = options.Get("bufferPoolSize").As<Napi::Number>().Uint32Value();
+            }
+            
+            ExternalBufferFactory::Instance().Initialize(4096, pool_size);
+        }
     }
     
     // 获取音频数据回调函数（可选）
@@ -301,13 +342,44 @@ void AudioProcessor::OnAudioData(const std::vector<uint8_t>& data) {
         return;  // 没有设置回调函数
     }
     
+    // v2.7: Periodic buffer pool evaluation (every 10 seconds)
+    if (useExternalBuffer_ && useAdaptivePool_) {
+        auto now = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(
+            now - last_pool_eval_time_
+        ).count();
+        
+        if (elapsed >= 10) {
+            // 10 seconds passed - evaluate and adjust pool
+            ExternalBufferFactory::Instance().EvaluatePool();
+            last_pool_eval_time_ = now;
+        }
+    }
+    
+    // v2.7: Apply audio denoising if enabled
+    std::vector<uint8_t> processedData = data;  // Copy for modification
+    if (denoise_enabled_ && denoise_processor_) {
+        // Assuming audio data is Float32 PCM
+        // Note: May need to check format and handle conversion
+        size_t sampleCount = processedData.size() / sizeof(float);
+        if (sampleCount > 0) {
+            try {
+                float* audioData = reinterpret_cast<float*>(processedData.data());
+                denoise_processor_->ProcessBuffer(audioData, static_cast<int>(sampleCount));
+            } catch (const std::exception& e) {
+                // Denoise failed, continue with original data
+                // Could log error here if needed
+            }
+        }
+    }
+    
     if (useExternalBuffer_) {
         // v2.6: Zero-Copy 模式 - 使用 External Buffer
         // 创建 External Buffer（由 Buffer Pool 管理）
         auto extBuffer = ExternalBufferFactory::Instance().Create();
         if (!extBuffer) {
             // Pool exhausted, fallback to copy mode
-            auto* dataPtr = new std::vector<uint8_t>(data);
+            auto* dataPtr = new std::vector<uint8_t>(processedData);
             tsfn_.NonBlockingCall(dataPtr, [](Napi::Env env, Napi::Function jsCallback, std::vector<uint8_t>* data) {
                 Napi::Buffer<uint8_t> buffer = Napi::Buffer<uint8_t>::Copy(env, data->data(), data->size());
                 jsCallback.Call({ buffer });
@@ -317,9 +389,9 @@ void AudioProcessor::OnAudioData(const std::vector<uint8_t>& data) {
         }
         
         // 检查缓冲区大小是否足够
-        if (data.size() > extBuffer->size()) {
+        if (processedData.size() > extBuffer->size()) {
             // Buffer too small, fallback to copy mode
-            auto* dataPtr = new std::vector<uint8_t>(data);
+            auto* dataPtr = new std::vector<uint8_t>(processedData);
             tsfn_.NonBlockingCall(dataPtr, [](Napi::Env env, Napi::Function jsCallback, std::vector<uint8_t>* data) {
                 Napi::Buffer<uint8_t> buffer = Napi::Buffer<uint8_t>::Copy(env, data->data(), data->size());
                 jsCallback.Call({ buffer });
@@ -328,9 +400,9 @@ void AudioProcessor::OnAudioData(const std::vector<uint8_t>& data) {
             return;
         }
         
-        // 拷贝数据到 External Buffer
-        size_t actualSize = data.size();
-        memcpy(extBuffer->data(), data.data(), actualSize);
+        // 拷贝数据到 External Buffer (use processed data)
+        size_t actualSize = processedData.size();
+        memcpy(extBuffer->data(), processedData.data(), actualSize);
         
         // CRITICAL FIX: Capture shared_ptr in lambda to keep buffer alive
         // Use the new ToBufferFromShared method that properly handles ownership
@@ -341,8 +413,8 @@ void AudioProcessor::OnAudioData(const std::vector<uint8_t>& data) {
             // shared_ptr extBuffer goes out of scope, but ownership transferred to V8's finalize callback
         });
     } else {
-        // 传统模式：复制数据到堆（保持向后兼容）
-        auto* dataPtr = new std::vector<uint8_t>(data);
+        // 传统模式：复制数据到堆（保持向后兼容，use processed data）
+        auto* dataPtr = new std::vector<uint8_t>(processedData);
         
         // 调用 ThreadSafeFunction（异步传递数据到 JS 线程）
         tsfn_.NonBlockingCall(dataPtr, [](Napi::Env env, Napi::Function jsCallback, std::vector<uint8_t>* data) {
@@ -510,6 +582,61 @@ Napi::Value AudioProcessor::GetPoolStats(const Napi::CallbackInfo& info) {
     double hit_rate = (total_requests > 0) ? 
         (static_cast<double>(stats.pool_hits) / total_requests * 100.0) : 0.0;
     result.Set("hitRate", Napi::Number::New(env, hit_rate));
+    
+    return result;
+}
+
+// ====== v2.7: Audio Effects (RNNoise Denoising) ======
+
+Napi::Value AudioProcessor::SetDenoiseEnabled(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (info.Length() < 1 || !info[0].IsBoolean()) {
+        Napi::TypeError::New(env, "Boolean argument expected").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    bool enabled = info[0].As<Napi::Boolean>().Value();
+    
+    if (enabled && !denoise_processor_) {
+        // Create denoise processor on first enable
+        try {
+            denoise_processor_ = std::make_unique<AudioCapture::DenoiseProcessor>(480);
+            denoise_enabled_ = true;
+        } catch (const std::exception& e) {
+            Napi::Error::New(env, std::string("Failed to create denoise processor: ") + e.what())
+                .ThrowAsJavaScriptException();
+            return env.Undefined();
+        }
+    } else if (!enabled && denoise_processor_) {
+        // Disable denoising
+        denoise_enabled_ = false;
+    } else {
+        // Just update enabled state
+        denoise_enabled_ = enabled;
+    }
+    
+    return env.Undefined();
+}
+
+Napi::Value AudioProcessor::GetDenoiseEnabled(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    return Napi::Boolean::New(env, denoise_enabled_);
+}
+
+Napi::Value AudioProcessor::GetDenoiseStats(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    // Return null if denoise is not enabled or processor doesn't exist
+    if (!denoise_enabled_ || !denoise_processor_) {
+        return env.Null();
+    }
+    
+    Napi::Object result = Napi::Object::New(env);
+    result.Set("processedFrames", Napi::Number::New(env, denoise_processor_->GetProcessedFrames()));
+    result.Set("voiceProbability", Napi::Number::New(env, denoise_processor_->GetLastVoiceProbability()));
+    result.Set("frameSize", Napi::Number::New(env, denoise_processor_->GetFrameSize()));
+    result.Set("enabled", Napi::Boolean::New(env, denoise_enabled_));
     
     return result;
 }

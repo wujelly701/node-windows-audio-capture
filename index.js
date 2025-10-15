@@ -50,6 +50,20 @@ class AudioCapture extends EventEmitter {
                 processorOptions.useExternalBuffer = Boolean(options.useExternalBuffer);
             }
             
+            // v2.7: Add buffer pool configuration
+            if (options.bufferPoolStrategy !== undefined) {
+                processorOptions.bufferPoolStrategy = options.bufferPoolStrategy;
+            }
+            if (options.bufferPoolSize !== undefined) {
+                processorOptions.bufferPoolSize = options.bufferPoolSize;
+            }
+            if (options.bufferPoolMin !== undefined) {
+                processorOptions.bufferPoolMin = options.bufferPoolMin;
+            }
+            if (options.bufferPoolMax !== undefined) {
+                processorOptions.bufferPoolMax = options.bufferPoolMax;
+            }
+            
             this._processor = new addon.AudioProcessor(processorOptions);
         } catch (error) {
             this.emit('error', new Error(`Failed to create AudioProcessor: ${error.message}`));
@@ -285,6 +299,43 @@ class AudioCapture extends EventEmitter {
             return this._processor.getPoolStats();
         } catch (error) {
             throw new Error(`Failed to get pool statistics: ${error.message}`);
+        }
+    }
+
+    /**
+     * v2.7: 启用/禁用 RNNoise 降噪
+     * @param {boolean} enabled - true 启用, false 禁用
+     * @throws {Error} 如果 AudioProcessor 未初始化或操作失败
+     */
+    setDenoiseEnabled(enabled) {
+        if (!this._processor) {
+            throw new Error('AudioProcessor not initialized');
+        }
+        
+        try {
+            this._processor.setDenoiseEnabled(Boolean(enabled));
+        } catch (error) {
+            throw new Error(`Failed to set denoise: ${error.message}`);
+        }
+    }
+
+    /**
+     * v2.7: 获取 RNNoise 降噪统计信息
+     * @returns {Object} 降噪统计信息
+     * 
+     * 返回对象包含以下属性：
+     * - framesProcessed: 已处理的音频帧数
+     * - vadProbability: 语音活动检测概率 (0.0-1.0)
+     */
+    getDenoiseStats() {
+        if (!this._processor) {
+            throw new Error('AudioProcessor not initialized');
+        }
+        
+        try {
+            return this._processor.getDenoiseStats();
+        } catch (error) {
+            throw new Error(`Failed to get denoise statistics: ${error.message}`);
         }
     }
 }

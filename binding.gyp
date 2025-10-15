@@ -16,12 +16,25 @@
         "src/napi/audio_processor.cpp",
         "src/napi/process_enumerator.cpp",
         "src/napi/device_manager.cpp",
-        "src/napi/external_buffer.cpp"
+        "src/napi/external_buffer.cpp",
+        "src/napi/audio_effects.cpp",
+        "deps/rnnoise/src/celt_lpc.c",
+        "deps/rnnoise/src/denoise.c",
+        "deps/rnnoise/src/kiss_fft.c",
+        "deps/rnnoise/src/nnet.c",
+        "deps/rnnoise/src/nnet_default.c",
+        "deps/rnnoise/src/parse_lpcnet_weights.c",
+        "deps/rnnoise/src/pitch.c",
+        "deps/rnnoise/src/rnn.c",
+        "deps/rnnoise/src/rnnoise_data.c",
+        "deps/rnnoise/src/rnnoise_tables.c"
       ],
       "include_dirs": [
         "<!@(node -p \"require('node-addon-api').include\")",
         "src/wasapi",
-        "src/napi"
+        "src/napi",
+        "deps/rnnoise/include",
+        "deps/rnnoise/src"
       ],
       "defines": [
         "NAPI_VERSION=8",

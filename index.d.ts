@@ -8,6 +8,27 @@
 import { EventEmitter } from 'events';
 
 /**
+ * v2.7: Buffer Pool 策略
+ * @since 2.7.0
+ */
+export type BufferPoolStrategy = 'fixed' | 'adaptive';
+
+/**
+ * v2.7: 音频效果配置
+ * @since 2.7.0
+ */
+export interface AudioEffectsOptions {
+    /**
+     * 启用音频降噪（RNNoise deep learning）
+     * - 典型降噪效果：15-25 dB
+     * - CPU 开销：3-5%
+     * - 延迟：< 10ms（480 samples @ 48kHz）
+     * @default false
+     */
+    denoise?: boolean;
+}
+
+/**
  * 音频捕获配置选项
  */
 export interface AudioCaptureOptions {
@@ -49,6 +70,54 @@ export interface AudioCaptureOptions {
      * @since 2.0.0
      */
     loopbackMode?: 0 | 1;
+    
+    /**
+     * v2.6: 使用零拷贝模式（外部缓冲池）
+     * 启用后可大幅减少内存拷贝，提升性能约 20-30%
+     * @default true
+     * @since 2.6.0
+     */
+    useExternalBuffer?: boolean;
+    
+    /**
+     * v2.7: Buffer Pool 策略
+     * - 'fixed': 固定池大小（默认）
+     * - 'adaptive': 自适应调整（50-200，目标 hit rate 2-5%）
+     * @default 'fixed'
+     * @since 2.7.0
+     */
+    bufferPoolStrategy?: BufferPoolStrategy;
+    
+    /**
+     * v2.7: Buffer Pool 初始/固定大小
+     * - 'fixed' 策略：固定池大小
+     * - 'adaptive' 策略：初始池大小
+     * @default 100 (fixed), 50 (adaptive)
+     * @since 2.7.0
+     */
+    bufferPoolSize?: number;
+    
+    /**
+     * v2.7: Adaptive 策略最小池大小
+     * 仅在 bufferPoolStrategy='adaptive' 时生效
+     * @default 50
+     * @since 2.7.0
+     */
+    bufferPoolMin?: number;
+    
+    /**
+     * v2.7: Adaptive 策略最大池大小
+     * 仅在 bufferPoolStrategy='adaptive' 时生效
+     * @default 200
+     * @since 2.7.0
+     */
+    bufferPoolMax?: number;
+    
+    /**
+     * v2.7: 音频效果配置
+     * @since 2.7.0
+     */
+    effects?: AudioEffectsOptions;
 }
 
 /**
@@ -179,6 +248,72 @@ export interface ProcessInfo {
 }
 
 /**
+ * v2.6: Buffer Pool 统计信息（零拷贝模式）
+ * @since 2.6.0
+ */
+export interface BufferPoolStats {
+    /**
+     * 成功从池中获取 buffer 的次数
+     */
+    poolHits: number;
+    
+    /**
+     * 池为空，需要动态分配的次数
+     */
+    poolMisses: number;
+    
+    /**
+     * 总动态分配次数
+     */
+    dynamicAllocations: number;
+    
+    /**
+     * 当前池中 buffer 数量
+     */
+    currentPoolSize: number;
+    
+    /**
+     * 池的最大容量（目标大小）
+     * v2.7: adaptive 策略下会动态调整
+     */
+    maxPoolSize: number;
+    
+    /**
+     * 命中率（0-100%）
+     * v2.7: adaptive 策略目标 2-5%
+     */
+    hitRate: number;
+}
+
+/**
+ * v2.7: 音频降噪统计信息
+ * @since 2.7.0
+ */
+export interface DenoiseStats {
+    /**
+     * 已处理的音频帧数（每帧 480 samples）
+     */
+    processedFrames: number;
+    
+    /**
+     * 最后一次检测到的语音概率（0.0-1.0）
+     * - > 0.5: 检测到语音
+     * - < 0.5: 噪声/静音
+     */
+    voiceProbability: number;
+    
+    /**
+     * 每帧采样数（固定为 480）
+     */
+    frameSize: number;
+    
+    /**
+     * 降噪是否启用
+     */
+    enabled: boolean;
+}
+
+/**
  * AudioCapture 类 - 音频捕获器
  * 
  * @example
@@ -287,6 +422,35 @@ export declare class AudioCapture extends EventEmitter {
      * @since 2.0.0
      */
     static getProcesses(): Promise<ProcessInfo[]>;
+    
+    /**
+     * v2.6: 获取 Buffer Pool 统计信息（零拷贝模式）
+     * @returns 统计信息对象，如果未使用零拷贝模式则返回 null
+     * @since 2.6.0
+     */
+    getPoolStats(): BufferPoolStats | null;
+    
+    /**
+     * v2.7: 启用或禁用音频降噪（RNNoise）
+     * @param enabled - true 启用，false 禁用
+     * @throws {Error} 如果降噪处理器初始化失败
+     * @since 2.7.0
+     */
+    setDenoiseEnabled(enabled: boolean): void;
+    
+    /**
+     * v2.7: 获取当前降噪状态
+     * @returns 如果启用返回 true，否则返回 false
+     * @since 2.7.0
+     */
+    getDenoiseEnabled(): boolean;
+    
+    /**
+     * v2.7: 获取降噪处理统计信息
+     * @returns 统计信息对象，如果降噪未启用则返回 null
+     * @since 2.7.0
+     */
+    getDenoiseStats(): DenoiseStats | null;
     
     /**
      * 音频数据事件

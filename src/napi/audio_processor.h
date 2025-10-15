@@ -1,9 +1,11 @@
 ﻿#pragma once
 #include <napi.h>
 #include <memory>
+#include <chrono>  // v2.7: For pool evaluation timing
 #include "../wasapi/capture_thread.h"
 #include "../wasapi/audio_client.h"
 #include "external_buffer.h"
+#include "audio_effects.h"  // v2.7: Audio effects (RNNoise)
 
 class AudioProcessor : public Napi::ObjectWrap<AudioProcessor> {
 public:
@@ -18,6 +20,14 @@ private:
     Napi::ThreadSafeFunction tsfn_;
     bool comInitialized_ = false;
     bool useExternalBuffer_ = false;  // Zero-copy 模式开关
+    
+    // v2.7: Audio effects
+    std::unique_ptr<AudioCapture::DenoiseProcessor> denoise_processor_;
+    bool denoise_enabled_ = false;
+    
+    // v2.7: Buffer pool adaptive optimization
+    bool useAdaptivePool_ = false;  // Adaptive pool strategy enabled
+    std::chrono::steady_clock::time_point last_pool_eval_time_;  // Last evaluation time
     
     // N-API 方法声明
     Napi::Value Start(const Napi::CallbackInfo& info);
@@ -35,6 +45,11 @@ private:
     
     // v2.6: Zero-copy buffer pool statistics
     Napi::Value GetPoolStats(const Napi::CallbackInfo& info);
+    
+    // v2.7: Audio effects (RNNoise denoising)
+    Napi::Value SetDenoiseEnabled(const Napi::CallbackInfo& info);
+    Napi::Value GetDenoiseEnabled(const Napi::CallbackInfo& info);
+    Napi::Value GetDenoiseStats(const Napi::CallbackInfo& info);
     
     // 静态方法：设备枚举
     static Napi::Value GetDeviceInfo(const Napi::CallbackInfo& info);

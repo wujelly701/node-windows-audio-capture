@@ -148,7 +148,11 @@ void ExternalBuffer::Release() {
 // ============================================================================
 
 BufferPool::BufferPool(size_t buffer_size, size_t pool_size)
-    : buffer_size_(buffer_size), pool_size_(pool_size) {
+    : buffer_size_(buffer_size), 
+      pool_size_(pool_size),
+      min_pool_size_(pool_size),  // Default: same as initial
+      max_pool_size_(pool_size),  // Default: same as initial (fixed)
+      strategy_(PoolStrategy::Fixed) {  // Default: fixed strategy
     
     // Pre-allocate buffers
     available_buffers_.reserve(pool_size);
@@ -223,12 +227,20 @@ void BufferPool::Release(ExternalBuffer* buffer) {
 BufferPool::Stats BufferPool::GetStats() const {
     std::lock_guard<std::mutex> lock(pool_mutex_);
     
+    uint64_t hits = pool_hits_.load(std::memory_order_relaxed);
+    uint64_t misses = pool_misses_.load(std::memory_order_relaxed);
+    uint64_t total = hits + misses;
+    
+    // Calculate hit rate percentage
+    double hit_rate = (total > 0) ? (static_cast<double>(hits) / total * 100.0) : 0.0;
+    
     return Stats{
-        pool_hits_.load(std::memory_order_relaxed),
-        pool_misses_.load(std::memory_order_relaxed),
+        hits,
+        misses,
         dynamic_allocations_.load(std::memory_order_relaxed),
         available_buffers_.size(),
-        pool_size_
+        pool_size_,
+        hit_rate
     };
 }
 
@@ -236,6 +248,112 @@ void BufferPool::ResetStats() {
     pool_hits_.store(0, std::memory_order_relaxed);
     pool_misses_.store(0, std::memory_order_relaxed);
     dynamic_allocations_.store(0, std::memory_order_relaxed);
+}
+
+// v2.7: Set adaptive pool size constraints
+void BufferPool::SetMinMaxPoolSize(size_t min_size, size_t max_size) {
+    std::lock_guard<std::mutex> lock(pool_mutex_);
+    
+    if (min_size > max_size) {
+        std::swap(min_size, max_size);
+    }
+    
+    min_pool_size_ = min_size;
+    max_pool_size_ = max_size;
+    
+    // Clamp current pool size to new constraints
+    if (pool_size_ < min_pool_size_) {
+        pool_size_ = min_pool_size_;
+    } else if (pool_size_ > max_pool_size_) {
+        pool_size_ = max_pool_size_;
+    }
+}
+
+// v2.7: Evaluate pool performance and adjust size
+void BufferPool::EvaluateAndAdjust() {
+    if (strategy_ != PoolStrategy::Adaptive) {
+        return; // Only adjust for adaptive strategy
+    }
+    
+    std::lock_guard<std::mutex> lock(pool_mutex_);
+    
+    // Get current statistics
+    uint64_t current_hits = pool_hits_.load(std::memory_order_relaxed);
+    uint64_t current_misses = pool_misses_.load(std::memory_order_relaxed);
+    
+    // Calculate delta since last evaluation
+    uint64_t delta_hits = current_hits - last_eval_hits_;
+    uint64_t delta_misses = current_misses - last_eval_misses_;
+    uint64_t delta_total = delta_hits + delta_misses;
+    
+    // Update last evaluation counters
+    last_eval_hits_ = current_hits;
+    last_eval_misses_ = current_misses;
+    
+    // Need sufficient data to make decision (at least 100 requests)
+    if (delta_total < 100) {
+        return; // Not enough data, skip adjustment
+    }
+    
+    // Calculate hit rate for this period
+    double period_hit_rate = static_cast<double>(delta_hits) / delta_total * 100.0;
+    
+    // Target: 2-5% hit rate
+    // If hit rate < 2%: pool too small, grow it
+    // If hit rate > 5%: pool might be too large, consider shrinking
+    // If 2% <= hit rate <= 5%: optimal, no change
+    
+    size_t old_pool_size = pool_size_;
+    
+    if (period_hit_rate < 2.0 && pool_size_ < max_pool_size_) {
+        // Hit rate too low - grow pool by 20%
+        size_t growth = std::max<size_t>(10, pool_size_ / 5); // At least 10, or 20%
+        pool_size_ = std::min(pool_size_ + growth, max_pool_size_);
+        
+        // Pre-allocate additional buffers
+        AdjustPoolSize();
+        
+    } else if (period_hit_rate > 5.0 && pool_size_ > min_pool_size_) {
+        // Hit rate too high - pool might be over-sized, shrink by 10%
+        size_t shrink = std::max<size_t>(5, pool_size_ / 10); // At least 5, or 10%
+        pool_size_ = std::max(pool_size_ - shrink, min_pool_size_);
+        
+        // Note: we don't actively delete buffers, just reduce target size
+        // Excess buffers will naturally not be retained on Release()
+    }
+    
+    // Log adjustment (optional, can be removed in production)
+    if (old_pool_size != pool_size_) {
+        // Pool size changed - could log here
+        // printf("[BufferPool] Adjusted: %zu -> %zu (hit rate: %.2f%%)\n", 
+        //        old_pool_size, pool_size_, period_hit_rate);
+    }
+}
+
+// v2.7: Internal method to grow pool size
+void BufferPool::AdjustPoolSize() {
+    // Called with pool_mutex_ already locked
+    
+    size_t current_available = available_buffers_.size();
+    size_t target_size = pool_size_;
+    
+    if (current_available < target_size) {
+        // Need to pre-allocate more buffers
+        size_t needed = target_size - current_available;
+        available_buffers_.reserve(target_size);
+        
+        for (size_t i = 0; i < needed; ++i) {
+            try {
+                auto buffer = std::make_shared<ExternalBuffer>(buffer_size_, this);
+                available_buffers_.push_back(buffer);
+            } catch (const std::exception& e) {
+                // Allocation failed - stop growing
+                break;
+            }
+        }
+    }
+    // Note: shrinking happens naturally as buffers are not retained
+    // when available_buffers_.size() >= pool_size_ in Release()
 }
 
 // ============================================================================
@@ -250,9 +368,31 @@ ExternalBufferFactory& ExternalBufferFactory::Instance() {
 void ExternalBufferFactory::Initialize(size_t buffer_size, size_t pool_size) {
     std::lock_guard<std::mutex> lock(factory_mutex_);
     
-    if (!buffer_pool_) {
-        buffer_pool_ = std::make_unique<BufferPool>(buffer_size, pool_size);
+    // v2.7: Allow re-initialization (cleanup old pool if exists)
+    // This allows switching strategies between different AudioProcessor instances
+    if (buffer_pool_) {
+        buffer_pool_.reset();
     }
+    
+    buffer_pool_ = std::make_unique<BufferPool>(buffer_size, pool_size);
+    buffer_pool_->SetStrategy(PoolStrategy::Fixed); // Fixed strategy
+}
+
+// v2.7: Initialize with adaptive strategy
+void ExternalBufferFactory::InitializeAdaptive(size_t buffer_size, 
+                                               size_t initial_pool_size,
+                                               size_t min_pool_size,
+                                               size_t max_pool_size) {
+    std::lock_guard<std::mutex> lock(factory_mutex_);
+    
+    // v2.7: Allow re-initialization (cleanup old pool if exists)
+    if (buffer_pool_) {
+        buffer_pool_.reset();
+    }
+    
+    buffer_pool_ = std::make_unique<BufferPool>(buffer_size, initial_pool_size);
+    buffer_pool_->SetStrategy(PoolStrategy::Adaptive); // Adaptive strategy
+    buffer_pool_->SetMinMaxPoolSize(min_pool_size, max_pool_size);
 }
 
 std::shared_ptr<ExternalBuffer> ExternalBufferFactory::Create() {
@@ -273,7 +413,16 @@ BufferPool::Stats ExternalBufferFactory::GetStats() const {
         return buffer_pool_->GetStats();
     }
     
-    return BufferPool::Stats{0, 0, 0, 0, 0};
+    return BufferPool::Stats{0, 0, 0, 0, 0, 0.0};
+}
+
+// v2.7: Trigger periodic pool evaluation
+void ExternalBufferFactory::EvaluatePool() {
+    std::lock_guard<std::mutex> lock(factory_mutex_);
+    
+    if (buffer_pool_) {
+        buffer_pool_->EvaluateAndAdjust();
+    }
 }
 
 void ExternalBufferFactory::Cleanup() {

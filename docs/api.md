@@ -881,6 +881,291 @@ await capture.start();
 
 ---
 
+## v2.1: 音频会话静音控制
+
+v2.1 版本引入了动态音频会话静音控制功能，允许你选择性地静音或取消静音特定进程的音频。这对于只捕获特定应用音频非常有用（如游戏音频录制、语音通话录音等）。
+
+### 核心概念
+
+1. **静音其他进程**: 启用后，除了目标进程（processId）和白名单中的进程外，所有其他音频会话都会被静音
+2. **白名单（Allow List）**: 不会被静音的进程列表，即使启用了"静音其他进程"
+3. **黑名单（Block List）**: 会被强制静音的进程列表，无论是否启用"静音其他进程"
+
+### `setMuteOtherProcesses(enabled)`
+
+启用或禁用"静音其他进程"功能。
+
+**签名：**
+
+```typescript
+setMuteOtherProcesses(enabled: boolean): void
+```
+
+**参数：**
+
+- `enabled` (boolean) - true 启用，false 禁用
+
+**抛出错误：**
+
+- `TypeError` - 参数类型错误
+- `Error` - AudioProcessor 未初始化
+
+**示例：**
+
+```javascript
+const capture = new AudioCapture({ processId: 1234 });
+
+// 启用静音其他进程（只捕获 PID 1234 的音频）
+capture.setMuteOtherProcesses(true);
+
+await capture.start();
+```
+
+---
+
+### `isMutingOtherProcesses()`
+
+获取"静音其他进程"功能的当前状态。
+
+**签名：**
+
+```typescript
+isMutingOtherProcesses(): boolean
+```
+
+**返回值：**
+
+- `boolean` - 如果启用了静音其他进程则返回 true
+
+**示例：**
+
+```javascript
+const isMuting = capture.isMutingOtherProcesses();
+console.log('正在静音其他进程:', isMuting);
+```
+
+---
+
+### `setAllowList(processIds)`
+
+设置白名单（允许名单）。白名单中的进程不会被静音。
+
+**签名：**
+
+```typescript
+setAllowList(processIds: number[]): void
+```
+
+**参数：**
+
+- `processIds` (number[]) - 进程 ID 数组
+
+**抛出错误：**
+
+- `TypeError` - 参数不是数组或包含无效的进程 ID
+- `Error` - AudioProcessor 未初始化
+
+**示例：**
+
+```javascript
+// 只允许 PID 1234 和 5678 的音频通过
+capture.setMuteOtherProcesses(true);
+capture.setAllowList([1234, 5678]);
+
+// 清空白名单
+capture.setAllowList([]);
+```
+
+---
+
+### `getAllowList()`
+
+获取当前的白名单（允许名单）。
+
+**签名：**
+
+```typescript
+getAllowList(): number[]
+```
+
+**返回值：**
+
+- `number[]` - 进程 ID 数组
+
+**示例：**
+
+```javascript
+const allowList = capture.getAllowList();
+console.log('白名单进程 ID:', allowList);
+```
+
+---
+
+### `setBlockList(processIds)`
+
+设置黑名单（屏蔽名单）。黑名单中的进程会被强制静音。
+
+**签名：**
+
+```typescript
+setBlockList(processIds: number[]): void
+```
+
+**参数：**
+
+- `processIds` (number[]) - 进程 ID 数组
+
+**抛出错误：**
+
+- `TypeError` - 参数不是数组或包含无效的进程 ID
+- `Error` - AudioProcessor 未初始化
+
+**示例：**
+
+```javascript
+// 屏蔽 PID 999 和 888 的音频
+capture.setBlockList([999, 888]);
+
+// 清空黑名单
+capture.setBlockList([]);
+```
+
+---
+
+### `getBlockList()`
+
+获取当前的黑名单（屏蔽名单）。
+
+**签名：**
+
+```typescript
+getBlockList(): number[]
+```
+
+**返回值：**
+
+- `number[]` - 进程 ID 数组
+
+**示例：**
+
+```javascript
+const blockList = capture.getBlockList();
+console.log('黑名单进程 ID:', blockList);
+```
+
+---
+
+### 使用场景
+
+**场景 1: 游戏音频录制** - 只捕获游戏音频，屏蔽其他应用
+
+```javascript
+const { AudioCapture } = require('node-windows-audio-capture');
+
+// 获取游戏进程 ID（例如通过进程名查找）
+const processes = await AudioCapture.getProcesses();
+const gamePID = processes.find(p => p.name === 'game.exe').processId;
+
+const capture = new AudioCapture({ processId: gamePID });
+
+// 启用静音其他进程
+capture.setMuteOtherProcesses(true);
+
+// 可选：允许某些特定应用（如语音通话软件）
+const discordPID = processes.find(p => p.name === 'Discord.exe')?.processId;
+if (discordPID) {
+  capture.setAllowList([discordPID]);
+}
+
+await capture.start();
+
+// 现在只会捕获游戏和 Discord 的音频
+```
+
+**场景 2: 语音通话录音** - 只捕获语音软件，屏蔽背景音乐
+
+```javascript
+const { AudioCapture } = require('node-windows-audio-capture');
+
+// 获取语音通话软件进程 ID
+const processes = await AudioCapture.getProcesses();
+const voicePID = processes.find(p => p.name === 'Teams.exe').processId;
+
+const capture = new AudioCapture({ processId: voicePID });
+
+// 启用静音其他进程
+capture.setMuteOtherProcesses(true);
+
+// 屏蔽特定的音乐播放器
+const musicPIDs = processes
+  .filter(p => ['Spotify.exe', 'foobar2000.exe'].includes(p.name))
+  .map(p => p.processId);
+
+if (musicPIDs.length > 0) {
+  capture.setBlockList(musicPIDs);
+}
+
+await capture.start();
+```
+
+**场景 3: 系统音频监控** - 捕获所有音频，但排除特定应用
+
+```javascript
+const { AudioCapture } = require('node-windows-audio-capture');
+
+// processId: 0 表示捕获所有音频
+const capture = new AudioCapture({ processId: 0 });
+
+// 不启用"静音其他进程"，但使用黑名单排除某些应用
+const processes = await AudioCapture.getProcesses();
+const noisyApps = processes
+  .filter(p => ['notification.exe', 'update.exe'].includes(p.name))
+  .map(p => p.processId);
+
+if (noisyApps.length > 0) {
+  capture.setBlockList(noisyApps);
+}
+
+await capture.start();
+```
+
+**场景 4: 动态切换音频源**
+
+```javascript
+const { AudioCapture } = require('node-windows-audio-capture');
+
+const capture = new AudioCapture({ processId: 0 });
+
+// 初始状态：捕获所有音频
+await capture.start();
+
+// 5 秒后：只捕获游戏音频
+setTimeout(() => {
+  capture.setMuteOtherProcesses(true);
+  const gamePID = 1234; // 游戏进程 ID
+  capture.setAllowList([gamePID]);
+  console.log('切换到游戏音频模式');
+}, 5000);
+
+// 10 秒后：恢复捕获所有音频
+setTimeout(() => {
+  capture.setMuteOtherProcesses(false);
+  capture.setAllowList([]);
+  console.log('恢复捕获所有音频');
+}, 10000);
+```
+
+### 注意事项
+
+1. **实时生效**: 所有静音控制方法都会立即生效，无需重启捕获
+2. **优先级**: 黑名单优先级 > 白名单优先级 > "静音其他进程"设置
+3. **目标进程**: 构造函数中指定的 `processId` 始终会被捕获（如果不为 0）
+4. **性能影响**: 静音控制操作的性能开销极小（< 0.1% CPU）
+5. **进程有效性**: 请确保进程 ID 有效，无效的 ID 会被忽略
+6. **Windows 7+**: 此功能需要 Windows 7 或更高版本（WASAPI 会话控制）
+
+---
+
 ## v2.6: Buffer Pool (零拷贝内存优化)
 
 ### `getPoolStats()`

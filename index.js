@@ -440,6 +440,194 @@ class AudioCapture extends EventEmitter {
         }
     }
 
+    // ==================== v2.1: 音频会话静音控制 ====================
+
+    /**
+     * v2.1: 启用或禁用"静音其他进程"功能
+     * 
+     * 当启用时，除了目标进程和白名单中的进程外，其他所有音频会话都会被静音。
+     * 这对于只捕获特定应用音频非常有用（如游戏音频录制）。
+     * 
+     * @param {boolean} enabled - true 启用静音其他进程，false 禁用
+     * @throws {Error} 如果 AudioProcessor 未初始化
+     * @since 2.1.0
+     * 
+     * @example
+     * const capture = new AudioCapture({ processId: 1234 });
+     * 
+     * // 启用静音其他进程（只捕获 PID 1234 的音频）
+     * capture.setMuteOtherProcesses(true);
+     * 
+     * await capture.start();
+     */
+    setMuteOtherProcesses(enabled) {
+        if (!this._processor) {
+            throw new Error('AudioProcessor not initialized');
+        }
+        
+        if (typeof enabled !== 'boolean') {
+            throw new TypeError('enabled must be a boolean');
+        }
+        
+        try {
+            this._processor.setMuteOtherProcesses(enabled);
+        } catch (error) {
+            throw new Error(`Failed to set mute other processes: ${error.message}`);
+        }
+    }
+
+    /**
+     * v2.1: 获取"静音其他进程"功能的当前状态
+     * 
+     * @returns {boolean} 如果启用了静音其他进程则返回 true
+     * @throws {Error} 如果 AudioProcessor 未初始化
+     * @since 2.1.0
+     * 
+     * @example
+     * const isMuting = capture.isMutingOtherProcesses();
+     * console.log('Muting other processes:', isMuting);
+     */
+    isMutingOtherProcesses() {
+        if (!this._processor) {
+            throw new Error('AudioProcessor not initialized');
+        }
+        
+        try {
+            return this._processor.isMutingOtherProcesses();
+        } catch (error) {
+            throw new Error(`Failed to check mute status: ${error.message}`);
+        }
+    }
+
+    /**
+     * v2.1: 设置白名单（允许名单）
+     * 
+     * 白名单中的进程不会被静音，即使启用了"静音其他进程"功能。
+     * 这允许你选择性地允许某些进程的音频通过。
+     * 
+     * @param {number[]} processIds - 进程 ID 数组
+     * @throws {TypeError} 如果参数不是数组
+     * @throws {Error} 如果 AudioProcessor 未初始化
+     * @since 2.1.0
+     * 
+     * @example
+     * // 只允许 PID 1234 和 5678 的音频通过
+     * capture.setMuteOtherProcesses(true);
+     * capture.setAllowList([1234, 5678]);
+     * 
+     * // 清空白名单
+     * capture.setAllowList([]);
+     */
+    setAllowList(processIds) {
+        if (!this._processor) {
+            throw new Error('AudioProcessor not initialized');
+        }
+        
+        if (!Array.isArray(processIds)) {
+            throw new TypeError('processIds must be an array');
+        }
+        
+        // Validate all elements are numbers
+        for (const pid of processIds) {
+            if (typeof pid !== 'number' || !Number.isInteger(pid) || pid < 0) {
+                throw new TypeError('All process IDs must be non-negative integers');
+            }
+        }
+        
+        try {
+            this._processor.setAllowList(processIds);
+        } catch (error) {
+            throw new Error(`Failed to set allow list: ${error.message}`);
+        }
+    }
+
+    /**
+     * v2.1: 获取当前的白名单（允许名单）
+     * 
+     * @returns {number[]} 进程 ID 数组
+     * @throws {Error} 如果 AudioProcessor 未初始化
+     * @since 2.1.0
+     * 
+     * @example
+     * const allowList = capture.getAllowList();
+     * console.log('Allowed process IDs:', allowList);
+     */
+    getAllowList() {
+        if (!this._processor) {
+            throw new Error('AudioProcessor not initialized');
+        }
+        
+        try {
+            return this._processor.getAllowList();
+        } catch (error) {
+            throw new Error(`Failed to get allow list: ${error.message}`);
+        }
+    }
+
+    /**
+     * v2.1: 设置黑名单（屏蔽名单）
+     * 
+     * 黑名单中的进程会被强制静音，无论是否启用"静音其他进程"功能。
+     * 这允许你选择性地屏蔽某些进程的音频。
+     * 
+     * @param {number[]} processIds - 进程 ID 数组
+     * @throws {TypeError} 如果参数不是数组
+     * @throws {Error} 如果 AudioProcessor 未初始化
+     * @since 2.1.0
+     * 
+     * @example
+     * // 屏蔽 PID 999 和 888 的音频
+     * capture.setBlockList([999, 888]);
+     * 
+     * // 清空黑名单
+     * capture.setBlockList([]);
+     */
+    setBlockList(processIds) {
+        if (!this._processor) {
+            throw new Error('AudioProcessor not initialized');
+        }
+        
+        if (!Array.isArray(processIds)) {
+            throw new TypeError('processIds must be an array');
+        }
+        
+        // Validate all elements are numbers
+        for (const pid of processIds) {
+            if (typeof pid !== 'number' || !Number.isInteger(pid) || pid < 0) {
+                throw new TypeError('All process IDs must be non-negative integers');
+            }
+        }
+        
+        try {
+            this._processor.setBlockList(processIds);
+        } catch (error) {
+            throw new Error(`Failed to set block list: ${error.message}`);
+        }
+    }
+
+    /**
+     * v2.1: 获取当前的黑名单（屏蔽名单）
+     * 
+     * @returns {number[]} 进程 ID 数组
+     * @throws {Error} 如果 AudioProcessor 未初始化
+     * @since 2.1.0
+     * 
+     * @example
+     * const blockList = capture.getBlockList();
+     * console.log('Blocked process IDs:', blockList);
+     */
+    getBlockList() {
+        if (!this._processor) {
+            throw new Error('AudioProcessor not initialized');
+        }
+        
+        try {
+            return this._processor.getBlockList();
+        } catch (error) {
+            throw new Error(`Failed to get block list: ${error.message}`);
+        }
+    }
+
     // ==================== v2.8: 3-Band EQ Methods ====================
 
     /**

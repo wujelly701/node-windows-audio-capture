@@ -4,6 +4,25 @@
 temp.md
 tasks/
 
+# Development process documents - keep local only
+V2.*_*.md
+RELEASE_*.md
+DOCUMENTATION_COMPLETE.md
+archive/development/
+archive/legacy/
+archive/releases/
+docs/V2.*_RELEASE_NOTES.md
+docs/V2.*_IMPLEMENTATION_SUMMARY.md
+docs/RESAMPLING_ALGORITHM_DESIGN.md
+docs/MEMORY_OPTIMIZATION_EXPLORATION.md
+docs/ASR_ROADMAP_SUMMARY.md
+docs/ASR_COMPATIBILITY_ROADMAP.md
+docs/DEVICE_EVENTS_TESTING.md
+docs/CI_CD_GUIDE.md
+benchmark/
+research/
+prototype/
+
 # Build artifacts - DO NOT COMMIT
 build/Release/
 build/Debug/

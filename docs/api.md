@@ -881,6 +881,150 @@ await capture.start();
 
 ---
 
+## v2.6: Buffer Pool (零拷贝内存优化)
+
+### `getPoolStats()`
+
+获取 Buffer Pool 的统计信息（仅在零拷贝模式下有效）。
+
+**签名：**
+
+```typescript
+getPoolStats(): BufferPoolStats | null
+```
+
+**返回值：**
+
+- `BufferPoolStats` - 统计信息对象（如果启用零拷贝模式）
+- `null` - 如果未使用零拷贝模式
+
+**BufferPoolStats 接口：**
+
+```typescript
+interface BufferPoolStats {
+  poolHits: number;              // 从池中成功获取的次数
+  poolMisses: number;            // 池为空需要动态分配的次数
+  dynamicAllocations: number;    // 动态分配的总次数
+  currentPoolSize: number;       // 当前池大小
+  maxPoolSize: number;           // 最大池大小
+  hitRate: number;               // 命中率百分比 (0-100)
+  strategy?: string;             // v2.7+: 'fixed' | 'adaptive'
+  evaluations?: number;          // v2.7+: 自适应策略评估次数
+  growths?: number;              // v2.7+: 池扩容次数
+  shrinks?: number;              // v2.7+: 池缩小次数
+}
+```
+
+**示例：**
+
+```javascript
+const { AudioCapture } = require('node-windows-audio-capture');
+
+// 启用零拷贝模式
+const capture = new AudioCapture({
+  processId: 0,
+  useExternalBuffer: true,         // v2.6: 启用零拷贝
+  bufferPoolStrategy: 'adaptive',  // v2.7: 自适应池策略
+  bufferPoolSize: 50,              // 初始池大小
+  bufferPoolMin: 50,               // 最小池大小
+  bufferPoolMax: 200               // 最大池大小
+});
+
+await capture.start();
+
+// 定期监控池性能
+setInterval(() => {
+  const stats = capture.getPoolStats();
+  
+  if (stats) {
+    console.log('📊 Buffer Pool 统计:');
+    console.log(`  命中率: ${stats.hitRate.toFixed(2)}%`);
+    console.log(`  池命中: ${stats.poolHits.toLocaleString()}`);
+    console.log(`  池未命中: ${stats.poolMisses.toLocaleString()}`);
+    console.log(`  当前池大小: ${stats.currentPoolSize}`);
+    console.log(`  最大池大小: ${stats.maxPoolSize}`);
+    
+    // v2.7+ 自适应统计
+    if (stats.strategy === 'adaptive') {
+      console.log(`  策略: 自适应`);
+      console.log(`  评估次数: ${stats.evaluations}`);
+      console.log(`  扩容次数: ${stats.growths}`);
+      console.log(`  缩小次数: ${stats.shrinks}`);
+    }
+    
+    // 性能警告
+    if (stats.hitRate < 1.0) {
+      console.warn('⚠️  警告: 命中率过低，考虑增加池大小');
+    }
+    if (stats.poolMisses > stats.poolHits * 0.5) {
+      console.warn('⚠️  警告: 未命中率过高，建议使用自适应策略');
+    }
+  } else {
+    console.log('❌ 零拷贝模式未启用');
+  }
+}, 10000);  // 每 10 秒检查一次
+```
+
+**使用场景：**
+
+**1. 固定池策略（v2.6）** - 稳定负载：
+```javascript
+const capture = new AudioCapture({
+  processId: 0,
+  useExternalBuffer: true,
+  bufferPoolStrategy: 'fixed',  // 固定大小
+  bufferPoolSize: 100           // 固定 100 个 buffer
+});
+
+// 适用场景: 稳定的音频捕获，负载可预测
+```
+
+**2. 自适应池策略（v2.7）** - 动态负载：
+```javascript
+const capture = new AudioCapture({
+  processId: 0,
+  useExternalBuffer: true,
+  bufferPoolStrategy: 'adaptive',  // 自适应调整
+  bufferPoolSize: 50,              // 初始 50 个
+  bufferPoolMin: 50,               // 最少 50 个
+  bufferPoolMax: 200               // 最多 200 个
+});
+
+// 适用场景: 负载波动大，自动优化内存使用
+// 效果: 命中率从 0.67% 提升到 3.14%（371.6% 提升！）
+```
+
+**性能指标：**
+
+| 策略 | 池大小 | 命中率 | 池命中次数 | 内存占用 | 场景 |
+|------|--------|--------|-----------|----------|------|
+| 固定 (10) | 10 | 0.67% | 10 | 40 KB | 低负载 |
+| 固定 (100) | 100 | ~2% | 100+ | 400 KB | 中等负载 |
+| 自适应 (50-200) | 54 (动态) | 3.14% | 110 | 216 KB | **推荐** ⚡ |
+
+**注意事项：**
+
+1. **零拷贝模式必需**：`useExternalBuffer: true` 必须开启
+2. **实时监控**：建议每 10 秒检查一次统计信息
+3. **命中率目标**：
+   - < 1%：池太小，增加 `bufferPoolSize` 或使用自适应策略
+   - 1-5%：良好范围
+   - \> 5%：可能池太大，浪费内存
+4. **自适应策略**（v2.7+）：
+   - 每 10 秒评估一次
+   - 命中率 < 2%：扩容 20%
+   - 命中率 > 5%：缩小 10%
+   - 自动在 min-max 范围内调整
+
+**相关 API：**
+- `useExternalBuffer` (v2.6) - 启用零拷贝模式
+- `bufferPoolStrategy` (v2.7) - 'fixed' | 'adaptive'
+- `bufferPoolSize` - 初始/固定池大小
+- `bufferPoolMin` (v2.7) - 自适应最小值
+- `bufferPoolMax` (v2.7) - 自适应最大值
+
+---
+
 ## v2.7: 音频降噪 (RNNoise)
 
 ### `setDenoiseEnabled(enabled)`
@@ -1295,6 +1439,216 @@ await capture.start();
 
 ---
 
+## v2.8: 3-Band EQ (均衡器)
+
+3-Band EQ 提供三个频段的独立增益控制，用于调整音频的频率响应。
+
+### 频段划分
+
+- **Low (低频)**: < 500 Hz - 控制低音、鼓声、贝斯
+- **Mid (中频)**: 500-4000 Hz - 控制人声、吉他、钢琴
+- **High (高频)**: > 4000 Hz - 控制高音、细节、空气感
+
+### `setEQEnabled(enabled)`
+
+启用或禁用 EQ 处理。
+
+**参数**:
+- `enabled` (boolean): `true` 启用，`false` 禁用
+
+**示例**:
+```javascript
+// 启用 EQ
+capture.setEQEnabled(true);
+
+// 禁用 EQ
+capture.setEQEnabled(false);
+```
+
+### `getEQEnabled()`
+
+获取 EQ 启用状态。
+
+**返回**: `boolean` - EQ 是否启用
+
+**示例**:
+```javascript
+const enabled = capture.getEQEnabled();
+console.log(`EQ 状态: ${enabled ? '已启用' : '已禁用'}`);
+```
+
+### `setEQBandGain(band, gain)`
+
+设置指定频段的增益。
+
+**参数**:
+- `band` (string): 频段名称
+  - `'low'`: 低频 (< 500 Hz)
+  - `'mid'`: 中频 (500-4000 Hz)
+  - `'high'`: 高频 (> 4000 Hz)
+- `gain` (number): 增益 (dB)，范围 -20 到 +20
+  - 正值：增强该频段
+  - 负值：衰减该频段
+  - 0：不改变
+
+**示例**:
+```javascript
+// 增强低音 (+6 dB)
+capture.setEQBandGain('low', 6);
+
+// 减少中频 (-3 dB)
+capture.setEQBandGain('mid', -3);
+
+// 增强高音 (+8 dB)
+capture.setEQBandGain('high', 8);
+```
+
+### `getEQBandGain(band)`
+
+获取指定频段的增益。
+
+**参数**:
+- `band` (string): 频段名称 (`'low'`, `'mid'`, `'high'`)
+
+**返回**: `number` - 增益 (dB)
+
+**示例**:
+```javascript
+const lowGain = capture.getEQBandGain('low');
+console.log(`低频增益: ${lowGain} dB`);
+```
+
+### `getEQStats()`
+
+获取 EQ 处理统计信息。
+
+**返回**: `EQStats | null`
+
+**EQStats 接口**:
+```typescript
+interface EQStats {
+  enabled: boolean;        // EQ 是否启用
+  lowGain: number;         // 低频增益 (dB)
+  midGain: number;         // 中频增益 (dB)
+  highGain: number;        // 高频增益 (dB)
+  framesProcessed: number; // 已处理的音频帧数
+}
+```
+
+**示例**:
+```javascript
+const stats = capture.getEQStats();
+
+if (stats) {
+  console.log('EQ 状态:');
+  console.log(`  启用: ${stats.enabled}`);
+  console.log(`  低频: ${stats.lowGain.toFixed(1)} dB`);
+  console.log(`  中频: ${stats.midGain.toFixed(1)} dB`);
+  console.log(`  高频: ${stats.highGain.toFixed(1)} dB`);
+  console.log(`  已处理: ${stats.framesProcessed} 帧`);
+}
+```
+
+### EQ 预设场景
+
+#### 场景 1: 流行音乐（增强低音）
+```javascript
+capture.setEQEnabled(true);
+capture.setEQBandGain('low', 6);   // +6 dB 低音
+capture.setEQBandGain('mid', 0);   // 0 dB 中频
+capture.setEQBandGain('high', 3);  // +3 dB 高音
+```
+
+#### 场景 2: 人声优化（播客/语音）
+```javascript
+capture.setEQEnabled(true);
+capture.setEQBandGain('low', -3);  // -3 dB 减少轰鸣
+capture.setEQBandGain('mid', 5);   // +5 dB 突出人声
+capture.setEQBandGain('high', 2);  // +2 dB 增强清晰度
+```
+
+#### 场景 3: 古典音乐（平衡、自然）
+```javascript
+capture.setEQEnabled(true);
+capture.setEQBandGain('low', 2);   // +2 dB 轻微增强
+capture.setEQBandGain('mid', 0);   // 0 dB 保持原样
+capture.setEQBandGain('high', 4);  // +4 dB 增强高音
+```
+
+#### 场景 4: 电子音乐（强烈低音）
+```javascript
+capture.setEQEnabled(true);
+capture.setEQBandGain('low', 10);  // +10 dB 强烈低音
+capture.setEQBandGain('mid', -2);  // -2 dB 减少中频
+capture.setEQBandGain('high', 6);  // +6 dB 增强高频
+```
+
+### EQ 使用注意事项
+
+1. **增益范围**: -20 dB 到 +20 dB，超出范围会自动限制
+2. **避免过度增益**: 过大的增益可能导致失真或削波
+3. **配合 AGC 使用**: 建议同时启用 AGC 以防止音量过大
+4. **实时调整**: EQ 可以在捕获过程中动态调整
+5. **默认状态**: EQ 默认禁用，所有频段增益为 0 dB
+
+### 完整示例：音频处理链
+
+```javascript
+const { AudioCapture } = require('node-windows-audio-capture');
+
+const capture = new AudioCapture({
+  processId: 0
+});
+
+// 启动捕获
+await capture.start();
+
+// 1. 启用降噪（去除背景噪声）
+capture.setDenoiseEnabled(true);
+
+// 2. 启用 AGC（自动调整音量）
+capture.setAGCEnabled(true);
+capture.setAGCOptions({
+  targetLevel: -16.0,  // 目标电平
+  maxGain: 15.0        // 最大增益
+});
+
+// 3. 启用 EQ（调整频率响应）
+capture.setEQEnabled(true);
+capture.setEQBandGain('low', 4);   // 增强低音
+capture.setEQBandGain('mid', 2);   // 轻微增强中频
+capture.setEQBandGain('high', 5);  // 增强高音
+
+// 监控所有处理效果
+setInterval(() => {
+  const denoiseStats = capture.getDenoiseStats();
+  const agcStats = capture.getAGCStats();
+  const eqStats = capture.getEQStats();
+  
+  console.log('\n=== 音频处理状态 ===');
+  
+  if (denoiseStats) {
+    console.log('降噪:');
+    console.log(`  语音概率: ${(denoiseStats.vadProbability * 100).toFixed(1)}%`);
+  }
+  
+  if (agcStats) {
+    console.log('AGC:');
+    console.log(`  当前增益: ${agcStats.currentGain.toFixed(2)} dB`);
+    console.log(`  输入电平: ${agcStats.averageLevel.toFixed(2)} dBFS`);
+  }
+  
+  if (eqStats) {
+    console.log('EQ:');
+    console.log(`  低频: ${eqStats.lowGain.toFixed(1)} dB`);
+    console.log(`  中频: ${eqStats.midGain.toFixed(1)} dB`);
+    console.log(`  高频: ${eqStats.highGain.toFixed(1)} dB`);
+  }
+}, 2000);
+```
+
+---
+
 ## 参考链接
 
 - [README.md](../README.md) - 项目主文档
@@ -1303,6 +1657,7 @@ await capture.start();
 - [WASAPI 文档](https://docs.microsoft.com/en-us/windows/win32/coreaudio/wasapi) - Windows 音频 API
 - [RNNoise 论文](https://arxiv.org/abs/1709.08243) - 深度学习降噪算法
 - [AGC 算法](https://en.wikipedia.org/wiki/Automatic_gain_control) - 自动增益控制
+- [Audio EQ Cookbook](https://webaudio.github.io/Audio-EQ-Cookbook/audio-eq-cookbook.html) - Biquad 滤波器算法
 
 ---
 

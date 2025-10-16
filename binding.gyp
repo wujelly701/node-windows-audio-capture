@@ -19,6 +19,8 @@
         "src/napi/external_buffer.cpp",
         "src/napi/audio_effects.cpp",
         "src/napi/agc_processor.cpp",
+        "src/napi/biquad_filter.cpp",
+        "src/napi/eq_processor.cpp",
         "deps/rnnoise/src/celt_lpc.c",
         "deps/rnnoise/src/denoise.c",
         "deps/rnnoise/src/kiss_fft.c",
@@ -27,7 +29,7 @@
         "deps/rnnoise/src/parse_lpcnet_weights.c",
         "deps/rnnoise/src/pitch.c",
         "deps/rnnoise/src/rnn.c",
-        "deps/rnnoise/src/rnnoise_data.c",
+        "deps/rnnoise/src/rnnoise_data_little.c",
         "deps/rnnoise/src/rnnoise_tables.c"
       ],
       "include_dirs": [

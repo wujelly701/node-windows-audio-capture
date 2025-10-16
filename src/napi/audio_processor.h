@@ -7,6 +7,7 @@
 #include "external_buffer.h"
 #include "audio_effects.h"  // v2.7: Audio effects (RNNoise)
 #include "agc_processor.h"  // v2.8: AGC (Automatic Gain Control)
+#include "eq_processor.h"   // v2.8: 3-Band EQ
 
 class AudioProcessor : public Napi::ObjectWrap<AudioProcessor> {
 public:
@@ -28,6 +29,9 @@ private:
     
     // v2.8: AGC (Automatic Gain Control)
     std::unique_ptr<wasapi_capture::SimpleAGC> agc_processor_;
+    
+    // v2.8: 3-Band EQ
+    std::unique_ptr<wasapi_capture::ThreeBandEQ> eq_processor_;
     
     // v2.7: Buffer pool adaptive optimization
     bool useAdaptivePool_ = false;  // Adaptive pool strategy enabled
@@ -61,6 +65,13 @@ private:
     Napi::Value SetAGCOptions(const Napi::CallbackInfo& info);
     Napi::Value GetAGCOptions(const Napi::CallbackInfo& info);
     Napi::Value GetAGCStats(const Napi::CallbackInfo& info);
+    
+    // v2.8: 3-Band EQ
+    Napi::Value SetEQEnabled(const Napi::CallbackInfo& info);
+    Napi::Value GetEQEnabled(const Napi::CallbackInfo& info);
+    Napi::Value SetEQBandGain(const Napi::CallbackInfo& info);
+    Napi::Value GetEQBandGain(const Napi::CallbackInfo& info);
+    Napi::Value GetEQStats(const Napi::CallbackInfo& info);
     
     // 静态方法：设备枚举
     static Napi::Value GetDeviceInfo(const Napi::CallbackInfo& info);

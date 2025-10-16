@@ -398,6 +398,43 @@ export interface AGCStats {
 }
 
 /**
+ * v2.8: EQ 频段类型
+ * @since 2.8.0
+ */
+export type EQBand = 'low' | 'mid' | 'high';
+
+/**
+ * v2.8: EQ 统计信息
+ * @since 2.8.0
+ */
+export interface EQStats {
+    /**
+     * EQ 是否启用
+     */
+    enabled: boolean;
+    
+    /**
+     * 低频增益（dB）
+     */
+    lowGain: number;
+    
+    /**
+     * 中频增益（dB）
+     */
+    midGain: number;
+    
+    /**
+     * 高频增益（dB）
+     */
+    highGain: number;
+    
+    /**
+     * 已处理的音频帧数
+     */
+    framesProcessed: number;
+}
+
+/**
  * AudioCapture 类 - 音频捕获器
  * 
  * @example
@@ -572,6 +609,58 @@ export declare class AudioCapture extends EventEmitter {
      * @since 2.8.0
      */
     getAGCStats(): AGCStats | null;
+    
+    // ==================== v2.8: 3-Band EQ Methods ====================
+    
+    /**
+     * v2.8: 启用或禁用 3-Band EQ
+     * @param enabled - true 启用，false 禁用
+     * @throws {Error} 如果设置失败
+     * @since 2.8.0
+     * @example
+     * ```typescript
+     * capture.setEQEnabled(true);  // 启用 EQ
+     * ```
+     */
+    setEQEnabled(enabled: boolean): void;
+    
+    /**
+     * v2.8: 获取 EQ 启用状态
+     * @returns EQ 是否启用
+     * @since 2.8.0
+     */
+    getEQEnabled(): boolean;
+    
+    /**
+     * v2.8: 设置 EQ 频段增益
+     * @param band - 频段名称: 'low' (低频 < 500 Hz), 'mid' (中频 500-4000 Hz), 'high' (高频 > 4000 Hz)
+     * @param gain - 增益 (dB)，范围 -20 到 +20
+     * @throws {Error} 如果参数无效或设置失败
+     * @since 2.8.0
+     * @example
+     * ```typescript
+     * capture.setEQBandGain('low', 5);   // 低频 +5dB (增强低音)
+     * capture.setEQBandGain('mid', -3);  // 中频 -3dB (减少人声)
+     * capture.setEQBandGain('high', 8);  // 高频 +8dB (增强高音)
+     * ```
+     */
+    setEQBandGain(band: EQBand, gain: number): void;
+    
+    /**
+     * v2.8: 获取 EQ 频段增益
+     * @param band - 频段名称: 'low', 'mid', 'high'
+     * @returns 增益 (dB)
+     * @throws {Error} 如果参数无效
+     * @since 2.8.0
+     */
+    getEQBandGain(band: EQBand): number;
+    
+    /**
+     * v2.8: 获取 EQ 处理统计信息
+     * @returns 统计信息对象，如果 EQ 未初始化则返回 null
+     * @since 2.8.0
+     */
+    getEQStats(): EQStats | null;
     
     /**
      * 音频数据事件

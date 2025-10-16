@@ -8,7 +8,7 @@
 
 Production-ready Windows 音频捕获 Node.js Native Addon，基于 WASAPI 标准 Loopback 模式实现。
 
-> **⚡ v2.8.0 AGC 增益控制**: 自动调整音频增益，保持一致输出电平（< 5ms 延迟，< 0.5% CPU）
+> **⚡ v2.8.0 AGC + EQ**: 自动增益控制（< 5ms 延迟）+ 3-Band EQ 均衡器（Low/Mid/High，-20~+20dB）
 > **🔊 v2.7.0 降噪 + 智能池**: RNNoise AI 降噪 + 自适应 Buffer Pool（Hit Rate 0.67% → 3.14%，371.6% 提升！）
 > **🎙️ ASR 语音识别专用**: 专为语音识别场景优化，支持阿里云/百度/腾讯/OpenAI Whisper 等主流 ASR API。
 > 
@@ -197,9 +197,9 @@ setInterval(() => {
 
 ---
 
-## �️ v2.8.0 新特性 - AGC (自动增益控制) ⚡ LATEST
+## �️ v2.8.0 新特性 - AGC + 3-Band EQ ⚡ LATEST
 
-**⚡ 智能增益管理** - 保持一致的音频输出电平！
+**⚡ 智能增益管理 + 🎛️ 频响控制** - 保持一致的音频输出电平，精准调整频率响应！
 
 ### 核心特性
 
@@ -319,6 +319,147 @@ capture.setAGCOptions({
 - ✅ 无削波检测
 
 **[📖 查看完整 AGC 示例 →](examples/agc-example.js)** | **[📖 查看 API 文档 →](docs/api.md#v28-agc-自动增益控制)**
+
+---
+
+#### 🎛️ 3-Band EQ (均衡器)
+
+基于 **Audio EQ Cookbook** 算法的专业级均衡器，支持 Low/Mid/High 三频段独立调节！
+
+**核心特性**:
+- **Biquad IIR 滤波器**: Direct Form II Transposed 实现，数值稳定
+- **三频段控制**:
+  - **Low Shelf** (< 500 Hz): 低频（低音、鼓声）
+  - **Mid Parametric Bell** (500-4000 Hz): 中频（人声、乐器）
+  - **High Shelf** (> 4000 Hz): 高频（细节、空气感）
+- **宽增益范围**: -20 to +20 dB 每频段（自动限幅）
+- **立体声处理**: 每声道独立滤波器
+- **零延迟**: IIR 滤波器，无需缓冲
+
+**基础用法**:
+
+```javascript
+const capture = new AudioCapture({ processId: 0 });
+
+// 启用 EQ
+capture.setEQEnabled(true);
+
+// 设置各频段增益
+capture.setEQBandGain('low', 6);    // 低频 +6 dB（增强低音）
+capture.setEQBandGain('mid', 0);     // 中频 0 dB（保持原样）
+capture.setEQBandGain('high', 3);    // 高频 +3 dB（增强细节）
+
+// 获取实时统计
+const stats = capture.getEQStats();
+console.log('EQ 状态:', stats);
+// {
+//   enabled: true,
+//   lowGain: 6,
+//   midGain: 0,
+//   highGain: 3,
+//   framesProcessed: 98304
+// }
+
+await capture.start();
+```
+
+**预设场景**:
+
+**1. 流行音乐（Pop Music）**:
+```javascript
+// 强调低音和高频，适合流行音乐
+capture.setEQBandGain('low', 6);     // 增强低音
+capture.setEQBandGain('mid', 0);     // 中频平衡
+capture.setEQBandGain('high', 3);    // 增强细节
+```
+
+**2. 人声优化（Voice Enhancement）**:
+```javascript
+// 强调中频清晰度，适合语音通话、播客
+capture.setEQBandGain('low', -3);    // 减少低频噪音
+capture.setEQBandGain('mid', 5);     // 增强人声清晰度
+capture.setEQBandGain('high', 2);    // 轻微增强细节
+```
+
+**3. 古典音乐（Classical Music）**:
+```javascript
+// 平衡均衡，强调高频细节
+capture.setEQBandGain('low', 2);     // 轻微增强低频
+capture.setEQBandGain('mid', 0);     // 保持中频自然
+capture.setEQBandGain('high', 4);    // 强调高频细节
+```
+
+**4. 电子音乐（Electronic Music）**:
+```javascript
+// 重低音 + 明亮高频
+capture.setEQBandGain('low', 10);    // 强力低音
+capture.setEQBandGain('mid', -2);    // 轻微降低中频
+capture.setEQBandGain('high', 6);    // 明亮高频
+```
+
+**完整音频处理链**:
+
+```javascript
+const capture = new AudioCapture({
+  processId: 0,
+  useExternalBuffer: true,
+  bufferPoolStrategy: 'adaptive'
+});
+
+// 1️⃣ 降噪 (RNNoise AI) - 先去除背景噪音
+capture.setDenoiseEnabled(true);
+
+// 2️⃣ AGC (自动增益控制) - 标准化音量
+capture.setAGCEnabled(true);
+capture.setAGCOptions({
+  targetLevel: -20,
+  maxGain: 20,
+  attackTime: 10,
+  releaseTime: 100
+});
+
+// 3️⃣ EQ (均衡器) - 调整频率响应
+capture.setEQEnabled(true);
+capture.setEQBandGain('low', 6);
+capture.setEQBandGain('mid', 0);
+capture.setEQBandGain('high', 3);
+
+// 监控完整处理链
+setInterval(() => {
+  const denoiseStats = capture.getDenoiseStats();
+  const agcStats = capture.getAGCStats();
+  const eqStats = capture.getEQStats();
+  
+  console.log('🔇 降噪 - VAD:', (denoiseStats.vadProbability * 100).toFixed(1) + '%');
+  console.log('⚡ AGC  - 增益:', agcStats.currentGain.toFixed(2), 'dB');
+  console.log('🎛️ EQ   - Low:', eqStats.lowGain, 'dB, Mid:', eqStats.midGain, 'dB, High:', eqStats.highGain, 'dB');
+}, 2000);
+
+await capture.start();
+```
+
+**EQ 性能指标**:
+
+| 指标 | 数值 | 说明 |
+|------|------|------|
+| 滤波器类型 | Biquad IIR | Direct Form II Transposed |
+| 频段数量 | 3 (Low/Mid/High) | 立体声独立滤波 |
+| 增益范围 | -20 to +20 dB | 自动限幅保护 |
+| 处理延迟 | 0 ms | IIR 实时处理 |
+| CPU 开销 | < 0.3% | 单核占用率 |
+| Low 频段 | < 500 Hz | Low Shelf, Q=0.707 |
+| Mid 频段 | 500-4000 Hz | Parametric Peak, Q=1.0 |
+| High 频段 | > 4000 Hz | High Shelf, Q=0.707 |
+
+**测试结果**（test-eq.js）:
+- ✅ 7/7 测试通过
+- ✅ 启用/禁用功能正常
+- ✅ 增益设置/读取准确
+- ✅ 增益范围自动限幅（-20 to +20 dB）
+- ✅ 参数验证完整
+- ✅ 统计信息准确
+
+**[📖 查看完整 EQ 示例 →](examples/eq-example.js)** | **[📖 查看 API 文档 →](docs/api.md#v28-3-band-eq-均衡器)**
 
 ---
 

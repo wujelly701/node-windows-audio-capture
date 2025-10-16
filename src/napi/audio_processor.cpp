@@ -38,7 +38,13 @@ Napi::Object AudioProcessor::Init(Napi::Env env, Napi::Object exports) {
         InstanceMethod("getAGCEnabled", &AudioProcessor::GetAGCEnabled),
         InstanceMethod("setAGCOptions", &AudioProcessor::SetAGCOptions),
         InstanceMethod("getAGCOptions", &AudioProcessor::GetAGCOptions),
-        InstanceMethod("getAGCStats", &AudioProcessor::GetAGCStats)
+        InstanceMethod("getAGCStats", &AudioProcessor::GetAGCStats),
+        // v2.8: 3-Band EQ
+        InstanceMethod("setEQEnabled", &AudioProcessor::SetEQEnabled),
+        InstanceMethod("getEQEnabled", &AudioProcessor::GetEQEnabled),
+        InstanceMethod("setEQBandGain", &AudioProcessor::SetEQBandGain),
+        InstanceMethod("getEQBandGain", &AudioProcessor::GetEQBandGain),
+        InstanceMethod("getEQStats", &AudioProcessor::GetEQStats)
     });
     exports.Set("AudioProcessor", func);
     exports.Set("getDeviceInfo", Napi::Function::New(env, AudioProcessor::GetDeviceInfo));
@@ -143,6 +149,10 @@ AudioProcessor::AudioProcessor(const Napi::CallbackInfo& info) : Napi::ObjectWra
     // v2.8: Initialize AGC processor
     agc_processor_ = std::make_unique<wasapi_capture::SimpleAGC>();
     agc_processor_->Initialize(48000);  // Default sample rate, will be updated in Start()
+    
+    // v2.8: Initialize 3-Band EQ processor
+    eq_processor_ = std::make_unique<wasapi_capture::ThreeBandEQ>();
+    eq_processor_->Initialize(48000);  // Default sample rate, will be updated in Start()
 }
 
 AudioProcessor::~AudioProcessor() {
@@ -395,6 +405,22 @@ void AudioProcessor::OnAudioData(const std::vector<uint8_t>& data) {
                 agc_processor_->Process(audioData, frameCount, channels);
             } catch (const std::exception& e) {
                 // AGC failed, continue with original data
+            }
+        }
+    }
+    
+    // v2.8: Apply 3-Band EQ if enabled
+    if (eq_processor_ && eq_processor_->IsEnabled()) {
+        size_t sampleCount = processedData.size() / sizeof(float);
+        if (sampleCount > 0) {
+            try {
+                float* audioData = reinterpret_cast<float*>(processedData.data());
+                // Assuming stereo audio (2 channels) - adjust if needed
+                int frameCount = static_cast<int>(sampleCount / 2);
+                int channels = 2;
+                eq_processor_->Process(audioData, frameCount, channels);
+            } catch (const std::exception& e) {
+                // EQ failed, continue with original data
             }
         }
     }
@@ -793,6 +819,124 @@ Napi::Value AudioProcessor::GetAGCStats(const Napi::CallbackInfo& info) {
     result.Set("averageLevel", Napi::Number::New(env, stats.average_level_db));
     result.Set("rmsLinear", Napi::Number::New(env, stats.rms_linear));
     result.Set("clipping", Napi::Boolean::New(env, stats.clipping));
+    result.Set("framesProcessed", Napi::Number::New(env, static_cast<double>(stats.frames_processed)));
+    
+    return result;
+}
+
+// ====== v2.8: 3-Band EQ Methods ======
+
+Napi::Value AudioProcessor::SetEQEnabled(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (!eq_processor_) {
+        Napi::Error::New(env, "EQ processor not initialized").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    if (info.Length() < 1 || !info[0].IsBoolean()) {
+        Napi::TypeError::New(env, "Expected boolean argument").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    bool enabled = info[0].As<Napi::Boolean>().Value();
+    eq_processor_->SetEnabled(enabled);
+    
+    return env.Undefined();
+}
+
+Napi::Value AudioProcessor::GetEQEnabled(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (!eq_processor_) {
+        return Napi::Boolean::New(env, false);
+    }
+    
+    return Napi::Boolean::New(env, eq_processor_->IsEnabled());
+}
+
+Napi::Value AudioProcessor::SetEQBandGain(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (!eq_processor_) {
+        Napi::Error::New(env, "EQ processor not initialized").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    // Parameters: band (string), gain (number)
+    if (info.Length() < 2 || !info[0].IsString() || !info[1].IsNumber()) {
+        Napi::TypeError::New(env, "Expected (band: string, gain: number)").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    std::string bandStr = info[0].As<Napi::String>().Utf8Value();
+    float gain = info[1].As<Napi::Number>().FloatValue();
+    
+    // Map string to Band enum
+    wasapi_capture::ThreeBandEQ::Band band;
+    if (bandStr == "low") {
+        band = wasapi_capture::ThreeBandEQ::Band::Low;
+    } else if (bandStr == "mid") {
+        band = wasapi_capture::ThreeBandEQ::Band::Mid;
+    } else if (bandStr == "high") {
+        band = wasapi_capture::ThreeBandEQ::Band::High;
+    } else {
+        Napi::TypeError::New(env, "Invalid band name. Expected 'low', 'mid', or 'high'").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    eq_processor_->SetBandGain(band, gain);
+    
+    return env.Undefined();
+}
+
+Napi::Value AudioProcessor::GetEQBandGain(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (!eq_processor_) {
+        return Napi::Number::New(env, 0.0);
+    }
+    
+    // Parameter: band (string)
+    if (info.Length() < 1 || !info[0].IsString()) {
+        Napi::TypeError::New(env, "Expected band: string").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    std::string bandStr = info[0].As<Napi::String>().Utf8Value();
+    
+    // Map string to Band enum
+    wasapi_capture::ThreeBandEQ::Band band;
+    if (bandStr == "low") {
+        band = wasapi_capture::ThreeBandEQ::Band::Low;
+    } else if (bandStr == "mid") {
+        band = wasapi_capture::ThreeBandEQ::Band::Mid;
+    } else if (bandStr == "high") {
+        band = wasapi_capture::ThreeBandEQ::Band::High;
+    } else {
+        Napi::TypeError::New(env, "Invalid band name. Expected 'low', 'mid', or 'high'").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    float gain = eq_processor_->GetBandGain(band);
+    
+    return Napi::Number::New(env, gain);
+}
+
+Napi::Value AudioProcessor::GetEQStats(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (!eq_processor_) {
+        return env.Null();
+    }
+    
+    auto stats = eq_processor_->GetStats();
+    
+    Napi::Object result = Napi::Object::New(env);
+    result.Set("enabled", Napi::Boolean::New(env, stats.enabled));
+    result.Set("lowGain", Napi::Number::New(env, stats.low_gain_db));
+    result.Set("midGain", Napi::Number::New(env, stats.mid_gain_db));
+    result.Set("highGain", Napi::Number::New(env, stats.high_gain_db));
     result.Set("framesProcessed", Napi::Number::New(env, static_cast<double>(stats.frames_processed)));
     
     return result;

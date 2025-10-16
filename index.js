@@ -439,6 +439,111 @@ class AudioCapture extends EventEmitter {
             throw new Error(`Failed to get AGC statistics: ${error.message}`);
         }
     }
+
+    // ==================== v2.8: 3-Band EQ Methods ====================
+
+    /**
+     * 启用或禁用 3-Band EQ
+     * @param {boolean} enabled - true 启用，false 禁用
+     */
+    setEQEnabled(enabled) {
+        if (!this._processor) {
+            throw new Error('AudioProcessor not initialized');
+        }
+        
+        try {
+            this._processor.setEQEnabled(Boolean(enabled));
+        } catch (error) {
+            throw new Error(`Failed to set EQ enabled state: ${error.message}`);
+        }
+    }
+
+    /**
+     * 获取 EQ 启用状态
+     * @returns {boolean} EQ 是否启用
+     */
+    getEQEnabled() {
+        if (!this._processor) {
+            throw new Error('AudioProcessor not initialized');
+        }
+        
+        try {
+            return this._processor.getEQEnabled();
+        } catch (error) {
+            throw new Error(`Failed to get EQ enabled state: ${error.message}`);
+        }
+    }
+
+    /**
+     * 设置 EQ 频段增益
+     * @param {string} band - 频段名称: 'low', 'mid', 'high'
+     * @param {number} gain - 增益 (dB)，范围 -20 到 +20
+     */
+    setEQBandGain(band, gain) {
+        if (!this._processor) {
+            throw new Error('AudioProcessor not initialized');
+        }
+
+        // 验证参数
+        const validBands = ['low', 'mid', 'high'];
+        if (!validBands.includes(band)) {
+            throw new Error(`Invalid band name. Expected 'low', 'mid', or 'high', got '${band}'`);
+        }
+
+        if (typeof gain !== 'number' || isNaN(gain)) {
+            throw new Error(`Invalid gain value. Expected number, got ${typeof gain}`);
+        }
+        
+        try {
+            this._processor.setEQBandGain(band, gain);
+        } catch (error) {
+            throw new Error(`Failed to set EQ band gain: ${error.message}`);
+        }
+    }
+
+    /**
+     * 获取 EQ 频段增益
+     * @param {string} band - 频段名称: 'low', 'mid', 'high'
+     * @returns {number} 增益 (dB)
+     */
+    getEQBandGain(band) {
+        if (!this._processor) {
+            throw new Error('AudioProcessor not initialized');
+        }
+
+        // 验证参数
+        const validBands = ['low', 'mid', 'high'];
+        if (!validBands.includes(band)) {
+            throw new Error(`Invalid band name. Expected 'low', 'mid', or 'high', got '${band}'`);
+        }
+        
+        try {
+            return this._processor.getEQBandGain(band);
+        } catch (error) {
+            throw new Error(`Failed to get EQ band gain: ${error.message}`);
+        }
+    }
+
+    /**
+     * 获取 EQ 统计信息
+     * @returns {Object} EQ 统计信息
+     * @returns {boolean} .enabled - EQ 是否启用
+     * @returns {number} .lowGain - 低频增益 (dB)
+     * @returns {number} .midGain - 中频增益 (dB)
+     * @returns {number} .highGain - 高频增益 (dB)
+     * @returns {number} .framesProcessed - 已处理的帧数
+     */
+    getEQStats() {
+        if (!this._processor) {
+            throw new Error('AudioProcessor not initialized');
+        }
+        
+        try {
+            return this._processor.getEQStats();
+        } catch (error) {
+            throw new Error(`Failed to get EQ statistics: ${error.message}`);
+        }
+    }
 }
 
 /**

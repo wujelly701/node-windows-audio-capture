@@ -1,6 +1,21 @@
 /**
- * 示例：进程特定音频捕获
+ * 示例：进程特定音频捕获（RAW 格式）
  * 演示如何捕获特定进程的音频（如浏览器、音乐播放器）
+ * 
+ * ⚠️ 注意：此脚本保存的是 RAW PCM 格式，无法直接播放
+ * 
+ * 播放方法：
+ * 1. 使用 process-capture-wav.js 直接录制 WAV 格式（推荐）
+ *    node examples/process-capture-wav.js
+ * 
+ * 2. 使用 convert-raw-to-wav.js 转换现有 RAW 文件
+ *    node examples/convert-raw-to-wav.js capture_12345.raw
+ * 
+ * 3. 使用 FFmpeg 播放 RAW 文件
+ *    ffplay -f f32le -ar 48000 -ac 2 capture_12345.raw
+ * 
+ * 4. 使用 FFmpeg 转换为 WAV
+ *    ffmpeg -f f32le -ar 48000 -ac 2 -i capture_12345.raw output.wav
  */
 
 const { AudioCapture, enumerateProcesses } = require('../index');

@@ -12,7 +12,29 @@ Production-ready Windows 音频捕获 Node.js Native Addon，基于 WASAPI 标�
 > **🔊 v2.7.0 降噪 + 智能池**: RNNoise AI 降噪 + 自适应 Buffer Pool（Hit Rate 0.67% → 3.14%，371.6% 提升！）
 > **🎙️ ASR 语音识别专用**: 专为语音识别场景优化，支持阿里云/百度/腾讯/OpenAI Whisper 等主流 ASR API。
 > 
-> � [查看 v2.8.0 开发计划 →](V2.8_IMPLEMENTATION_PLAN.md) | [v2.7.0 Release Notes →](https://github.com/wujelly701/node-windows-audio-capture/releases/tag/v2.7.0)
+> 📖 [查看 v2.8.0 开发计划 →](V2.8_IMPLEMENTATION_PLAN.md) | [v2.8.0 Release →](https://github.com/wujelly701/node-windows-audio-capture/releases/tag/v2.8.0)
+
+---
+
+## 📚 文档导航
+
+**新手必看**:
+- 📖 **[快速入门指南](docs/QUICK_START_GUIDE.md)** - 30 秒上手，3 个完整示例
+- 📑 **[API 索引](docs/API_INDEX.md)** - 所有 API 快速查找
+- 🎯 **[翻译软件集成](docs/TRANSLATION_SOFTWARE_INTEGRATION.md)** - 实时翻译软件完整方案
+
+**进阶文档**:
+- 📘 **[完整 API 文档](docs/api.md)** - 详细参数说明和示例
+- 🚀 **[v2.8 发布说明](RELEASE_v2.8.0.md)** - AGC + EQ 完整说明
+- 💻 **[示例代码](examples/)** - 实战代码示例
+
+**版本历史**:
+- [v2.8 Release Notes](docs/V2.8_RELEASE_NOTES.md) - AGC + 3-Band EQ
+- [v2.7 Release Notes](docs/V2.7_RELEASE_NOTES.md) - AI 降噪
+- [v2.2 Release Notes](docs/V2.2_RELEASE_NOTES.md) - ASR 格式转换
+- [v2.1 Release Notes](docs/V2.1_RELEASE_NOTES.md) - 静音控制
+
+---
 
 ## 🎯 v2.7.0 新特性 - RNNoise 降噪 + 自适应 Buffer Pool 🚀🔥
 

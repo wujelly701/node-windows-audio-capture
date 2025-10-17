@@ -1,13 +1,20 @@
 # Ignore large local documents and temporary files
 大模型LLM实时桌面翻译软件 - 功能需求分析文档 v1.1.md
 分片续写与截断恢复-模板.md
+完整用户操作流程指南.md
 temp.md
 tasks/
 
 # Development process documents - keep local only
 V2.*_*.md
 RELEASE_*.md
+RELEASE_*.sh
+RELEASE_*.txt
+GITHUB_RELEASE_*.md
 DOCUMENTATION_COMPLETE.md
+DOCUMENTATION_FIX_*.md
+COMMIT_HISTORY_*.md
+REPOSITORY_CLEANUP_*.md
 archive/development/
 archive/legacy/
 archive/releases/
@@ -19,9 +26,16 @@ docs/ASR_ROADMAP_SUMMARY.md
 docs/ASR_COMPATIBILITY_ROADMAP.md
 docs/DEVICE_EVENTS_TESTING.md
 docs/CI_CD_GUIDE.md
+docs/CORRECT_API_USAGE.md
+docs/MICROPHONE_CAPTURE_API_DESIGN.md
 benchmark/
 research/
 prototype/
+
+# Release artifacts - DO NOT COMMIT
+*.zip
+*.tar.gz
+*.tgz
 
 # Build artifacts - DO NOT COMMIT
 build/Release/

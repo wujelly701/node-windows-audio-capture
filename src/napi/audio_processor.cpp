@@ -1,5 +1,6 @@
 ﻿#include "audio_processor.h"
 #include "external_buffer.h"
+#include "audio_stats_calculator.h"  // v2.10: Audio statistics
 #include <napi.h>
 #include <vector>
 #include <windows.h>
@@ -44,7 +45,12 @@ Napi::Object AudioProcessor::Init(Napi::Env env, Napi::Object exports) {
         InstanceMethod("getEQEnabled", &AudioProcessor::GetEQEnabled),
         InstanceMethod("setEQBandGain", &AudioProcessor::SetEQBandGain),
         InstanceMethod("getEQBandGain", &AudioProcessor::GetEQBandGain),
-        InstanceMethod("getEQStats", &AudioProcessor::GetEQStats)
+        InstanceMethod("getEQStats", &AudioProcessor::GetEQStats),
+        // v2.10: Real-time audio statistics
+        InstanceMethod("calculateAudioStats", &AudioProcessor::CalculateAudioStats),
+        // v2.10 Phase 2: Silence threshold configuration
+        InstanceMethod("setSilenceThreshold", &AudioProcessor::SetSilenceThreshold),
+        InstanceMethod("getSilenceThreshold", &AudioProcessor::GetSilenceThreshold)
     });
     exports.Set("AudioProcessor", func);
     exports.Set("getDeviceInfo", Napi::Function::New(env, AudioProcessor::GetDeviceInfo));
@@ -72,6 +78,11 @@ AudioProcessor::AudioProcessor(const Napi::CallbackInfo& info) : Napi::ObjectWra
         processId_ = options.Get("processId").As<Napi::Number>().Uint32Value();
     } else {
         processId_ = 0;  // 默认捕获所有进程音频
+    }
+    
+    // v2.9.0: 获取设备 ID（可选，用于麦克风捕获）
+    if (options.Has("deviceId")) {
+        deviceId_ = options.Get("deviceId").As<Napi::String>().Utf8Value();
     }
     
     // v2.6: 获取 zero-copy 模式开关（可选，默认 false 保持向后兼容）
@@ -153,6 +164,9 @@ AudioProcessor::AudioProcessor(const Napi::CallbackInfo& info) : Napi::ObjectWra
     // v2.8: Initialize 3-Band EQ processor
     eq_processor_ = std::make_unique<wasapi_capture::ThreeBandEQ>();
     eq_processor_->Initialize(48000);  // Default sample rate, will be updated in Start()
+    
+    // v2.10 Phase 2: Initialize audio statistics calculator with default threshold
+    stats_calculator_ = std::make_unique<wasapi_capture::AudioStatsCalculator>();
 }
 
 AudioProcessor::~AudioProcessor() {
@@ -192,10 +206,22 @@ Napi::Value AudioProcessor::Start(const Napi::CallbackInfo& info) {
         }
     }
     
-    // v2.0: 根据 processId 选择初始化模式
+    // v2.0/v2.9.0: 根据参数选择初始化模式
     bool initSuccess = false;
     
-    if (processId_ > 0) {
+    // v2.9.0: 优先使用设备 ID 初始化（麦克风捕获）
+    if (!deviceId_.empty()) {
+        // 使用设备 ID 直接捕获（不使用 loopback）
+        initSuccess = client_->InitializeWithDeviceId(deviceId_, false);
+        
+        if (!initSuccess) {
+            Napi::Error::New(env, 
+                "Failed to initialize with device ID. "
+                "Make sure the device ID is valid and the device is available."
+            ).ThrowAsJavaScriptException();
+            return env.Undefined();
+        }
+    } else if (processId_ > 0) {
         // v2.0: 使用进程过滤模式（标准 Loopback + 音频会话过滤）
         // 这种方式从 Windows 7 开始就支持，无需特殊版本检查
         
@@ -235,6 +261,10 @@ Napi::Value AudioProcessor::Start(const Napi::CallbackInfo& info) {
         Napi::Error::New(env, "Failed to start audio client").ThrowAsJavaScriptException();
         return env.Undefined();
     }
+    
+    // v2.10.0: 移除自动启动捕获线程
+    // 保持 API 一致性：start() 只初始化客户端，startCapture() 启动捕获线程
+    // （修复 "Capture already running" 错误）
     
     return Napi::Boolean::New(env, true);
 }
@@ -940,4 +970,81 @@ Napi::Value AudioProcessor::GetEQStats(const Napi::CallbackInfo& info) {
     result.Set("framesProcessed", Napi::Number::New(env, static_cast<double>(stats.frames_processed)));
     
     return result;
+}
+
+// v2.10: Calculate real-time audio statistics
+Napi::Value AudioProcessor::CalculateAudioStats(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    // Validate input
+    if (info.Length() < 1 || !info[0].IsBuffer()) {
+        Napi::TypeError::New(env, "Buffer expected as first argument").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+    
+    Napi::Buffer<uint8_t> buffer = info[0].As<Napi::Buffer<uint8_t>>();
+    const uint8_t* data = buffer.Data();
+    size_t length = buffer.Length();
+    
+    if (length == 0) {
+        Napi::TypeError::New(env, "Empty buffer").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+    
+    // Assume Float32 PCM format (4 bytes per sample)
+    // This is the default format from WASAPI loopback capture
+    const float* samples = reinterpret_cast<const float*>(data);
+    size_t numSamples = length / sizeof(float);
+    
+    // Calculate statistics using instance calculator (Phase 2: supports custom threshold)
+    wasapi_capture::AudioStats stats = stats_calculator_->Calculate(samples, numSamples);
+    
+    // Create JavaScript object
+    Napi::Object result = Napi::Object::New(env);
+    result.Set("peak", Napi::Number::New(env, stats.peak));
+    result.Set("rms", Napi::Number::New(env, stats.rms));
+    result.Set("db", Napi::Number::New(env, stats.db));
+    result.Set("volumePercent", Napi::Number::New(env, stats.volumePercent));
+    result.Set("isSilence", Napi::Boolean::New(env, stats.isSilence));
+    result.Set("timestamp", Napi::Number::New(env, static_cast<double>(stats.timestamp)));
+    
+    return result;
+}
+
+// v2.10 Phase 2: Set custom silence threshold
+Napi::Value AudioProcessor::SetSilenceThreshold(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    // Validate input
+    if (info.Length() < 1 || !info[0].IsNumber()) {
+        Napi::TypeError::New(env, "Number expected as first argument").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    float threshold = info[0].As<Napi::Number>().FloatValue();
+    
+    // Validate range
+    if (threshold < 0.0f || threshold > 1.0f) {
+        Napi::RangeError::New(env, "Silence threshold must be between 0 and 1").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    // Set threshold
+    if (stats_calculator_) {
+        stats_calculator_->SetSilenceThreshold(threshold);
+    }
+    
+    return env.Undefined();
+}
+
+// v2.10 Phase 2: Get current silence threshold
+Napi::Value AudioProcessor::GetSilenceThreshold(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (stats_calculator_) {
+        float threshold = stats_calculator_->GetSilenceThreshold();
+        return Napi::Number::New(env, threshold);
+    }
+    
+    return Napi::Number::New(env, 0.001f);  // Default value
 }

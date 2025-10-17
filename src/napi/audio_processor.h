@@ -8,6 +8,7 @@
 #include "audio_effects.h"  // v2.7: Audio effects (RNNoise)
 #include "agc_processor.h"  // v2.8: AGC (Automatic Gain Control)
 #include "eq_processor.h"   // v2.8: 3-Band EQ
+#include "audio_stats_calculator.h"  // v2.10 Phase 2: Audio statistics
 
 class AudioProcessor : public Napi::ObjectWrap<AudioProcessor> {
 public:
@@ -19,6 +20,7 @@ private:
     std::unique_ptr<AudioClient> client_;
     std::unique_ptr<CaptureThread> thread_;
     DWORD processId_ = 0;
+    std::string deviceId_;  // v2.9.0: 设备 ID（支持麦克风捕获）
     Napi::ThreadSafeFunction tsfn_;
     bool comInitialized_ = false;
     bool useExternalBuffer_ = false;  // Zero-copy 模式开关
@@ -72,6 +74,16 @@ private:
     Napi::Value SetEQBandGain(const Napi::CallbackInfo& info);
     Napi::Value GetEQBandGain(const Napi::CallbackInfo& info);
     Napi::Value GetEQStats(const Napi::CallbackInfo& info);
+    
+    // v2.10: Real-time audio statistics
+    Napi::Value CalculateAudioStats(const Napi::CallbackInfo& info);
+    
+    // v2.10 Phase 2: Silence threshold configuration
+    Napi::Value SetSilenceThreshold(const Napi::CallbackInfo& info);
+    Napi::Value GetSilenceThreshold(const Napi::CallbackInfo& info);
+    
+    // v2.10 Phase 2: Audio statistics calculator with configurable threshold
+    std::unique_ptr<wasapi_capture::AudioStatsCalculator> stats_calculator_;
     
     // 静态方法：设备枚举
     static Napi::Value GetDeviceInfo(const Napi::CallbackInfo& info);

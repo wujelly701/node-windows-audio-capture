@@ -148,6 +148,420 @@ console.log('音频捕获已停止');
 
 ---
 
+#### `enableStats(options)` ⭐ v2.10.0 新增
+
+启用实时音频统计功能。启用后，会定期触发 `'stats'` 事件，提供音频统计数据（峰值、RMS、分贝等）。
+
+**签名：**
+
+```typescript
+enableStats(options?: AudioStatsOptions): void
+```
+
+**参数：**
+
+- `options` (AudioStatsOptions, 可选) - 统计配置选项
+  - `interval` (number, 可选) - 统计触发间隔（毫秒），默认 500ms
+  - `silenceThreshold` (number, 可选) - 静音检测阈值（0.0 - 1.0），默认 0.001 ⭐ Phase 2 新增
+
+**返回值：**
+
+- `void`
+
+**示例 1：基础配置**
+
+```javascript
+const capture = new AudioCapture({ processId: 0 });
+
+// 启用实时统计（每 500ms 触发一次 'stats' 事件）
+capture.enableStats({ interval: 500 });
+
+// 监听统计事件
+capture.on('stats', (stats) => {
+  console.log('Peak:', stats.peak);                    // 峰值 (0.0 - 1.0)
+  console.log('RMS:', stats.rms);                      // 均方根 (0.0 - 1.0)
+  console.log('dB:', stats.db);                        // 分贝 (-∞ to 0 dB)
+  console.log('Volume:', stats.volumePercent + '%');   // 音量百分比 (0 - 100)
+  console.log('Silence:', stats.isSilence);            // 是否静音
+  console.log('Timestamp:', stats.timestamp);          // Unix 时间戳（毫秒）
+});
+
+await capture.start();
+```
+
+**示例 2：配置自定义静音阈值** ⭐ Phase 2
+
+```javascript
+// 为嘈杂环境设置更高的阈值
+capture.enableStats({ 
+  interval: 300,
+  silenceThreshold: 0.005  // 高阈值，避免误触发
+});
+
+capture.on('stats', (stats) => {
+  if (!stats.isSilence) {
+    console.log(`🔊 音频: ${stats.volumePercent.toFixed(1)}% (${stats.db.toFixed(1)} dB)`);
+  }
+});
+```
+
+**示例 3：场景化配置** ⭐ Phase 2
+
+```javascript
+// 音乐录制场景：捕捉细微动态
+capture.enableStats({ 
+  interval: 200,
+  silenceThreshold: 0.0001  // 超低阈值
+});
+
+// 游戏直播场景：过滤背景噪音
+capture.enableStats({ 
+  interval: 500,
+  silenceThreshold: 0.004   // 高阈值
+});
+```
+
+**详细说明：**
+
+- 启用后会自动收集音频数据并定期计算统计值
+- 统计间隔越短，统计频率越高，但 CPU 开销也会增加
+- 推荐间隔：200-1000ms（默认 500ms）
+- 可以在运行中动态启用/禁用
+- 性能开销：< 1% CPU（默认配置）
+
+**应用场景：**
+
+- 实时音量监控和可视化
+- 智能静音检测
+- 音频质量分析
+- 音量阈值告警
+
+---
+
+#### `disableStats()`
+
+禁用实时音频统计功能。
+
+**签名：**
+
+```typescript
+disableStats(): void
+```
+
+**参数：**
+
+- 无
+
+**返回值：**
+
+- `void`
+
+**示例：**
+
+```javascript
+// 禁用统计
+capture.disableStats();
+
+// 不再触发 'stats' 事件
+```
+
+**详细说明：**
+
+- 停止触发 `'stats'` 事件
+- 清空内部统计缓冲区
+- 多次调用是安全的（幂等操作）
+- 不影响音频捕获（`'data'` 事件继续触发）
+
+---
+
+#### `isStatsEnabled()`
+
+查询实时音频统计是否已启用。
+
+**签名：**
+
+```typescript
+isStatsEnabled(): boolean
+```
+
+**参数：**
+
+- 无
+
+**返回值：**
+
+- `boolean` - `true` 表示统计已启用，`false` 表示未启用
+
+**示例：**
+
+```javascript
+if (capture.isStatsEnabled()) {
+  console.log('统计已启用');
+} else {
+  console.log('统计未启用');
+}
+```
+
+---
+
+#### `calculateStats(buffer)` ⭐ v2.10.0 新增
+
+对单个音频缓冲区进行一次性统计计算。无需启用持续统计，适用于按需计算场景。
+
+**签名：**
+
+```typescript
+calculateStats(buffer: Buffer): AudioStats
+```
+
+**参数：**
+
+- `buffer` (Buffer) - 音频数据缓冲区（Float32 PCM 格式）
+
+**返回值：**
+
+- `AudioStats` - 音频统计对象
+
+**AudioStats 结构：**
+
+```typescript
+interface AudioStats {
+  peak: number;           // 峰值 (0.0 - 1.0)
+  rms: number;            // 均方根 (0.0 - 1.0)
+  db: number;             // 分贝值 (-∞ to 0 dB)
+  volumePercent: number;  // 音量百分比 (0 - 100)
+  isSilence: boolean;     // 是否静音（RMS < 0.001）
+  timestamp: number;      // Unix 时间戳（毫秒）
+}
+```
+
+**示例 1：按需计算**
+
+```javascript
+const capture = new AudioCapture({ processId: 0 });
+
+let dataCount = 0;
+
+capture.on('data', (data) => {
+  dataCount++;
+  
+  // 每 10 个 data 事件计算一次统计
+  if (dataCount % 10 === 0) {
+    const stats = capture.calculateStats(data.buffer);
+    console.log(`Peak: ${stats.peak.toFixed(4)}, RMS: ${stats.rms.toFixed(4)}`);
+  }
+});
+
+await capture.start();
+```
+
+**示例 2：智能静音检测**
+
+```javascript
+capture.on('data', (data) => {
+  const stats = capture.calculateStats(data.buffer);
+  
+  if (stats.isSilence) {
+    console.log('🔇 检测到静音');
+  } else {
+    console.log(`🔊 检测到音频 (Volume: ${stats.volumePercent.toFixed(1)}%)`);
+  }
+});
+```
+
+**详细说明：**
+
+- 同步方法，立即返回统计结果
+- 不需要调用 `enableStats()` 就可以使用
+- 每次调用都会重新计算（无缓存）
+- 适用于按需统计场景，节省 CPU 资源
+- 性能：处理 1000 samples < 0.1ms
+
+**计算公式：**
+
+- **Peak（峰值）**: `max(|sample[i]|)` - 音频片段的最大绝对振幅
+- **RMS（均方根）**: `sqrt(sum(sample[i]²) / N)` - 音频的平均能量
+- **dB（分贝）**: `20 * log10(RMS)` - 对数刻度的音量表示
+- **Volume（音量百分比）**: `RMS * 100` - 线性刻度的音量表示
+- **Silence（静音检测）**: `RMS < 0.001` - 低于阈值视为静音
+
+**准确度：**
+
+- **Peak**: 100%（精确匹配）
+- **RMS**: < 1% 误差
+- **dB**: < 0.5 dB 误差
+
+---
+
+#### `setSilenceThreshold(threshold)` ⭐ v2.10.0 Phase 2 新增
+
+设置静音检测的阈值。此方法允许根据不同的音频环境动态调整静音判断标准。
+
+**签名：**
+
+```typescript
+setSilenceThreshold(threshold: number): void
+```
+
+**参数：**
+
+- `threshold` (number) - 静音检测阈值（范围 0.0 - 1.0）
+  - **默认值**: 0.001
+  - **安静环境**: 0.0001 - 0.001（如录音棚、深夜录制）
+  - **普通环境**: 0.001 - 0.003（如家庭、办公室）
+  - **嘈杂环境**: 0.003 - 0.010（如街道、公共场所）
+
+**返回值：**
+
+- `void` - 无返回值
+
+**异常：**
+
+- 如果 `threshold` 不在 [0.0, 1.0] 范围内，抛出 `RangeError`
+
+**示例 1：为嘈杂环境提高阈值**
+
+```javascript
+const capture = new AudioCapture({ processId: 0 });
+
+// 在嘈杂的直播环境中，需要更高的阈值
+capture.setSilenceThreshold(0.005);
+
+capture.on('stats', (stats) => {
+  console.log(`静音: ${stats.isSilence} (阈值: 0.005)`);
+});
+
+await capture.enableStats({ interval: 100 });
+await capture.start();
+```
+
+**示例 2：动态切换环境**
+
+```javascript
+// 初始为普通环境
+capture.setSilenceThreshold(0.002);
+
+// 切换到安静的录音环境
+function switchToStudioMode() {
+  capture.setSilenceThreshold(0.0005);
+  console.log('切换到录音棚模式（低阈值）');
+}
+
+// 切换到嘈杂的户外环境
+function switchToOutdoorMode() {
+  capture.setSilenceThreshold(0.008);
+  console.log('切换到户外模式（高阈值）');
+}
+```
+
+**示例 3：根据应用场景优化**
+
+```javascript
+// 电话会议：过滤键盘噪音
+capture.setSilenceThreshold(0.002);
+
+// 音乐录制：捕捉细微动态
+capture.setSilenceThreshold(0.0001);
+
+// 游戏直播：避免误触发
+capture.setSilenceThreshold(0.004);
+```
+
+**详细说明：**
+
+- **实时生效**: 设置后立即影响后续的统计计算
+- **线程安全**: 可在捕获过程中动态调整
+- **影响范围**: 
+  - `enableStats()` 生成的 'stats' 事件中的 `isSilence`
+  - `calculateStats()` 返回结果中的 `isSilence`
+- **性能**: 零开销（仅修改阈值变量）
+
+**推荐阈值指南：**
+
+| 应用场景 | 推荐阈值 | 说明 |
+|---------|---------|------|
+| 音乐录制 | 0.0001 - 0.001 | 捕捉细微的乐器呼吸声 |
+| 语音通话 | 0.001 - 0.003 | 平衡清晰度与噪音过滤 |
+| 会议录音 | 0.002 - 0.004 | 过滤键盘、空调等背景噪音 |
+| 游戏直播 | 0.003 - 0.005 | 避免游戏音效误触发 |
+| 户外录制 | 0.005 - 0.010 | 过滤风声、交通噪音 |
+
+---
+
+#### `getSilenceThreshold()` ⭐ v2.10.0 Phase 2 新增
+
+获取当前的静音检测阈值。
+
+**签名：**
+
+```typescript
+getSilenceThreshold(): number
+```
+
+**参数：**
+
+- 无
+
+**返回值：**
+
+- `number` - 当前的静音检测阈值（范围 0.0 - 1.0）
+
+**示例 1：查询当前阈值**
+
+```javascript
+const currentThreshold = capture.getSilenceThreshold();
+console.log(`当前静音阈值: ${currentThreshold}`); // 0.001（默认值）
+```
+
+**示例 2：保存和恢复阈值**
+
+```javascript
+// 保存当前阈值
+const originalThreshold = capture.getSilenceThreshold();
+
+// 临时调整为高阈值
+capture.setSilenceThreshold(0.010);
+await processNoisyAudio();
+
+// 恢复原始阈值
+capture.setSilenceThreshold(originalThreshold);
+```
+
+**示例 3：构建自适应系统**
+
+```javascript
+function calibrateThreshold(audioSamples) {
+  // 分析音频样本，计算背景噪音水平
+  const noiseLevel = analyzeNoiseLevel(audioSamples);
+  
+  // 根据噪音水平自动调整阈值
+  const adaptiveThreshold = Math.max(noiseLevel * 2, 0.001);
+  
+  console.log(`背景噪音: ${noiseLevel.toFixed(4)}`);
+  console.log(`调整阈值: ${capture.getSilenceThreshold()} → ${adaptiveThreshold.toFixed(4)}`);
+  
+  capture.setSilenceThreshold(adaptiveThreshold);
+}
+
+// 每 30 秒重新校准
+setInterval(() => {
+  const recentSamples = collectRecentAudio();
+  calibrateThreshold(recentSamples);
+}, 30000);
+```
+
+**详细说明：**
+
+- **默认值**: 0.001（如果从未调用过 `setSilenceThreshold`）
+- **同步方法**: 立即返回，无 I/O 开销
+- **用途**:
+  - 调试时检查当前配置
+  - 实现阈值的保存/恢复
+  - 构建自适应静音检测系统
+  - 用户界面显示当前灵敏度
+
+---
+
 ### 静态方法
 
 #### `AudioCapture.getDevices()`
@@ -394,6 +808,129 @@ capture.on('end', () => {
 - 调用 `stop()` 后触发
 - 流已关闭，不会再有 `'data'` 事件
 - 可以重新调用 `start()` 开始新的捕获
+
+---
+
+#### `'stats'` ⭐ v2.10.0 新增
+
+当启用实时统计后（`enableStats()`），定期触发音频统计事件。
+
+**回调参数：**
+
+```typescript
+(stats: AudioStats) => void
+```
+
+- `stats` (AudioStats) - 音频统计对象
+
+**AudioStats 对象结构：**
+
+```typescript
+interface AudioStats {
+  peak: number;           // 峰值 (0.0 - 1.0)
+  rms: number;            // 均方根 (0.0 - 1.0)
+  db: number;             // 分贝值 (-∞ to 0 dB)
+  volumePercent: number;  // 音量百分比 (0 - 100)
+  isSilence: boolean;     // 是否静音（RMS < 0.001）
+  timestamp: number;      // Unix 时间戳（毫秒）
+}
+```
+
+**示例 1：实时音量监控**
+
+```javascript
+const capture = new AudioCapture({ processId: 0 });
+
+// 启用统计（每 500ms 触发一次）
+capture.enableStats({ interval: 500 });
+
+capture.on('stats', (stats) => {
+  // 音量条可视化
+  const volumeBar = '█'.repeat(Math.floor(stats.volumePercent / 2));
+  const emptyBar = '░'.repeat(50 - Math.floor(stats.volumePercent / 2));
+  
+  console.log(`Volume: ${volumeBar}${emptyBar} ${stats.volumePercent.toFixed(1)}%`);
+  console.log(`Peak: ${stats.peak.toFixed(4)}, RMS: ${stats.rms.toFixed(4)}, dB: ${stats.db.toFixed(2)}`);
+  console.log(`Silence: ${stats.isSilence ? '🔇' : '🔊'}`);
+});
+
+await capture.start();
+```
+
+**示例 2：智能静音检测**
+
+```javascript
+let lastStatus = null;
+
+capture.enableStats({ interval: 300 });
+
+capture.on('stats', (stats) => {
+  if (stats.isSilence) {
+    if (lastStatus !== 'silence') {
+      console.log('🔇 检测到静音');
+      lastStatus = 'silence';
+    }
+  } else {
+    if (lastStatus !== 'audio') {
+      console.log(`🔊 检测到音频 (Volume: ${stats.volumePercent.toFixed(1)}%)`);
+      lastStatus = 'audio';
+    }
+  }
+});
+```
+
+**示例 3：音量阈值告警**
+
+```javascript
+const VOLUME_THRESHOLD = 20; // 20%
+const DB_THRESHOLD = -30;    // -30 dB
+
+capture.enableStats({ interval: 500 });
+
+capture.on('stats', (stats) => {
+  if (stats.volumePercent > VOLUME_THRESHOLD) {
+    console.log(`⚠️  音量过高！(${stats.volumePercent.toFixed(1)}% > ${VOLUME_THRESHOLD}%)`);
+  }
+  
+  if (stats.db > DB_THRESHOLD) {
+    console.log(`⚠️  分贝过高！(${stats.db.toFixed(2)} dB > ${DB_THRESHOLD} dB)`);
+  }
+});
+```
+
+**详细说明：**
+
+- 只有调用 `enableStats()` 后才会触发此事件
+- 触发频率由 `interval` 参数控制（默认 500ms）
+- 统计基于多个音频 chunk 的累积数据
+- 每次触发都会包含最新的时间戳
+- 性能开销：< 1% CPU（默认配置）
+
+**统计指标说明：**
+
+- **Peak（峰值）**: 音频片段的最大绝对振幅，范围 0.0-1.0
+  - 用于检测音频裁剪（clipping）
+  - 接近 1.0 表示音频可能失真
+  
+- **RMS（均方根）**: 音频的平均能量，范围 0.0-1.0
+  - 更接近人耳感知的音量
+  - 适用于音量监控
+  
+- **dB（分贝）**: 对数刻度的音量表示，范围 -∞ to 0 dB
+  - 更符合专业音频标准
+  - 0 dB 表示最大音量
+  - -60 dB 接近静音
+  
+- **volumePercent（音量百分比）**: 线性刻度的音量，范围 0-100
+  - 最直观的音量表示
+  - 适用于用户界面展示
+  
+- **isSilence（静音检测）**: 布尔值，RMS < 0.001 时为 true
+  - 用于智能静音检测
+  - 阈值基于实践经验调优
+  
+- **timestamp（时间戳）**: Unix 毫秒时间戳
+  - 可用于事件排序和时间同步
 
 ---
 

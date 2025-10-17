@@ -141,6 +141,69 @@ export interface AudioDataEvent {
 }
 
 /**
+ * v2.10.0: 音频统计数据
+ * @since 2.10.0
+ */
+export interface AudioStats {
+    /**
+     * 峰值振幅 (0.0 - 1.0)
+     * 表示音频片段中的最大绝对振幅
+     */
+    peak: number;
+    
+    /**
+     * 均方根 (0.0 - 1.0)
+     * 表示音频的平均能量水平
+     */
+    rms: number;
+    
+    /**
+     * 分贝值 (-∞ to 0 dB)
+     * 对数刻度的音量表示，0 dB 为最大值
+     */
+    db: number;
+    
+    /**
+     * 音量百分比 (0 - 100)
+     * 线性刻度的音量表示
+     */
+    volumePercent: number;
+    
+    /**
+     * 是否静音
+     * 当 RMS < 0.001 时为 true
+     */
+    isSilence: boolean;
+    
+    /**
+     * Unix 时间戳（毫秒）
+     */
+    timestamp: number;
+}
+
+/**
+ * v2.10.0: 音频统计选项
+ * Phase 2: Added silenceThreshold configuration
+ * @since 2.10.0
+ */
+export interface AudioStatsOptions {
+    /**
+     * 统计间隔（毫秒）
+     * @default 500
+     */
+    interval?: number;
+    
+    /**
+     * 静音检测阈值（RMS）
+     * 当 RMS < silenceThreshold 时，isSilence 为 true
+     * @default 0.001
+     * @range 0.0 - 1.0
+     * @since 2.10.0 Phase 2
+     */
+    silenceThreshold?: number;
+}
+
+/**
  * v2.3: 音频设备详细信息
  * @since 2.3.0
  */
@@ -739,11 +802,94 @@ export declare class AudioCapture extends EventEmitter {
      */
     getEQStats(): EQStats | null;
     
+    // ==================== v2.10: Real-time Audio Statistics ====================
+    
+    /**
+     * v2.10.0: 启用实时音频统计
+     * 启用后会定期（根据 interval）触发 'stats' 事件
+     * @param options - 统计选项
+     * @since 2.10.0
+     * @example
+     * ```typescript
+     * capture.enableStats({ interval: 500 }); // 每 500ms 触发一次统计
+     * capture.on('stats', (stats) => {
+     *   console.log('Peak:', stats.peak);
+     *   console.log('RMS:', stats.rms);
+     *   console.log('dB:', stats.db);
+     *   console.log('Volume:', stats.volumePercent);
+     * });
+     * ```
+     */
+    enableStats(options?: AudioStatsOptions): void;
+    
+    /**
+     * v2.10.0: 禁用实时音频统计
+     * @since 2.10.0
+     */
+    disableStats(): void;
+    
+    /**
+     * v2.10.0: 获取统计是否启用
+     * @returns 如果启用返回 true，否则返回 false
+     * @since 2.10.0
+     */
+    isStatsEnabled(): boolean;
+    
+    /**
+     * Phase 2: 设置静音检测阈值
+     * @param threshold - 静音阈值（RMS，0.0 - 1.0）
+     * @throws {Error} 如果阈值不在有效范围内
+     * @since 2.10.0 Phase 2
+     * @example
+     * ```typescript
+     * // 设置更高的阈值（更容易检测为静音）
+     * capture.setSilenceThreshold(0.005);
+     * 
+     * // 设置更低的阈值（更难检测为静音）
+     * capture.setSilenceThreshold(0.0001);
+     * ```
+     */
+    setSilenceThreshold(threshold: number): void;
+    
+    /**
+     * Phase 2: 获取当前静音检测阈值
+     * @returns 当前阈值
+     * @since 2.10.0 Phase 2
+     */
+    getSilenceThreshold(): number;
+    
+    /**
+     * v2.10.0: 手动计算音频统计（一次性）
+     * 用于对单个音频缓冲区进行统计计算，不需要启用持续统计
+     * @param buffer - 音频数据缓冲区（Float32 PCM 格式）
+     * @returns 统计数据对象
+     * @throws {Error} 如果 AudioCapture 未初始化或 buffer 无效
+     * @since 2.10.0
+     * @example
+     * ```typescript
+     * capture.on('data', (data) => {
+     *   const stats = capture.calculateStats(data.buffer);
+     *   if (!stats.isSilence) {
+     *     console.log('Volume:', stats.volumePercent);
+     *   }
+     * });
+     * ```
+     */
+    calculateStats(buffer: Buffer): AudioStats;
+    
     /**
      * 音频数据事件
      * @event
      */
     on(event: 'data', listener: (data: AudioDataEvent) => void): this;
+    
+    /**
+     * v2.10.0: 音频统计事件
+     * 当启用 enableStats() 后，会定期触发此事件
+     * @event
+     * @since 2.10.0
+     */
+    on(event: 'stats', listener: (stats: AudioStats) => void): this;
     
     /**
      * 错误事件
@@ -1140,11 +1286,11 @@ export declare class MicrophoneCapture extends EventEmitter {
 }
 
 // =====================================================================
-// MicrophoneCapture �� (v2.9.0)
+// MicrophoneCapture �� (v2.9.0)
 // =====================================================================
 
 /**
- * v2.9.0: ��˷粶������ѡ��
+ * v2.9.0: ��˷粶������ѡ��
  * @since 2.9.0
  */
 export interface MicrophoneCaptureOptions {
@@ -1168,7 +1314,7 @@ export interface MicrophoneCaptureOptions {
 }
 
 /**
- * v2.9.0: ��˷粶����
+ * v2.9.0: ��˷粶����
  * @since 2.9.0
  */
 export declare class MicrophoneCapture extends EventEmitter {

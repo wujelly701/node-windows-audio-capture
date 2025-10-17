@@ -6,6 +6,9 @@
 const { EventEmitter } = require('events');
 const addon = require('node-gyp-build')(__dirname);
 
+// v2.9.0 - Import MicrophoneCapture from lib/
+const { MicrophoneCapture: LibMicrophoneCapture } = require('./lib/microphone-capture');
+
 /**
  * AudioCapture 类 - 音频捕获器
  * @extends EventEmitter
@@ -37,6 +40,13 @@ class AudioCapture extends EventEmitter {
         this._processor = null;
         this._isRunning = false;
         this._isPaused = false;
+        
+        // v2.10.0: 音频统计相关状态
+        this._statsEnabled = false;
+        this._statsInterval = 500; // 默认 500ms 统计一次
+        this._statsBuffer = [];
+        this._lastStatsTime = 0;
+        this._silenceThreshold = 0.001; // Phase 2: 默认静音阈值
         
         // 创建 Native AudioProcessor 实例
         try {
@@ -194,6 +204,17 @@ class AudioCapture extends EventEmitter {
             return;
         }
         
+        // v2.10.0: 收集统计数据
+        if (this._statsEnabled) {
+            this._statsBuffer.push(buffer);
+            
+            const now = Date.now();
+            if (now - this._lastStatsTime >= this._statsInterval) {
+                this._calculateAndEmitStats();
+                this._lastStatsTime = now;
+            }
+        }
+        
         /**
          * 音频数据事件
          * @event AudioCapture#data
@@ -207,6 +228,111 @@ class AudioCapture extends EventEmitter {
             length: buffer.length,
             timestamp: Date.now()
         });
+    }
+    
+    /**
+     * v2.10.0: 计算并发射音频统计数据
+     * @private
+     */
+    _calculateAndEmitStats() {
+        if (this._statsBuffer.length === 0) {
+            return;
+        }
+        
+        try {
+            // 合并所有缓冲的数据
+            const totalBuffer = Buffer.concat(this._statsBuffer);
+            this._statsBuffer = [];
+            
+            // 调用 C++ 层计算统计
+            const stats = this._processor.calculateAudioStats(totalBuffer);
+            
+            /**
+             * 音频统计事件
+             * @event AudioCapture#stats
+             * @type {Object}
+             * @property {number} peak - 峰值 (0.0 - 1.0)
+             * @property {number} rms - 均方根 (0.0 - 1.0)
+             * @property {number} db - 分贝值 (-∞ to 0 dB)
+             * @property {number} volumePercent - 音量百分比 (0 - 100)
+             * @property {boolean} isSilence - 是否静音 (RMS < 0.001)
+             * @property {number} timestamp - Unix 时间戳（毫秒）
+             */
+            this.emit('stats', stats);
+        } catch (error) {
+            this.emit('error', new Error(`Failed to calculate audio stats: ${error.message}`));
+        }
+    }
+    
+    /**
+     * v2.10.0: 启用音频统计
+     * Phase 2: Added silenceThreshold configuration
+     * @param {Object} options - 统计选项
+     * @param {number} [options.interval=500] - 统计间隔（毫秒）
+     * @param {number} [options.silenceThreshold=0.001] - 静音检测阈值（RMS，默认 0.001）
+     */
+    enableStats(options = {}) {
+        this._statsEnabled = true;
+        this._statsInterval = options.interval || 500;
+        this._statsBuffer = [];
+        this._lastStatsTime = Date.now();
+        
+        // Phase 2: 设置静音阈值
+        if (options.silenceThreshold !== undefined) {
+            this.setSilenceThreshold(options.silenceThreshold);
+        }
+    }
+    
+    /**
+     * Phase 2: 设置静音检测阈值
+     * @param {number} threshold - 静音阈值（RMS，0.0 - 1.0）
+     */
+    setSilenceThreshold(threshold) {
+        if (typeof threshold !== 'number' || threshold < 0 || threshold > 1) {
+            throw new Error('Silence threshold must be a number between 0 and 1');
+        }
+        this._silenceThreshold = threshold;
+        
+        // 如果 processor 已初始化，更新 C++ 层阈值
+        if (this._processor && this._processor.setSilenceThreshold) {
+            this._processor.setSilenceThreshold(threshold);
+        }
+    }
+    
+    /**
+     * Phase 2: 获取当前静音检测阈值
+     * @returns {number} 当前阈值
+     */
+    getSilenceThreshold() {
+        return this._silenceThreshold;
+    }
+    
+    /**
+     * v2.10.0: 禁用音频统计
+     */
+    disableStats() {
+        this._statsEnabled = false;
+        this._statsBuffer = [];
+    }
+    
+    /**
+     * v2.10.0: 获取统计是否启用
+     * @returns {boolean}
+     */
+    isStatsEnabled() {
+        return this._statsEnabled;
+    }
+    
+    /**
+     * v2.10.0: 手动计算音频统计（一次性）
+     * @param {Buffer} buffer - 音频数据缓冲区
+     * @returns {Object} 统计数据
+     */
+    calculateStats(buffer) {
+        if (!this._processor) {
+            throw new Error('AudioCapture not initialized');
+        }
+        return this._processor.calculateAudioStats(buffer);
     }
 
     /**
@@ -761,5 +887,7 @@ function enumerateProcesses() {
 module.exports = {
     AudioCapture,
     getDeviceInfo,
-    enumerateProcesses
+    enumerateProcesses,
+    // v2.9.0 - Microphone Capture API
+    MicrophoneCapture: LibMicrophoneCapture
 };

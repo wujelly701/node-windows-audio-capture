@@ -3,16 +3,17 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D14.x-brightgreen.svg)](https://nodejs.org/)
 [![Windows](https://img.shields.io/badge/Windows-10%2F11-blue.svg)](https://www.microsoft.com/windows)
-[![Version](https://img.shields.io/badge/version-2.8.0--alpha-orange.svg)](https://github.com/wujelly701/node-windows-audio-capture)
+[![Version](https://img.shields.io/badge/version-2.9.0-orange.svg)](https://github.com/wujelly701/node-windows-audio-capture)
 [![Release](https://img.shields.io/github/v/release/wujelly701/node-windows-audio-capture?color=blue)](https://github.com/wujelly701/node-windows-audio-capture/releases/latest)
 
-Production-ready Windows 音频捕获 Node.js Native Addon，基于 WASAPI 标准 Loopback 模式实现。
+Production-ready Windows 音频捕获 Node.js Native Addon，基于 WASAPI 实现系统音频和麦克风捕获。
 
+> **🎙️ v2.9.0 麦克风捕获**: 新增 `MicrophoneCapture` API，支持设备选择 + 音频效果（降噪/AGC/EQ）
+> **🔊 ASR 质量提升**: AudioProcessingPipeline 重采样升级（Linear → Sinc），显著改善语音识别音质
 > **⚡ v2.8.0 AGC + EQ**: 自动增益控制（< 5ms 延迟）+ 3-Band EQ 均衡器（Low/Mid/High，-20~+20dB）
-> **🔊 v2.7.0 降噪 + 智能池**: RNNoise AI 降噪 + 自适应 Buffer Pool（Hit Rate 0.67% → 3.14%，371.6% 提升！）
 > **🎙️ ASR 语音识别专用**: 专为语音识别场景优化，支持阿里云/百度/腾讯/OpenAI Whisper 等主流 ASR API。
 > 
-> 📖 [查看 v2.8.0 开发计划 →](V2.8_IMPLEMENTATION_PLAN.md) | [v2.8.0 Release →](https://github.com/wujelly701/node-windows-audio-capture/releases/tag/v2.8.0)
+> 📖 [查看 v2.9.0 发布说明 →](docs/V2.9_RELEASE_NOTES.md) | [v2.9.0 Release →](https://github.com/wujelly701/node-windows-audio-capture/releases/tag/v2.9.0)
 
 ---
 
@@ -36,7 +37,136 @@ Production-ready Windows 音频捕获 Node.js Native Addon，基于 WASAPI 标�
 
 ---
 
-## 🎯 v2.7.0 新特性 - RNNoise 降噪 + 自适应 Buffer Pool 🚀🔥
+## 🎯 v2.9.0 新特性 - 麦克风捕获 + ASR 质量提升 🎙️✨
+
+**🎙️ 麦克风捕获 + 🔊 ASR 音质改进** - 完整的音频输入方案！
+
+### 核心特性
+
+#### 🎙️ 麦克风捕获 API
+- **设备级捕获**: 直接录制麦克风输入（WASAPI 直接捕获模式）
+- **设备选择**: 支持 `deviceId` 参数选择特定麦克风
+- **音频效果**: 集成 RNNoise 降噪 + AGC + EQ（与系统音频相同）
+- **零配置**: 与 `AudioCapture` 相同的 API 设计，学习成本为零
+
+```javascript
+const { MicrophoneCapture } = require('node-windows-audio-capture');
+
+// 录制默认麦克风
+const mic = new MicrophoneCapture({
+  denoise: true,   // RNNoise 降噪
+  agc: true,       // 自动增益
+  eq: true         // 均衡器
+});
+
+mic.on('data', (buffer) => {
+  // 处理麦克风音频数据
+  console.log('Microphone:', buffer.length, 'bytes');
+});
+
+await mic.start();
+```
+
+**设备选择示例**:
+```javascript
+const { listDevices } = require('node-windows-audio-capture');
+
+// 列出所有麦克风设备
+const devices = await listDevices();
+const microphones = devices.filter(d => !d.isLoopback);
+
+console.log('可用麦克风:');
+microphones.forEach(mic => {
+  console.log(`  ${mic.name} (${mic.id})`);
+});
+
+// 选择特定麦克风
+const mic = new MicrophoneCapture({
+  deviceId: microphones[0].id,  // 使用第一个麦克风
+  denoise: true,
+  agc: true
+});
+```
+
+#### 🔊 ASR 重采样质量提升
+- **Sinc 插值**: 从线性插值升级到 Kaiser-windowed Sinc 插值
+- **显著改善**: 48kHz → 16kHz 降采样时音质明显提升
+- **自动应用**: 所有 ASR 预设（`china-asr`, `openai-whisper`, `azure`, `google`）
+- **低开销**: < 0.2ms 额外延迟，性能影响可忽略
+
+```javascript
+const { AudioProcessingPipeline } = require('node-windows-audio-capture');
+
+// ASR 预设自动使用高质量 Sinc 插值
+const pipeline = new AudioProcessingPipeline('china-asr');  // 自动 Sinc 重采样
+const pipeline2 = new AudioProcessingPipeline('openai-whisper');  // 同样！
+
+// 手动配置也支持
+const pipeline3 = new AudioProcessingPipeline({
+  targetSampleRate: 16000,
+  targetChannels: 1,
+  resamplingQuality: 'sinc'  // 🔊 最高质量
+});
+```
+
+### 重采样质量对比
+
+| 质量级别 | 算法 | 音质 | CPU | 适用场景 |
+|---------|------|------|-----|---------|
+| `simple` | 直接采样 | ⭐ | 最低 | 测试/原型 |
+| `linear` | 线性插值 | ⭐⭐⭐ | 低 | 一般场景 |
+| **`sinc`** | Kaiser Sinc | ⭐⭐⭐⭐⭐ | 中 | **ASR/生产** ✅ |
+
+**v2.9.0 改进**:
+- ✅ ASR 预设默认使用 `sinc`（之前是 `linear`）
+- ✅ 系统音频 + 麦克风捕获都受益
+- ✅ 向后兼容，无需代码更改
+
+### 应用场景
+
+**麦克风捕获**:
+- ✅ 语音识别 (ASR)
+- ✅ 语音翻译软件
+- ✅ 会议录音
+- ✅ 播客录制
+- ✅ 语音助手
+
+**ASR 质量提升**:
+- ✅ 提高识别准确率
+- ✅ 减少音频失真
+- ✅ 更好的频域保持
+- ✅ 适用于所有 ASR 服务
+
+### 快速开始
+
+**麦克风 + ASR 完整示例**:
+
+```javascript
+const { MicrophoneCapture, AudioProcessingPipeline } = require('node-windows-audio-capture');
+
+// 录制麦克风并转换为 ASR 格式
+const mic = new MicrophoneCapture({
+  denoise: true,
+  agc: true,
+  eq: true
+});
+
+const asrPipeline = new AudioProcessingPipeline('china-asr');  // 自动 Sinc 重采样
+
+mic.on('data', (buffer) => {
+  // 转换为 ASR 格式（Int16, 16kHz, Mono）
+  const asrData = asrPipeline.process(buffer);
+  
+  // 发送到 ASR 服务
+  sendToASR(asrData);
+});
+
+await mic.start();
+```
+
+---
+
+## 🎯 v2.7.0 特性 - RNNoise 降噪 + 自适应 Buffer Pool 🚀🔥
 
 **🔊 AI 降噪 + 智能内存管理** - 实时降噪 + Buffer Pool 自动优化！
 
@@ -1494,11 +1624,11 @@ await capture.start();
 ```javascript
 // 高级用户自定义配置
 const pipeline = new AudioProcessingPipeline({
-  sampleRate: 16000,        // 目标采样率
-  channels: 1,              // 单声道
-  format: 'int16',          // Int16 格式
+  targetSampleRate: 16000,  // 目标采样率
+  targetChannels: 1,        // 单声道
+  targetFormat: 'int16',    // Int16 格式
   outputFormat: 'pcm',      // 输出 PCM
-  resampleQuality: 'linear' // simple | linear | sinc
+  resamplingQuality: 'sinc' // simple | linear | sinc (推荐 sinc)
 });
 
 // 处理音频

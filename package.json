@@ -1,13 +1,14 @@
 {
   "name": "node-windows-audio-capture",
-  "version": "2.8.0",
-  "description": "Production-ready Node.js Windows audio capture addon with AGC, 3-Band EQ, RNNoise AI denoising and adaptive buffer pool (WASAPI Loopback, EventEmitter-based, N-API)",
+  "version": "2.9.0",
+  "description": "Production-ready Node.js Windows audio capture addon with microphone support, AGC, 3-Band EQ, RNNoise AI denoising and adaptive buffer pool (WASAPI, EventEmitter-based, N-API)",
   "main": "index.js",
   "types": "index.d.ts",
   "keywords": [
     "windows",
     "audio",
     "capture",
+    "microphone",
     "wasapi",
     "loopback",
     "recording",
@@ -15,7 +16,9 @@
     "addon",
     "n-api",
     "pcm",
-    "sound"
+    "sound",
+    "asr",
+    "speech-recognition"
   ],
   "scripts": {
     "install": "node-gyp-build",

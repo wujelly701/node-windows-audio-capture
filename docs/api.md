@@ -9,6 +9,11 @@
   - [实例方法](#实例方法)
   - [静态方法](#静态方法)
   - [事件](#事件)
+- [MicrophoneCapture 类](#microphonecapture-类)
+  - [构造函数](#构造函数-1)
+  - [实例方法](#实例方法-1)
+  - [事件](#事件-1)
+- [AudioProcessingPipeline 类](#audioprocessingpipeline-类)
 - [配置选项](#配置选项)
 - [错误处理](#错误处理)
 - [类型定义](#类型定义)
@@ -392,6 +397,390 @@ capture.on('end', () => {
 
 ---
 
+## MicrophoneCapture 类
+
+**v2.9.0 新增** 🎙️
+
+`MicrophoneCapture` 类提供麦克风音频捕获功能，继承自 `AudioCapture` 类，具有相同的 API 设计。
+
+### 核心特性
+
+- **设备级捕获**: 直接录制麦克风输入（WASAPI 直接捕获模式）
+- **设备选择**: 支持 `deviceId` 参数选择特定麦克风
+- **音频效果**: 集成 RNNoise 降噪 + AGC + EQ
+- **零学习成本**: 与 `AudioCapture` 相同的 API 设计
+
+### 构造函数
+
+#### `new MicrophoneCapture(config)`
+
+创建一个新的麦克风捕获实例。
+
+**参数：**
+
+- `config` (Object) - 配置对象
+
+**配置选项：**
+
+```typescript
+interface MicrophoneCaptureConfig {
+  deviceId?: string;           // 可选：麦克风设备 ID
+  sampleRate?: number;         // 默认 48000 Hz
+  channels?: number;           // 默认 2 (立体声)
+  
+  // 音频效果（可选）
+  denoise?: boolean;           // RNNoise 降噪
+  denoiseStrength?: number;    // 降噪强度 0-1
+  
+  agc?: boolean;               // 自动增益控制
+  agcTarget?: number;          // 目标音量 (dB)
+  
+  eq?: boolean;                // 均衡器
+  eqLowGain?: number;          // 低频增益 (dB)
+  eqMidGain?: number;          // 中频增益 (dB)
+  eqHighGain?: number;         // 高频增益 (dB)
+  
+  // Buffer Pool（可选）
+  useExternalBuffer?: boolean;
+  bufferPoolStrategy?: 'fixed' | 'adaptive';
+  bufferPoolSize?: number;
+}
+```
+
+**返回值：**
+
+- `MicrophoneCapture` - 麦克风捕获实例
+
+**抛出错误：**
+
+- `TypeError` - 当配置参数无效时
+- `AudioError` - 当初始化失败时
+
+**示例 1 - 基本用法**：
+
+```javascript
+const { MicrophoneCapture } = require('node-windows-audio-capture');
+
+// 使用默认麦克风
+const mic = new MicrophoneCapture();
+
+mic.on('data', (buffer) => {
+  console.log('Microphone audio:', buffer.length, 'bytes');
+});
+
+await mic.start();
+```
+
+**示例 2 - 设备选择**：
+
+```javascript
+const { MicrophoneCapture, listDevices } = require('node-windows-audio-capture');
+
+// 列出所有音频设备
+const devices = await listDevices();
+
+// 筛选麦克风设备（非 Loopback）
+const microphones = devices.filter(d => !d.isLoopback);
+
+console.log('可用麦克风:');
+microphones.forEach(mic => {
+  console.log(`  ${mic.name} (${mic.id})`);
+});
+
+// 选择特定麦克风
+const mic = new MicrophoneCapture({
+  deviceId: microphones[0].id
+});
+```
+
+**示例 3 - 完整配置**：
+
+```javascript
+const mic = new MicrophoneCapture({
+  deviceId: '{0.0.0.00000000}.{12345678-1234-1234-1234-123456789012}',
+  sampleRate: 48000,
+  channels: 2,
+  
+  // RNNoise 降噪
+  denoise: true,
+  denoiseStrength: 0.8,  // 0-1, 默认 0.5
+  
+  // 自动增益控制
+  agc: true,
+  agcTarget: -16,        // dB, 默认 -16dB
+  agcMaxGain: 30,        // dB, 默认 30dB
+  
+  // 3-Band 均衡器
+  eq: true,
+  eqLowGain: -3,         // 低频 -3dB
+  eqMidGain: 5,          // 中频 +5dB
+  eqHighGain: 2,         // 高频 +2dB
+  
+  // Buffer Pool
+  useExternalBuffer: true,
+  bufferPoolStrategy: 'adaptive',
+  bufferPoolSize: 50
+});
+
+mic.on('data', (buffer) => {
+  // 处理降噪 + 增益 + 均衡后的音频
+});
+
+await mic.start();
+```
+
+**详细说明：**
+
+- `MicrophoneCapture` 内部使用 `AudioCapture` 类实现
+- 底层使用 WASAPI 直接捕获模式（`isLoopback = false`）
+- 默认捕获系统默认麦克风，可通过 `deviceId` 指定
+- 支持所有 `AudioCapture` 的音频效果（降噪、AGC、EQ）
+
+---
+
+### 实例方法
+
+`MicrophoneCapture` 继承所有 `AudioCapture` 的方法：
+
+- `start()` - 启动麦克风捕获
+- `stop()` - 停止捕获
+- `setDenoiseEnabled(enabled)` - 控制降噪开关
+- `setAGCEnabled(enabled)` - 控制 AGC 开关
+- `setEQEnabled(enabled)` - 控制均衡器开关
+- `getDenoiseStats()` - 获取降噪统计
+- `getPoolStats()` - 获取 Buffer Pool 统计
+
+详见 [AudioCapture 实例方法](#实例方法) 章节。
+
+**示例：**
+
+```javascript
+const mic = new MicrophoneCapture({
+  denoise: true,
+  agc: true
+});
+
+await mic.start();
+
+// 动态控制音频效果
+setTimeout(() => {
+  mic.setDenoiseEnabled(false);  // 关闭降噪
+}, 5000);
+
+// 获取统计信息
+setInterval(() => {
+  const denoiseStats = mic.getDenoiseStats();
+  console.log(`VAD Probability: ${denoiseStats.vadProbability * 100}%`);
+}, 1000);
+```
+
+---
+
+### 事件
+
+`MicrophoneCapture` 支持所有 `AudioCapture` 的事件：
+
+- `'data'` - 接收麦克风音频数据
+- `'error'` - 错误事件
+- `'end'` - 捕获结束
+
+详见 [AudioCapture 事件](#事件) 章节。
+
+**示例：**
+
+```javascript
+const mic = new MicrophoneCapture();
+
+mic.on('data', (buffer) => {
+  console.log('Microphone data:', buffer.length, 'bytes');
+});
+
+mic.on('error', (error) => {
+  console.error('Microphone error:', error.message);
+});
+
+mic.on('end', () => {
+  console.log('Microphone capture ended');
+});
+
+await mic.start();
+```
+
+---
+
+### 与 AudioCapture 的区别
+
+| 特性 | AudioCapture | MicrophoneCapture |
+|------|-------------|-------------------|
+| **音频源** | 系统音频（应用播放） | 麦克风输入 |
+| **WASAPI 模式** | Loopback（环回捕获） | Direct Capture（直接捕获） |
+| **`processId` 参数** | 必需（指定应用） | 不需要（设备级） |
+| **`deviceId` 参数** | 可选（音频设备） | 可选（麦克风设备） |
+| **音频效果** | 支持（降噪/AGC/EQ） | 支持（相同） |
+| **适用场景** | 录屏、翻译、监控 | 语音识别、会议、播客 |
+
+---
+
+### 使用场景
+
+#### 1. 语音识别 (ASR)
+
+```javascript
+const { MicrophoneCapture, AudioProcessingPipeline } = require('node-windows-audio-capture');
+
+const mic = new MicrophoneCapture({
+  denoise: true,
+  agc: true
+});
+
+// 转换为 ASR 格式（Int16, 16kHz, Mono）
+const asrPipeline = new AudioProcessingPipeline('china-asr');
+
+mic.on('data', (buffer) => {
+  const asrData = asrPipeline.process(buffer);
+  sendToASR(asrData);  // 发送到百度/腾讯/阿里 ASR
+});
+
+await mic.start();
+```
+
+#### 2. 实时翻译
+
+```javascript
+const mic = new MicrophoneCapture({
+  denoise: true,
+  agc: true,
+  eq: true
+});
+
+const pipeline = new AudioProcessingPipeline('openai-whisper');
+
+mic.on('data', async (buffer) => {
+  const asrData = pipeline.process(buffer);
+  const text = await whisperAPI.recognize(asrData);
+  const translation = await translateAPI.translate(text);
+  console.log('翻译:', translation);
+});
+
+await mic.start();
+```
+
+#### 3. 会议录音
+
+```javascript
+const fs = require('fs');
+const mic = new MicrophoneCapture({
+  denoise: true,
+  denoiseStrength: 0.8,
+  agc: true,
+  agcTarget: -16
+});
+
+const output = fs.createWriteStream('meeting-recording.pcm');
+mic.pipe(output);
+
+await mic.start();
+console.log('会议录音中...');
+```
+
+#### 4. 播客录制
+
+```javascript
+const mic = new MicrophoneCapture({
+  denoise: true,
+  agc: true,
+  eq: true,
+  eqLowGain: -3,   // 减少低频噪音
+  eqMidGain: 5,    // 增强语音频段
+  eqHighGain: 2    // 提升清晰度
+});
+
+mic.on('data', (buffer) => {
+  // 保存高质量音频
+  saveToFile(buffer);
+});
+
+await mic.start();
+```
+
+---
+
+### 注意事项
+
+#### 1. 设备选择
+
+- **默认麦克风**: 不指定 `deviceId` 时，使用系统默认麦克风
+- **设备列表**: 使用 `listDevices()` 获取所有设备，筛选 `isLoopback: false`
+- **设备 ID**: 设备 ID 格式为 `{...}.{...}`，需完整复制
+
+#### 2. 物理录音限制
+
+- **空气传播**: 麦克风录制手机扬声器音频时，音质受物理环境影响
+- **改善建议**:
+  - 使用外置 USB 麦克风（更高灵敏度）
+  - 使用音频线直连（手机 3.5mm → 电脑线路输入）
+  - 减少环境噪音，靠近音源
+
+#### 3. 权限要求
+
+- **Windows 10/11**: 需要麦克风访问权限
+- **隐私设置**: 确保"允许应用访问麦克风"已启用
+- **WASAPI**: 设备必须支持 WASAPI 直接捕获模式
+
+#### 4. 音频格式
+
+- **输出格式**: Float32 PCM, 48kHz, 2 channels（默认）
+- **ASR 转换**: 需要使用 `AudioProcessingPipeline` 转换为 ASR 格式
+- **重采样**: v2.9.0 使用 Sinc 插值，显著提升音质
+
+---
+
+## AudioProcessingPipeline 类
+
+**v2.2.0 引入，v2.9.0 增强**
+
+音频处理管道，用于格式转换和 ASR 预处理。
+
+### v2.9.0 重采样质量提升
+
+**重大改进**: ASR 预设的重采样质量从 `linear` 升级到 `sinc`（Kaiser-windowed Sinc 插值）。
+
+**影响的预设**:
+- `china-asr` (百度/腾讯/阿里)
+- `openai-whisper`
+- `azure`
+- `google`
+
+**效果**:
+- ✅ 48kHz → 16kHz 降采样音质显著改善
+- ✅ 频域保持更好，混叠失真最小化
+- ✅ 提高 ASR 识别准确率
+- ✅ 性能开销 < 0.2ms
+
+### 使用示例
+
+```javascript
+const { AudioProcessingPipeline } = require('node-windows-audio-capture');
+
+// 使用 ASR 预设（自动 Sinc 插值）
+const pipeline = new AudioProcessingPipeline('china-asr');
+
+// 自定义配置
+const customPipeline = new AudioProcessingPipeline({
+  targetSampleRate: 16000,
+  targetChannels: 1,
+  targetFormat: 'int16',
+  resamplingQuality: 'sinc'  // v2.9.0: 'simple' | 'linear' | 'sinc'
+});
+
+// 处理音频
+const asrData = pipeline.process(microphoneBuffer);
+```
+
+详见 [AudioProcessingPipeline 文档](https://github.com/wujelly701/node-windows-audio-capture/blob/main/lib/audio-processing-pipeline.js)。
+
+---
+
 ## 配置选项
 
 ### AudioCaptureConfig
@@ -404,9 +793,12 @@ interface AudioCaptureConfig {
   loopbackMode?: boolean;
   sampleRate?: number;
   channels?: number;
-  format?: 'float32' | 'int16';
+  // ⚠️ 注意: WASAPI 始终输出 Float32 格式
+  // 如需 Int16 格式，请使用 AudioProcessingPipeline 进行转换
 }
 ```
+
+> **⚠️ 重要说明**: AudioCapture 不支持 `format` 参数。WASAPI 音频引擎始终输出 **Float32** 格式的音频数据。如果需要其他格式（如 Int16），请使用 `AudioProcessingPipeline` 进行后处理转换。详见 [格式转换](#格式转换) 章节。
 
 ### 配置选项详细说明
 
@@ -414,9 +806,10 @@ interface AudioCaptureConfig {
 |------|------|------|--------|------|
 | `processId` | `number` | ✓ | - | 目标进程的 ID |
 | `loopbackMode` | `boolean` | ✗ | `true` | 是否启用 Loopback 模式 |
-| `sampleRate` | `number` | ✗ | `48000` | 采样率（Hz） |
-| `channels` | `number` | ✗ | `2` | 声道数 |
-| `format` | `string` | ✗ | `'float32'` | 音频数据格式 |
+| `sampleRate` | `number` | ✗ | `48000` | 采样率（Hz）* |
+| `channels` | `number` | ✗ | `2` | 声道数* |
+
+\* WASAPI 音频格式固定为 **Float32**，无法通过配置修改。
 
 ---
 
@@ -571,47 +964,90 @@ const capture2 = new AudioCapture({
 **数据布局：**
 
 - 多声道数据交错存储：`[L0, R0, L1, R1, ...]`
-- 每个样本占用 4 字节（Float32）或 2 字节（Int16）
+- 每个样本占用 4 字节（Float32 格式）
 
 ---
 
-#### `format`
+## 格式转换
 
-**类型：** `'float32' | 'int16'`
+### ⚠️ 重要：WASAPI 固定输出格式
 
-**必需：** ✗
+`AudioCapture` 始终输出 **Float32** 格式的音频数据。这是 Windows WASAPI 音频引擎的固定行为，无法通过配置修改。
 
-**默认值：** `'float32'`
+**WASAPI 默认格式：**
+- **数据类型**: Float32 (32-bit 浮点)
+- **取值范围**: -1.0 ~ 1.0
+- **采样率**: 48000 Hz (可配置)
+- **声道数**: 2 (Stereo, 可配置)
 
-**说明：** 音频数据格式。
+### 使用 AudioProcessingPipeline 转换格式
 
-**可选值：**
-
-- `'float32'` - 32 位浮点数（-1.0 到 1.0）
-- `'int16'` - 16 位整数（-32768 到 32767）
-
-**示例：**
+如果需要其他格式（如 Int16），请使用内置的 `AudioProcessingPipeline`：
 
 ```javascript
-// Float32 格式（默认，推荐）
-const capture = new AudioCapture({
-  processId: 1234,
-  format: 'float32'
+const { AudioCapture } = require('node-windows-audio-capture');
+const AudioProcessingPipeline = require('node-windows-audio-capture/lib/audio-processing-pipeline');
+
+// 创建捕获实例（Float32, 48kHz, Stereo）
+const capture = new AudioCapture({ processId: 1234 });
+
+// 创建格式转换管道（转换为 Int16, 16kHz, Mono）
+const pipeline = new AudioProcessingPipeline('china-asr', {
+  quality: 'sinc'  // 推荐：最高质量的重采样算法
 });
 
-// Int16 格式（节省空间）
-const capture2 = new AudioCapture({
-  processId: 1234,
-  format: 'int16'
+// 监听并转换数据
+capture.on('data', (event) => {
+  // 原始数据：Float32, 48kHz, Stereo
+  const float32Buffer = event.buffer;
+  
+  // 转换后：Int16, 16kHz, Mono
+  const int16Buffer = pipeline.process(float32Buffer);
+  
+  // 使用转换后的数据
+  sendToASR(int16Buffer);
+});
+
+await capture.start();
+```
+
+### 可用的预设配置
+
+| 预设名称 | 目标格式 | 适用场景 |
+|----------|----------|----------|
+| `'china-asr'` | Int16, 16kHz, Mono | 阿里云/百度/腾讯 ASR |
+| `'openai-whisper'` | Float32, 16kHz, Mono | OpenAI Whisper |
+| `'azure'` | Int16, 16kHz, Mono | Azure Speech |
+| `'google'` | Int16, 16kHz, Mono | Google Cloud Speech |
+
+### 重采样质量选项
+
+```javascript
+const pipeline = new AudioProcessingPipeline('china-asr', {
+  quality: 'sinc'    // 'simple' | 'linear' | 'sinc'
 });
 ```
 
-**格式对比：**
+| Quality | 算法 | 质量 | CPU占用 | 推荐场景 |
+|---------|------|------|---------|----------|
+| `'simple'` | 直接采样删除 | 最低 | ~0.5% | 实时预览 |
+| `'linear'` | 线性插值 | 中等 | ~2% | 一般应用 |
+| `'sinc'` | Kaiser-Sinc 插值 | **最高** | ~5% | **生产环境（推荐）** |
 
-| 格式 | 范围 | 精度 | 大小 | 使用场景 |
-|------|------|------|------|----------|
-| Float32 | -1.0 ~ 1.0 | 高 | 4 字节/样本 | 音频处理、分析 |
-| Int16 | -32768 ~ 32767 | 中 | 2 字节/样本 | 存储、传输 |
+> **推荐**: 使用 `quality: 'sinc'` 获得最佳音质。v2.5.0 优化后性能提升 50%，CPU 占用仅 ~5%。
+
+### 自定义转换配置
+
+```javascript
+const pipeline = new AudioProcessingPipeline({
+  targetSampleRate: 16000,
+  targetChannels: 1,
+  targetFormat: 'int16',
+  resamplingQuality: 'sinc'
+});
+```
+
+详见 [AudioProcessingPipeline API](#audioprocessingpipeline)。
 
 ---
 

@@ -802,3 +802,402 @@ export declare function getDeviceInfo(): DeviceInfo;
  * @since 2.0.0
  */
 export declare function enumerateProcesses(): ProcessInfo[];
+
+// ==================== v2.9.0 Microphone Capture API ====================
+
+/**
+ * EQ 预设类型
+ * @since 2.9.0
+ */
+export type EQPreset = 'flat' | 'voice' | 'music';
+
+/**
+ * 麦克风设备信息
+ * @since 2.9.0
+ */
+export interface Microphone {
+    /** 设备唯一标识符 */
+    id: string;
+    /** 设备名称 */
+    name: string;
+    /** 是否为系统默认麦克风 */
+    isDefault: boolean;
+    /** 是否当前正在使用 */
+    isActive: boolean;
+    /** 支持的最大声道数 */
+    channelCount: number;
+    /** 设备支持的采样率 */
+    sampleRate: number;
+    /** 设备制造商（如果可用） */
+    manufacturer?: string;
+}
+
+/**
+ * 麦克风捕获配置选项
+ * @since 2.9.0
+ */
+export interface MicrophoneConfig {
+    /**
+     * 麦克风设备 ID
+     * 如果不指定，则使用系统默认麦克风
+     * 使用 MicrophoneCapture.getMicrophones() 获取可用设备列表
+     */
+    deviceId?: string;
+    
+    /**
+     * 采样率（Hz）
+     * @default 48000
+     */
+    sampleRate?: number;
+    
+    /**
+     * 声道数（麦克风通常是单声道）
+     * @default 1
+     */
+    channels?: 1 | 2;
+    
+    /**
+     * 启用音频降噪（RNNoise deep learning）
+     * @default false
+     */
+    denoise?: boolean;
+    
+    /**
+     * 启用 AGC（自动增益控制）
+     * @default false
+     */
+    agc?: boolean;
+    
+    /**
+     * AGC 配置参数
+     */
+    agcOptions?: AGCOptions;
+    
+    /**
+     * 启用 EQ（3-Band 均衡器）
+     * @default false
+     */
+    eq?: boolean;
+    
+    /**
+     * EQ 预设
+     * - 'flat': 平坦响应（无增益）
+     * - 'voice': 人声增强（低频-3dB, 中频+5dB, 高频+2dB）
+     * - 'music': 音乐增强（低频+4dB, 中频0dB, 高频+3dB）
+     * @default 'flat'
+     */
+    eqPreset?: EQPreset;
+    
+    /**
+     * 使用外部缓冲池
+     * @default false
+     */
+    useExternalBuffer?: boolean;
+    
+    /**
+     * 缓冲池策略
+     * @default 'fixed'
+     */
+    bufferPoolStrategy?: BufferPoolStrategy;
+    
+    /**
+     * 缓冲池大小（fixed 策略）
+     */
+    bufferPoolSize?: number;
+    
+    /**
+     * 缓冲池最小值（adaptive 策略）
+     */
+    bufferPoolMin?: number;
+    
+    /**
+     * 缓冲池最大值（adaptive 策略）
+     */
+    bufferPoolMax?: number;
+}
+
+/**
+ * 麦克风音频捕获类
+ * 
+ * 专门用于捕获麦克风音频，提供比 AudioCapture 更简洁的接口
+ * 
+ * @example
+ * ```typescript
+ * import { MicrophoneCapture } from 'node-windows-audio-capture';
+ * 
+ * // 最简单的用法
+ * const mic = new MicrophoneCapture();
+ * mic.on('data', (chunk) => console.log('音频数据:', chunk.length));
+ * await mic.start();
+ * ```
+ * 
+ * @example
+ * ```typescript
+ * // 选择特定麦克风
+ * const microphones = await MicrophoneCapture.getMicrophones();
+ * const usbMic = microphones.find(m => m.name.includes('USB'));
+ * const mic = new MicrophoneCapture({ deviceId: usbMic.id });
+ * await mic.start();
+ * ```
+ * 
+ * @example
+ * ```typescript
+ * // 启用音频效果
+ * const mic = new MicrophoneCapture({
+ *   denoise: true,
+ *   agc: true,
+ *   eq: true,
+ *   eqPreset: 'voice'
+ * });
+ * await mic.start();
+ * ```
+ * 
+ * @since 2.9.0
+ */
+export declare class MicrophoneCapture extends EventEmitter {
+    /**
+     * 创建麦克风捕获实例
+     * 
+     * @param config - 配置选项
+     * @throws {TypeError} 配置参数类型错误
+     * @throws {Error} 设备 ID 无效
+     */
+    constructor(config?: MicrophoneConfig);
+    
+    /**
+     * 启动麦克风捕获
+     * 
+     * @throws {AudioError} 启动失败
+     */
+    start(): Promise<void>;
+    
+    /**
+     * 停止麦克风捕获
+     */
+    stop(): void;
+    
+    // ==================== 音频效果 - 降噪 ====================
+    
+    /**
+     * 启用或禁用降噪
+     * 
+     * @param enabled - true 启用，false 禁用
+     */
+    setDenoiseEnabled(enabled: boolean): void;
+    
+    /**
+     * 获取降噪状态
+     * 
+     * @returns true 如果降噪已启用
+     */
+    getDenoiseEnabled(): boolean;
+    
+    /**
+     * 获取降噪统计信息
+     * 
+     * @returns 统计信息对象，如果未启用则返回 null
+     */
+    getDenoiseStats(): DenoiseStats | null;
+    
+    // ==================== 音频效果 - AGC ====================
+    
+    /**
+     * 启用或禁用 AGC
+     * 
+     * @param enabled - true 启用，false 禁用
+     */
+    setAGCEnabled(enabled: boolean): void;
+    
+    /**
+     * 获取 AGC 状态
+     * 
+     * @returns true 如果 AGC 已启用
+     */
+    getAGCEnabled(): boolean;
+    
+    /**
+     * 设置 AGC 配置参数
+     * 
+     * @param options - AGC 配置
+     */
+    setAGCOptions(options: AGCOptions): void;
+    
+    /**
+     * 获取 AGC 配置参数
+     * 
+     * @returns 配置对象，如果未初始化则返回 null
+     */
+    getAGCOptions(): AGCOptions | null;
+    
+    /**
+     * 获取 AGC 统计信息
+     * 
+     * @returns 统计信息对象，如果未初始化则返回 null
+     */
+    getAGCStats(): AGCStats | null;
+    
+    // ==================== 音频效果 - EQ ====================
+    
+    /**
+     * 启用或禁用 EQ
+     * 
+     * @param enabled - true 启用，false 禁用
+     */
+    setEQEnabled(enabled: boolean): void;
+    
+    /**
+     * 获取 EQ 状态
+     * 
+     * @returns true 如果 EQ 已启用
+     */
+    getEQEnabled(): boolean;
+    
+    /**
+     * 设置指定频段的增益
+     * 
+     * @param band - 频段名称
+     * @param gain - 增益 (dB)，范围 -20 到 +20
+     */
+    setEQBandGain(band: 'low' | 'mid' | 'high', gain: number): void;
+    
+    /**
+     * 获取指定频段的增益
+     * 
+     * @param band - 频段名称
+     * @returns 增益 (dB)
+     */
+    getEQBandGain(band: 'low' | 'mid' | 'high'): number;
+    
+    /**
+     * 获取 EQ 统计信息
+     * 
+     * @returns 统计信息对象，如果未启用则返回 null
+     */
+    getEQStats(): EQStats | null;
+    
+    // ==================== 静态方法 ====================
+    
+    /**
+     * 枚举系统中所有麦克风设备
+     * 
+     * @returns 麦克风设备数组
+     * 
+     * @example
+     * ```typescript
+     * const microphones = await MicrophoneCapture.getMicrophones();
+     * microphones.forEach(mic => {
+     *   console.log(`${mic.name} (${mic.isDefault ? '默认' : ''})`);
+     * });
+     * ```
+     */
+    static getMicrophones(): Promise<Microphone[]>;
+    
+    /**
+     * 获取系统默认麦克风
+     * 
+     * @returns 默认麦克风设备，如果没有则返回 null
+     * 
+     * @example
+     * ```typescript
+     * const defaultMic = await MicrophoneCapture.getDefaultMicrophone();
+     * if (defaultMic) {
+     *   console.log('默认麦克风:', defaultMic.name);
+     * }
+     * ```
+     */
+    static getDefaultMicrophone(): Promise<Microphone | null>;
+    
+    // ==================== 事件 ====================
+    
+    /**
+     * 音频数据事件
+     * @event
+     */
+    on(event: 'data', listener: (chunk: Buffer) => void): this;
+    
+    /**
+     * 错误事件
+     * @event
+     */
+    on(event: 'error', listener: (error: Error) => void): this;
+    
+    /**
+     * 结束事件
+     * @event
+     */
+    on(event: 'end', listener: () => void): this;
+    
+    // EventEmitter 重载
+    on(event: string | symbol, listener: (...args: any[]) => void): this;
+    once(event: 'data', listener: (chunk: Buffer) => void): this;
+    once(event: 'error', listener: (error: Error) => void): this;
+    once(event: 'end', listener: () => void): this;
+    once(event: string | symbol, listener: (...args: any[]) => void): this;
+    emit(event: 'data', chunk: Buffer): boolean;
+    emit(event: 'error', error: Error): boolean;
+    emit(event: 'end'): boolean;
+    emit(event: string | symbol, ...args: any[]): boolean;
+}
+
+// =====================================================================
+// MicrophoneCapture �� (v2.9.0)
+// =====================================================================
+
+/**
+ * v2.9.0: ��˷粶������ѡ��
+ * @since 2.9.0
+ */
+export interface MicrophoneCaptureOptions {
+    deviceId?: string;
+    sampleRate?: number;
+    channels?: number;
+    denoise?: boolean;
+    denoiseStrength?: number;
+    agc?: boolean;
+    agcTarget?: number;
+    agcMaxGain?: number;
+    eq?: boolean;
+    eqLowGain?: number;
+    eqMidGain?: number;
+    eqHighGain?: number;
+    useExternalBuffer?: boolean;
+    bufferPoolStrategy?: BufferPoolStrategy;
+    bufferPoolSize?: number;
+    bufferPoolMin?: number;
+    bufferPoolMax?: number;
+}
+
+/**
+ * v2.9.0: ��˷粶����
+ * @since 2.9.0
+ */
+export declare class MicrophoneCapture extends EventEmitter {
+    constructor(options?: MicrophoneCaptureOptions);
+    start(): Promise<void>;
+    stop(): Promise<void>;
+    pause(): void;
+    resume(): void;
+    isRunning(): boolean;
+    isPaused(): boolean;
+    getOptions(): MicrophoneCaptureOptions;
+    getDeviceId(): string | undefined;
+    setDenoiseEnabled(enabled: boolean): void;
+    getDenoiseEnabled(): boolean;
+    setDenoiseStrength(strength: number): void;
+    getDenoiseStats(): DenoiseStats | null;
+    setAGCEnabled(enabled: boolean): void;
+    getAGCEnabled(): boolean;
+    setAGCOptions(options: AGCOptions): void;
+    getAGCOptions(): AGCOptions | null;
+    getAGCStats(): AGCStats | null;
+    setEQEnabled(enabled: boolean): void;
+    getEQEnabled(): boolean;
+    setEQBandGain(band: 'low' | 'mid' | 'high', gain: number): void;
+    getEQBandGain(band: 'low' | 'mid' | 'high'): number;
+    getEQStats(): EQStats | null;
+    getPoolStats(): BufferPoolStats;
+    on(event: 'data', listener: (chunk: Buffer) => void): this;
+    on(event: 'error', listener: (error: Error) => void): this;
+    on(event: 'end', listener: () => void): this;
+    on(event: string | symbol, listener: (...args: any[]) => void): this;
+}

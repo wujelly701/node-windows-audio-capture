@@ -1,7 +1,7 @@
-# 🚀 快速入门指南 - node-windows-audio-capture v2.8.0
+# 🚀 快速入门指南 - node-windows-audio-capture v2.9.0
 
-**适用版本**: v2.8.0  
-**更新日期**: 2025-10-16  
+**适用版本**: v2.9.0  
+**更新日期**: 2025-10-17  
 **目标用户**: 所有需要 Windows 音频捕获的开发者
 
 ---
@@ -9,6 +9,7 @@
 ## 📋 目录
 
 - [30 秒快速上手](#30-秒快速上手)
+- [新功能: 麦克风捕获](#新功能-麦克风捕获)
 - [安装](#安装)
 - [核心功能概览](#核心功能概览)
 - [基础使用](#基础使用)
@@ -20,6 +21,8 @@
 ---
 
 ## 30 秒快速上手
+
+### 系统音频捕获
 
 ```javascript
 const { AudioCapture, getProcesses } = require('node-windows-audio-capture');
@@ -34,7 +37,7 @@ const chrome = processes.find(p => p.name.includes('chrome'));
 // 3. 创建捕获实例
 const capture = new AudioCapture({ processId: chrome.pid });
 
-// 4. 启用 v2.8 功能
+// 4. 启用音频效果
 capture.setDenoiseEnabled(true);  // AI 降噪
 capture.setAGCEnabled(true);      // 音量归一化
 capture.setEQEnabled(true);       // 人声增强
@@ -49,7 +52,69 @@ capture.on('data', (event) => {
 await capture.start();
 ```
 
+### 麦克风捕获 🎙️ (v2.9.0 新增)
+
+```javascript
+const { MicrophoneCapture } = require('node-windows-audio-capture');
+
+// 1. 创建麦克风捕获实例
+const mic = new MicrophoneCapture({
+  denoise: true,  // RNNoise 降噪
+  agc: true,      // 自动增益
+  eq: true        // 均衡器
+});
+
+// 2. 监听音频数据
+mic.on('data', (event) => {
+  const audioBuffer = event.buffer;  // Float32Array
+  console.log('麦克风音频:', audioBuffer.length, '样本');
+});
+
+// 3. 启动捕获
+await mic.start();
+```
+
 **就这么简单！** 🎉
+
+---
+
+## 新功能: 麦克风捕获
+
+### 🎙️ v2.9.0 新增完整麦克风捕获支持
+
+```javascript
+const { MicrophoneCapture, listDevices } = require('node-windows-audio-capture');
+
+// 列出所有音频设备
+const devices = await listDevices();
+const microphones = devices.filter(d => !d.isLoopback);
+
+console.log('可用麦克风:');
+microphones.forEach(mic => {
+  console.log(`  ${mic.name} (${mic.id})`);
+});
+
+// 选择特定麦克风
+const mic = new MicrophoneCapture({
+  deviceId: microphones[0].id,
+  denoise: true,
+  agc: true,
+  eq: true
+});
+
+mic.on('data', (event) => {
+  console.log('麦克风音频:', event.buffer.length, '样本');
+});
+
+await mic.start();
+```
+
+**适用场景**:
+- ✅ 语音识别 (ASR)
+- ✅ 实时翻译
+- ✅ 会议录音
+- ✅ 播客录制
+- ✅ 语音助手
 
 ---
 
@@ -58,7 +123,7 @@ await capture.start();
 ### 方式 1: 从 GitHub Release 安装（推荐）
 
 ```bash
-npm install https://github.com/wujelly701/node-windows-audio-capture/tarball/v2.8.0
+npm install https://github.com/wujelly701/node-windows-audio-capture/tarball/v2.9.0
 ```
 
 **优势**:
@@ -69,7 +134,7 @@ npm install https://github.com/wujelly701/node-windows-audio-capture/tarball/v2.
 ### 方式 2: 从 npm 安装（如已发布）
 
 ```bash
-npm install node-windows-audio-capture@2.8.0
+npm install node-windows-audio-capture@2.9.0
 ```
 
 ### 方式 3: 从源码安装（开发者）
@@ -77,6 +142,7 @@ npm install node-windows-audio-capture@2.8.0
 ```bash
 git clone https://github.com/wujelly701/node-windows-audio-capture.git
 cd node-windows-audio-capture
+git checkout v2.9.0
 npm install
 npm run build
 ```
@@ -98,6 +164,10 @@ npm run build
 | **设备热插拔** | v2.3 | 自动检测设备变化 | 设备切换无需重启 |
 | **高性能采样** | v2.5 | Kaiser 窗 Sinc 插值 | 42% 更快，-70dB 衰减 |
 | **自适应缓冲池** | v2.6 | 动态调整内存池 | 371% Hit Rate 提升 |
+| **RNNoise 降噪** | v2.7 | AI 深度学习降噪 | VAD + 实时降噪 |
+| **AGC + 3-Band EQ** | v2.8 | 音量归一化 + 均衡器 | 专业音频处理 |
+| **🎙️ 麦克风捕获** | v2.9 | 设备级麦克风录制 | 语音识别/翻译 |
+| **🔊 Sinc 重采样** | v2.9 | 高质量 ASR 转换 | 显著提升音质 |
 | **AI 降噪** | v2.7 | RNNoise 深度学习 | 实时消除背景噪音 |
 | **AGC 音量归一化** | v2.8 | RMS 自动增益控制 | 稳定输出音量 |
 | **3-Band EQ** | v2.8 | 低/中/高频均衡 | 优化音质/人声 |
@@ -138,7 +208,7 @@ const capture = new AudioCapture({
   processId: 12345,           // 目标进程 PID
   sampleRate: 48000,          // 采样率 (Hz)
   channels: 2,                // 声道数 (1=单声道, 2=立体声)
-  format: 'float32',          // 数据格式 (float32/int16)
+  // WASAPI 始终输出 Float32 格式
   useExternalBuffer: true,    // 使用外部缓冲池
   bufferPoolStrategy: 'adaptive'  // 自适应缓冲池策略
 });
@@ -808,15 +878,34 @@ const capture = new AudioCapture({
 
 ---
 
-### Q6: 支持哪些音频格式？
+### Q6: WASAPI 输出什么格式？如何转换？
 
 **A**: 
-- **float32**: 32 位浮点（高精度，推荐）
-- **int16**: 16 位整数（ASR 友好，体积小）
+WASAPI 音频引擎**始终输出 Float32 格式**，这是 Windows 的固定行为，无法通过配置修改。
+
+**默认格式**:
+- **数据类型**: Float32 (32-bit 浮点)
+- **取值范围**: -1.0 ~ 1.0
+- **采样率**: 48000 Hz (可配置)
+- **声道数**: 2 (Stereo, 可配置)
+
+**如需其他格式（如 Int16），使用 AudioProcessingPipeline**:
 
 ```javascript
-const capture = new AudioCapture({
-  format: 'float32'  // 或 'int16'
+const { AudioCapture } = require('node-windows-audio-capture');
+const AudioProcessingPipeline = require('node-windows-audio-capture/lib/audio-processing-pipeline');
+
+// WASAPI 捕获（Float32, 48kHz, Stereo）
+const capture = new AudioCapture({ processId: 1234 });
+
+// 格式转换管道（Int16, 16kHz, Mono）
+const pipeline = new AudioProcessingPipeline('china-asr', {
+  quality: 'sinc'  // 推荐：最高质量
+});
+
+capture.on('data', (event) => {
+  const int16Buffer = pipeline.process(event.buffer);
+  sendToASR(int16Buffer);  // 发送 Int16 数据
 });
 ```
 
@@ -827,13 +916,12 @@ const capture = new AudioCapture({
 **A**: 
 1. 禁用不需要的功能
 2. 使用较低的采样率
-3. 使用 Int16 格式
+3. 使用 AudioProcessingPipeline 转换为轻量格式
 
 ```javascript
 const capture = new AudioCapture({
-  sampleRate: 16000,     // 降低采样率
-  channels: 1,           // 单声道
-  format: 'int16',       // 使用整数格式
+  sampleRate: 16000,         // 降低采样率
+  channels: 1,               // 单声道
   useExternalBuffer: true,
   bufferPoolStrategy: 'adaptive'
 });
@@ -842,6 +930,11 @@ const capture = new AudioCapture({
 capture.setDenoiseEnabled(false);  // 如不需要降噪
 capture.setAGCEnabled(true);       // AGC 很轻量
 capture.setEQEnabled(false);       // 如不需要 EQ
+
+// 如需 Int16 格式，使用 Pipeline 转换
+const pipeline = new AudioProcessingPipeline('china-asr', {
+  quality: 'linear'  // 使用较快的线性插值（vs sinc）
+});
 ```
 
 ---

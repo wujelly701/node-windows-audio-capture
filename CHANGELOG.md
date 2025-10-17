@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.0] - 2025-10-17
+
+### 🎙️ Major Features - Microphone Capture + ASR Quality Improvements
+
+#### Added
+- **Microphone Capture API** - Direct microphone audio capture
+  - New class: `MicrophoneCapture` - High-level API for microphone recording
+  - Device selection: Support `deviceId` parameter for specific microphone
+  - Audio effects: Integrated RNNoise, AGC, and EQ (same as system audio)
+  - WASAPI direct capture mode: `isLoopback = false` for microphone input
+  - New example: `examples/microphone-capture.js`
+  - Documentation: Full API reference in `docs/api.md`
+
+#### Improved
+- **AudioProcessingPipeline ASR Quality** - Enhanced resampling quality for ASR scenarios
+  - Upgraded resampling quality: `'linear'` → `'sinc'` (Kaiser-windowed Sinc interpolation)
+  - Affected presets: `china-asr`, `openai-whisper`, `azure`, `google`
+  - Quality improvement: Significantly better audio fidelity for 48kHz → 16kHz downsampling
+  - Performance: < 0.2ms additional latency, negligible impact
+  - Benefits: Both system audio capture and microphone capture
+
+#### Technical Details
+- **Resampling Algorithm**:
+  - Previous: Linear interpolation (fast but lower quality)
+  - Current: Kaiser-windowed Sinc interpolation (industry-leading quality)
+  - Use case: Critical for ASR accuracy in speech recognition scenarios
+- **Microphone Implementation**:
+  - Internal: Uses `AudioCapture` class with `isLoopback = false`
+  - Format: Default 48kHz, 2 channels, Float32 PCM
+  - Processing: Same pipeline as system audio (denoise, AGC, EQ, format conversion)
+
+#### Fixed
+- None (new feature release)
+
+#### Compatibility
+- ✅ Backward compatible: All existing APIs unchanged
+- ✅ New APIs: Purely additive, no breaking changes
+- ✅ ASR quality improvement: Automatic upgrade, no code changes required
+
+---
+
 ## [2.7.0] - 2025-10-16
 
 ### 🎉 Major Features - RNNoise + Adaptive Buffer Pool

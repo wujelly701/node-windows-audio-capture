@@ -1,4 +1,4 @@
-# 📚 文档中心 - node-windows-audio-capture v2.8.0
+# 📚 文档中心 - node-windows-audio-capture v2.9.0
 
 欢迎来到 `node-windows-audio-capture` 文档中心！这里包含了所有您需要的文档资源。
 
@@ -20,12 +20,13 @@
 |------|------|------|
 | **[完整 API 文档](api.md)** | 详细参数说明 | 1950+ 行详细文档 |
 | **[翻译软件集成](TRANSLATION_SOFTWARE_INTEGRATION.md)** | 实时翻译方案 | 完整集成代码 |
-| **[v2.8 发布说明](../RELEASE_v2.8.0.md)** | AGC + EQ 详细说明 | 功能详解 + 测试报告 |
+| **[v2.9 发布说明](V2.9_RELEASE_NOTES.md)** | 麦克风捕获 + ASR 质量提升 | 功能详解 + 性能测试 |
 
 ### 版本历史
 
 | 版本 | 文档 | 主要特性 |
 |------|------|---------|
+| **v2.9** | [Release Notes](V2.9_RELEASE_NOTES.md) | 麦克风捕获 + ASR 质量提升 |
 | **v2.8** | [Release Notes](V2.8_RELEASE_NOTES.md) | AGC + 3-Band EQ |
 | **v2.7** | [Release Notes](V2.7_RELEASE_NOTES.md) | RNNoise AI 降噪 |
 | **v2.6** | 见 api.md | 自适应缓冲池 |

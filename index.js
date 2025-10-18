@@ -149,6 +149,71 @@ class AudioCapture extends EventEmitter {
     }
     
     /**
+     * 启用频谱分析 (v2.11.0)
+     * @param {Object} [options] - 频谱分析选项
+     * @param {number} [options.fftSize=2048] - FFT 大小
+     * @param {number} [options.interval=100] - 频谱数据间隔（毫秒）
+     * @param {number} [options.smoothing=0.8] - 平滑因子 (0-1)
+     * @param {Array} [options.frequencyBands] - 自定义频段
+     * @param {Object} [options.voiceDetection] - 语音检测配置
+     * @returns {boolean} 是否成功启用
+     */
+    enableSpectrum(options = {}) {
+        if (!this._processor) {
+            throw new Error('AudioProcessor not initialized');
+        }
+        return this._processor.enableSpectrum(options);
+    }
+    
+    /**
+     * 禁用频谱分析 (v2.11.0)
+     * @returns {boolean} 是否成功禁用
+     */
+    disableSpectrum() {
+        if (!this._processor) {
+            return false;
+        }
+        return this._processor.disableSpectrum();
+    }
+    
+    /**
+     * 检查频谱分析是否已启用 (v2.11.0)
+     * @returns {boolean}
+     */
+    isSpectrumEnabled() {
+        if (!this._processor) {
+            return false;
+        }
+        return this._processor.isSpectrumEnabled();
+    }
+    
+    /**
+     * 设置频谱分析配置 (v2.11.0)
+     * @param {Object} config - 配置对象
+     * @param {number} [config.smoothing] - 平滑因子
+     * @param {number} [config.interval] - 数据间隔（毫秒）
+     * @param {Object} [config.voiceDetection] - 语音检测配置
+     * @returns {boolean} 是否成功设置
+     */
+    setSpectrumConfig(config) {
+        if (!this._processor) {
+            throw new Error('AudioProcessor not initialized');
+        }
+        return this._processor.setSpectrumConfig(config);
+    }
+    
+    /**
+     * 获取当前频谱分析配置 (v2.11.0)
+     * @returns {Object} 当前配置
+     */
+    getSpectrumConfig() {
+        if (!this._processor) {
+            return null;
+        }
+        return this._processor.getSpectrumConfig();
+    }
+    
+    /**
      * 暂停音频捕获（暂不触发 data 事件）
      */
     pause() {
@@ -197,9 +262,31 @@ class AudioCapture extends EventEmitter {
     /**
      * 内部音频数据回调（从 Native 层调用）
      * @private
-     * @param {Buffer} buffer - 音频数据缓冲区
+     * @param {string|Buffer} eventTypeOrBuffer - 事件类型或音频数据缓冲区
+     * @param {Object} [data] - 附加数据（针对 spectrum 事件）
      */
-    _onAudioData(buffer) {
+    _onAudioData(eventTypeOrBuffer, data) {
+        // v2.11.0: 处理频谱事件
+        if (typeof eventTypeOrBuffer === 'string' && eventTypeOrBuffer === 'spectrum') {
+            /**
+             * 频谱分析事件 (v2.11.0)
+             * @event AudioCapture#spectrum
+             * @type {Object}
+             * @property {Float32Array} magnitudes - FFT 幅度谱
+             * @property {Array} bands - 频段分析结果
+             * @property {number} voiceProbability - 语音概率 (0-1)
+             * @property {number} spectralCentroid - 频谱质心 (Hz)
+             * @property {number} dominantFrequency - 主频率 (Hz)
+             * @property {boolean} isVoice - 是否检测到语音
+             * @property {number} timestamp - 时间戳（毫秒）
+             */
+            this.emit('spectrum', data);
+            return;
+        }
+        
+        // 普通音频数据处理
+        const buffer = eventTypeOrBuffer;
+        
         if (this._isPaused) {
             return;
         }

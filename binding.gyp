@@ -21,6 +21,9 @@
         "src/napi/agc_processor.cpp",
         "src/napi/biquad_filter.cpp",
         "src/napi/eq_processor.cpp",
+        "src/napi/spectrum_analyzer.cpp",
+        "deps/kiss_fft/kiss_fft.c",
+        "deps/kiss_fft/kiss_fft_wrapper.c",
         "deps/rnnoise/src/celt_lpc.c",
         "deps/rnnoise/src/denoise.c",
         "deps/rnnoise/src/kiss_fft.c",
@@ -37,7 +40,8 @@
         "src/wasapi",
         "src/napi",
         "deps/rnnoise/include",
-        "deps/rnnoise/src"
+        "deps/rnnoise/src",
+        "deps/kiss_fft"
       ],
       "defines": [
         "NAPI_VERSION=8",

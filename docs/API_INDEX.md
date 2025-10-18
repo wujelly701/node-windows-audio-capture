@@ -31,7 +31,7 @@
   processId: number;                    // 目标进程 PID
   sampleRate?: number;                  // 采样率 (默认: 48000)
   channels?: number;                    // 声道数 (默认: 2)
-  format?: 'float32' | 'int16';        // 数据格式 (默认: 'float32')
+  // ⚠️ WASAPI 固定输出 Float32，需要其他格式请使用 AudioProcessingPipeline
   useExternalBuffer?: boolean;          // 使用外部缓冲池 (默认: false)
   bufferPoolStrategy?: 'fixed' | 'adaptive';  // 缓冲池策略 (默认: 'fixed')
   bufferPoolSize?: number;              // 初始池大小 (默认: 10)

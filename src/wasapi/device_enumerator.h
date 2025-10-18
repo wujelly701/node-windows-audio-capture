@@ -48,6 +48,13 @@ public:
     std::vector<AudioDeviceInfo> EnumerateOutputDevices();
 
     /**
+     * Enumerate all audio input (capture) devices (microphones)
+     * @return Vector of AudioDeviceInfo structures
+     * @since v2.9.0
+     */
+    std::vector<AudioDeviceInfo> EnumerateInputDevices();
+
+    /**
      * Get a device by its ID
      * @param deviceId Device ID string
      * @return IMMDevice pointer, or nullptr if not found
@@ -59,6 +66,13 @@ public:
      * @return IMMDevice pointer, or nullptr if not found
      */
     ComPtr<IMMDevice> GetDefaultDevice();
+
+    /**
+     * Get the default audio input (capture) device (default microphone)
+     * @return IMMDevice pointer, or nullptr if not found
+     * @since v2.9.0
+     */
+    ComPtr<IMMDevice> GetDefaultInputDevice();
 
     /**
      * Get the underlying device enumerator COM interface

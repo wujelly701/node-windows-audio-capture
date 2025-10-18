@@ -129,6 +129,92 @@ std::vector<AudioDeviceInfo> AudioDeviceEnumerator::EnumerateOutputDevices() {
     return devices;
 }
 
+std::vector<AudioDeviceInfo> AudioDeviceEnumerator::EnumerateInputDevices() {
+    std::vector<AudioDeviceInfo> devices;
+
+    if (!initialized_) {
+        std::cerr << "Device enumerator not initialized" << std::endl;
+        return devices;
+    }
+
+    // Get default input device
+    ComPtr<IMMDevice> default_device = GetDefaultInputDevice();
+    std::string default_device_id;
+    if (default_device) {
+        LPWSTR device_id_wstr = nullptr;
+        if (SUCCEEDED(default_device->GetId(&device_id_wstr))) {
+            // Convert LPWSTR to std::string
+            int size = WideCharToMultiByte(CP_UTF8, 0, device_id_wstr, -1, nullptr, 0, nullptr, nullptr);
+            if (size > 0) {
+                std::vector<char> buffer(size);
+                WideCharToMultiByte(CP_UTF8, 0, device_id_wstr, -1, buffer.data(), size, nullptr, nullptr);
+                default_device_id = buffer.data();
+            }
+            CoTaskMemFree(device_id_wstr);
+        }
+    }
+
+    // Enumerate all active capture devices
+    ComPtr<IMMDeviceCollection> device_collection;
+    HRESULT hr = device_enumerator_->EnumAudioEndpoints(
+        eCapture,             // Capture (input) devices - MICROPHONES
+        DEVICE_STATE_ACTIVE,  // Only active devices
+        device_collection.GetAddressOf()
+    );
+
+    if (FAILED(hr)) {
+        std::cerr << "Failed to enumerate audio capture endpoints: 0x" << std::hex << hr << std::endl;
+        return devices;
+    }
+
+    // Get device count
+    UINT device_count = 0;
+    hr = device_collection->GetCount(&device_count);
+    if (FAILED(hr)) {
+        std::cerr << "Failed to get device count: 0x" << std::hex << hr << std::endl;
+        return devices;
+    }
+
+    // Iterate through all devices
+    for (UINT i = 0; i < device_count; i++) {
+        ComPtr<IMMDevice> device;
+        hr = device_collection->Item(i, device.GetAddressOf());
+        if (FAILED(hr)) {
+            continue;
+        }
+
+        // Get device ID
+        LPWSTR device_id_wstr = nullptr;
+        hr = device->GetId(&device_id_wstr);
+        if (FAILED(hr)) {
+            continue;
+        }
+
+        // Convert device ID to std::string
+        int size = WideCharToMultiByte(CP_UTF8, 0, device_id_wstr, -1, nullptr, 0, nullptr, nullptr);
+        std::string device_id;
+        if (size > 0) {
+            std::vector<char> buffer(size);
+            WideCharToMultiByte(CP_UTF8, 0, device_id_wstr, -1, buffer.data(), size, nullptr, nullptr);
+            device_id = buffer.data();
+        }
+
+        // Check if this is the default device
+        bool is_default = (device_id == default_device_id);
+
+        // Get device info
+        AudioDeviceInfo info = GetDeviceInfo(device.Get(), is_default);
+        info.id = device_id;
+        info.isActive = true; // We only enumerate active devices
+
+        devices.push_back(info);
+
+        CoTaskMemFree(device_id_wstr);
+    }
+
+    return devices;
+}
+
 ComPtr<IMMDevice> AudioDeviceEnumerator::GetDeviceById(const std::string& deviceId) {
     if (!initialized_) {
         std::cerr << "Device enumerator not initialized" << std::endl;
@@ -171,6 +257,27 @@ ComPtr<IMMDevice> AudioDeviceEnumerator::GetDefaultDevice() {
 
     if (FAILED(hr)) {
         std::cerr << "Failed to get default audio endpoint: 0x" << std::hex << hr << std::endl;
+        return nullptr;
+    }
+
+    return device;
+}
+
+ComPtr<IMMDevice> AudioDeviceEnumerator::GetDefaultInputDevice() {
+    if (!initialized_) {
+        std::cerr << "Device enumerator not initialized" << std::endl;
+        return nullptr;
+    }
+
+    ComPtr<IMMDevice> device;
+    HRESULT hr = device_enumerator_->GetDefaultAudioEndpoint(
+        eCapture,      // Capture (input) device - MICROPHONE
+        eConsole,      // Console role (default for most applications)
+        device.GetAddressOf()
+    );
+
+    if (FAILED(hr)) {
+        std::cerr << "Failed to get default audio capture endpoint: 0x" << std::hex << hr << std::endl;
         return nullptr;
     }
 

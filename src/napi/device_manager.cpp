@@ -300,6 +300,85 @@ Napi::Value StopDeviceMonitoring(const Napi::CallbackInfo& info) {
 }
 
 /**
+ * Get list of all audio input (capture) devices - MICROPHONES
+ * JavaScript: getAudioInputDevices() => Promise<AudioDeviceInfo[]>
+ * @since v2.9.0
+ */
+Napi::Value GetAudioInputDevices(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+
+    // Initialize device enumerator if needed
+    if (!InitializeDeviceEnumerator()) {
+        Napi::Error::New(env, "Failed to initialize device enumerator").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+
+    // Enumerate input devices (microphones)
+    std::vector<AudioDeviceInfo> devices = g_device_enumerator->EnumerateInputDevices();
+
+    // Convert to JavaScript array
+    Napi::Array result = Napi::Array::New(env, devices.size());
+    
+    for (size_t i = 0; i < devices.size(); i++) {
+        const AudioDeviceInfo& device = devices[i];
+        
+        // Create JavaScript object for each device
+        Napi::Object device_obj = Napi::Object::New(env);
+        device_obj.Set("id", Napi::String::New(env, device.id));
+        device_obj.Set("name", Napi::String::New(env, device.name));
+        device_obj.Set("description", Napi::String::New(env, device.description));
+        device_obj.Set("isDefault", Napi::Boolean::New(env, device.isDefault));
+        device_obj.Set("isActive", Napi::Boolean::New(env, device.isActive));
+        device_obj.Set("type", Napi::String::New(env, "capture"));  // Mark as capture device
+        
+        result[i] = device_obj;
+    }
+
+    return result;
+}
+
+/**
+ * Get the default audio input (capture) device ID - DEFAULT MICROPHONE
+ * JavaScript: getDefaultInputDeviceId() => Promise<string | null>
+ * @since v2.9.0
+ */
+Napi::Value GetDefaultInputDeviceId(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+
+    // Initialize device enumerator if needed
+    if (!InitializeDeviceEnumerator()) {
+        Napi::Error::New(env, "Failed to initialize device enumerator").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+
+    // Get default input device (microphone)
+    ComPtr<IMMDevice> default_device = g_device_enumerator->GetDefaultInputDevice();
+    if (!default_device) {
+        return env.Null();
+    }
+
+    // Get device ID
+    LPWSTR device_id_wstr = nullptr;
+    HRESULT hr = default_device->GetId(&device_id_wstr);
+    if (FAILED(hr)) {
+        return env.Null();
+    }
+
+    // Convert LPWSTR to std::string
+    int size = WideCharToMultiByte(CP_UTF8, 0, device_id_wstr, -1, nullptr, 0, nullptr, nullptr);
+    std::string device_id;
+    if (size > 0) {
+        std::vector<char> buffer(size);
+        WideCharToMultiByte(CP_UTF8, 0, device_id_wstr, -1, buffer.data(), size, nullptr, nullptr);
+        device_id = buffer.data();
+    }
+
+    CoTaskMemFree(device_id_wstr);
+
+    return Napi::String::New(env, device_id);
+}
+
+/**
  * Export device management functions
  */
 void InitDeviceManager(Napi::Env env, Napi::Object exports) {
@@ -310,6 +389,10 @@ void InitDeviceManager(Napi::Env env, Napi::Object exports) {
     // v2.4: Device event monitoring
     exports.Set("startDeviceMonitoring", Napi::Function::New(env, StartDeviceMonitoring));
     exports.Set("stopDeviceMonitoring", Napi::Function::New(env, StopDeviceMonitoring));
+    
+    // v2.9.0: Microphone (input device) enumeration
+    exports.Set("getAudioInputDevices", Napi::Function::New(env, GetAudioInputDevices));
+    exports.Set("getDefaultInputDeviceId", Napi::Function::New(env, GetDefaultInputDeviceId));
 }
 
 } // namespace audio_capture

@@ -9,6 +9,7 @@
 #include "agc_processor.h"  // v2.8: AGC (Automatic Gain Control)
 #include "eq_processor.h"   // v2.8: 3-Band EQ
 #include "audio_stats_calculator.h"  // v2.10 Phase 2: Audio statistics
+#include "spectrum_analyzer.h"        // v2.11: Spectrum analysis
 
 class AudioProcessor : public Napi::ObjectWrap<AudioProcessor> {
 public:
@@ -82,8 +83,21 @@ private:
     Napi::Value SetSilenceThreshold(const Napi::CallbackInfo& info);
     Napi::Value GetSilenceThreshold(const Napi::CallbackInfo& info);
     
+    // v2.11: Spectrum analysis
+    Napi::Value EnableSpectrum(const Napi::CallbackInfo& info);
+    Napi::Value DisableSpectrum(const Napi::CallbackInfo& info);
+    Napi::Value IsSpectrumEnabled(const Napi::CallbackInfo& info);
+    Napi::Value SetSpectrumConfig(const Napi::CallbackInfo& info);
+    Napi::Value GetSpectrumConfig(const Napi::CallbackInfo& info);
+    
     // v2.10 Phase 2: Audio statistics calculator with configurable threshold
     std::unique_ptr<wasapi_capture::AudioStatsCalculator> stats_calculator_;
+    
+    // v2.11: Spectrum analyzer
+    std::unique_ptr<audio_capture::SpectrumAnalyzer> spectrum_analyzer_;
+    bool spectrum_enabled_ = false;
+    int spectrum_interval_ms_ = 100;  // 频谱更新间隔（毫秒）
+    std::chrono::steady_clock::time_point last_spectrum_time_;
     
     // 静态方法：设备枚举
     static Napi::Value GetDeviceInfo(const Napi::CallbackInfo& info);

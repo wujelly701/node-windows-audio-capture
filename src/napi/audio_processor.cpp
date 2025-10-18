@@ -50,7 +50,13 @@ Napi::Object AudioProcessor::Init(Napi::Env env, Napi::Object exports) {
         InstanceMethod("calculateAudioStats", &AudioProcessor::CalculateAudioStats),
         // v2.10 Phase 2: Silence threshold configuration
         InstanceMethod("setSilenceThreshold", &AudioProcessor::SetSilenceThreshold),
-        InstanceMethod("getSilenceThreshold", &AudioProcessor::GetSilenceThreshold)
+        InstanceMethod("getSilenceThreshold", &AudioProcessor::GetSilenceThreshold),
+        // v2.11: Spectrum analysis
+        InstanceMethod("enableSpectrum", &AudioProcessor::EnableSpectrum),
+        InstanceMethod("disableSpectrum", &AudioProcessor::DisableSpectrum),
+        InstanceMethod("isSpectrumEnabled", &AudioProcessor::IsSpectrumEnabled),
+        InstanceMethod("setSpectrumConfig", &AudioProcessor::SetSpectrumConfig),
+        InstanceMethod("getSpectrumConfig", &AudioProcessor::GetSpectrumConfig)
     });
     exports.Set("AudioProcessor", func);
     exports.Set("getDeviceInfo", Napi::Function::New(env, AudioProcessor::GetDeviceInfo));
@@ -451,6 +457,80 @@ void AudioProcessor::OnAudioData(const std::vector<uint8_t>& data) {
                 eq_processor_->Process(audioData, frameCount, channels);
             } catch (const std::exception& e) {
                 // EQ failed, continue with original data
+            }
+        }
+    }
+    
+    // v2.11: Perform spectrum analysis if enabled
+    if (spectrum_enabled_ && spectrum_analyzer_) {
+        auto now = std::chrono::steady_clock::now();
+        auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
+            now - last_spectrum_time_
+        ).count();
+        
+        // Update spectrum at configured interval
+        if (elapsed_ms >= spectrum_interval_ms_) {
+            size_t sampleCount = processedData.size() / sizeof(float);
+            if (sampleCount >= static_cast<size_t>(spectrum_analyzer_->GetConfig().fft_size)) {
+                try {
+                    const float* audioData = reinterpret_cast<const float*>(processedData.data());
+                    auto result = spectrum_analyzer_->Analyze(audioData, sampleCount);
+                    
+                    // Create spectrum event data
+                    struct SpectrumData {
+                        audio_capture::SpectrumResult result;
+                    };
+                    
+                    auto* spectrumData = new SpectrumData{result};
+                    
+                    // Send spectrum event to JavaScript
+                    tsfn_.NonBlockingCall(spectrumData, [](Napi::Env env, Napi::Function jsCallback, SpectrumData* data) {
+                        try {
+                            // Create spectrum object
+                            Napi::Object spectrum = Napi::Object::New(env);
+                            
+                            // Magnitudes array
+                            Napi::Float32Array magnitudes = Napi::Float32Array::New(env, data->result.magnitudes.size());
+                            for (size_t i = 0; i < data->result.magnitudes.size(); i++) {
+                                magnitudes[i] = data->result.magnitudes[i];
+                            }
+                            spectrum.Set("magnitudes", magnitudes);
+                            
+                            // Frequency bands
+                            Napi::Array bands = Napi::Array::New(env, data->result.bands.size());
+                            for (size_t i = 0; i < data->result.bands.size(); i++) {
+                                const auto& band = data->result.bands[i];
+                                Napi::Object bandObj = Napi::Object::New(env);
+                                bandObj.Set("minFreq", Napi::Number::New(env, band.min_freq));
+                                bandObj.Set("maxFreq", Napi::Number::New(env, band.max_freq));
+                                bandObj.Set("energy", Napi::Number::New(env, band.energy));
+                                bandObj.Set("db", Napi::Number::New(env, band.db));
+                                bandObj.Set("name", Napi::String::New(env, band.name));
+                                bands.Set(static_cast<uint32_t>(i), bandObj);
+                            }
+                            spectrum.Set("bands", bands);
+                            
+                            // Voice detection
+                            spectrum.Set("voiceProbability", Napi::Number::New(env, data->result.voice_probability));
+                            spectrum.Set("spectralCentroid", Napi::Number::New(env, data->result.spectral_centroid));
+                            spectrum.Set("dominantFrequency", Napi::Number::New(env, data->result.dominant_frequency));
+                            spectrum.Set("isVoice", Napi::Boolean::New(env, data->result.is_voice));
+                            spectrum.Set("timestamp", Napi::Number::New(env, data->result.timestamp));
+                            
+                            // Call with both buffer and spectrum (event type: 'spectrum')
+                            jsCallback.Call({Napi::String::New(env, "spectrum"), spectrum});
+                            
+                        } catch (...) {
+                            // Silently ignore errors
+                        }
+                        delete data;
+                    });
+                    
+                    last_spectrum_time_ = now;
+                    
+                } catch (const std::exception& e) {
+                    // Spectrum analysis failed, continue normally
+                }
             }
         }
     }
@@ -1047,4 +1127,179 @@ Napi::Value AudioProcessor::GetSilenceThreshold(const Napi::CallbackInfo& info) 
     }
     
     return Napi::Number::New(env, 0.001f);  // Default value
+}
+
+// ======================================================================
+// v2.11: Spectrum Analysis Methods
+// ======================================================================
+
+// Enable spectrum analysis
+Napi::Value AudioProcessor::EnableSpectrum(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    try {
+        // Parse options
+        audio_capture::SpectrumConfig config;
+        
+        if (info.Length() > 0 && info[0].IsObject()) {
+            Napi::Object options = info[0].As<Napi::Object>();
+            
+            // FFT size
+            if (options.Has("fftSize")) {
+                config.fft_size = options.Get("fftSize").As<Napi::Number>().Int32Value();
+            }
+            
+            // Sample rate (default to 48000 if not available)
+            config.sample_rate = 48000;  // Default sample rate
+            
+            // Smoothing factor
+            if (options.Has("smoothing")) {
+                config.smoothing = options.Get("smoothing").As<Napi::Number>().FloatValue();
+            }
+            
+            // Update interval
+            if (options.Has("interval")) {
+                spectrum_interval_ms_ = options.Get("interval").As<Napi::Number>().Int32Value();
+            }
+            
+            // Custom frequency bands
+            if (options.Has("frequencyBands") && options.Get("frequencyBands").IsArray()) {
+                Napi::Array bands = options.Get("frequencyBands").As<Napi::Array>();
+                config.frequency_bands.clear();
+                
+                for (uint32_t i = 0; i < bands.Length(); i++) {
+                    Napi::Value item = bands[i];
+                    if (item.IsObject()) {
+                        Napi::Object band = item.As<Napi::Object>();
+                        if (band.Has("minFreq") && band.Has("maxFreq")) {
+                            float minFreq = band.Get("minFreq").As<Napi::Number>().FloatValue();
+                            float maxFreq = band.Get("maxFreq").As<Napi::Number>().FloatValue();
+                            config.frequency_bands.push_back(std::make_pair(minFreq, maxFreq));
+                        }
+                    }
+                }
+            }
+            
+            // Voice detection params
+            if (options.Has("voiceDetection") && options.Get("voiceDetection").IsObject()) {
+                Napi::Object vdParams = options.Get("voiceDetection").As<Napi::Object>();
+                
+                if (vdParams.Has("threshold")) {
+                    config.voice_threshold = vdParams.Get("threshold").As<Napi::Number>().FloatValue();
+                }
+                if (vdParams.Has("minFreq")) {
+                    config.min_voice_freq = vdParams.Get("minFreq").As<Napi::Number>().FloatValue();
+                }
+                if (vdParams.Has("maxFreq")) {
+                    config.max_voice_freq = vdParams.Get("maxFreq").As<Napi::Number>().FloatValue();
+                }
+            }
+        }
+        
+        // Create spectrum analyzer
+        spectrum_analyzer_ = std::make_unique<audio_capture::SpectrumAnalyzer>(config);
+        spectrum_enabled_ = true;
+        last_spectrum_time_ = std::chrono::steady_clock::now();
+        
+        return Napi::Boolean::New(env, true);
+        
+    } catch (const std::exception& e) {
+        Napi::Error::New(env, std::string("Failed to enable spectrum: ") + e.what()).ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+}
+
+// Disable spectrum analysis
+Napi::Value AudioProcessor::DisableSpectrum(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    spectrum_enabled_ = false;
+    spectrum_analyzer_.reset();
+    
+    return Napi::Boolean::New(env, true);
+}
+
+// Check if spectrum analysis is enabled
+Napi::Value AudioProcessor::IsSpectrumEnabled(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    return Napi::Boolean::New(env, spectrum_enabled_);
+}
+
+// Set spectrum configuration
+Napi::Value AudioProcessor::SetSpectrumConfig(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    if (!spectrum_analyzer_) {
+        Napi::Error::New(env, "Spectrum analyzer not initialized").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    if (info.Length() < 1 || !info[0].IsObject()) {
+        Napi::TypeError::New(env, "Object expected").ThrowAsJavaScriptException();
+        return env.Undefined();
+    }
+    
+    Napi::Object options = info[0].As<Napi::Object>();
+    
+    // Smoothing factor
+    if (options.Has("smoothing")) {
+        float smoothing = options.Get("smoothing").As<Napi::Number>().FloatValue();
+        spectrum_analyzer_->SetSmoothingFactor(smoothing);
+    }
+    
+    // Update interval
+    if (options.Has("interval")) {
+        spectrum_interval_ms_ = options.Get("interval").As<Napi::Number>().Int32Value();
+    }
+    
+    // Voice detection params
+    if (options.Has("voiceThreshold") || options.Has("minVoiceFreq") || options.Has("maxVoiceFreq")) {
+        float threshold = options.Has("voiceThreshold") ? 
+            options.Get("voiceThreshold").As<Napi::Number>().FloatValue() : 0.3f;
+        float minFreq = options.Has("minVoiceFreq") ? 
+            options.Get("minVoiceFreq").As<Napi::Number>().FloatValue() : 300.0f;
+        float maxFreq = options.Has("maxVoiceFreq") ? 
+            options.Get("maxVoiceFreq").As<Napi::Number>().FloatValue() : 3400.0f;
+        
+        spectrum_analyzer_->SetVoiceDetectionParams(threshold, minFreq, maxFreq);
+    }
+    
+    return env.Undefined();
+}
+
+// Get spectrum configuration
+Napi::Value AudioProcessor::GetSpectrumConfig(const Napi::CallbackInfo& info) {
+    Napi::Env env = info.Env();
+    
+    Napi::Object config = Napi::Object::New(env);
+    
+    config.Set("enabled", Napi::Boolean::New(env, spectrum_enabled_));
+    config.Set("interval", Napi::Number::New(env, spectrum_interval_ms_));
+    
+    if (spectrum_analyzer_) {
+        const auto& cfg = spectrum_analyzer_->GetConfig();
+        
+        config.Set("fftSize", Napi::Number::New(env, cfg.fft_size));
+        config.Set("sampleRate", Napi::Number::New(env, cfg.sample_rate));
+        config.Set("smoothing", Napi::Number::New(env, cfg.smoothing));
+        
+        // Voice detection params
+        Napi::Object vdParams = Napi::Object::New(env);
+        vdParams.Set("threshold", Napi::Number::New(env, cfg.voice_threshold));
+        vdParams.Set("minFreq", Napi::Number::New(env, cfg.min_voice_freq));
+        vdParams.Set("maxFreq", Napi::Number::New(env, cfg.max_voice_freq));
+        config.Set("voiceDetection", vdParams);
+        
+        // Frequency bands
+        Napi::Array bands = Napi::Array::New(env, cfg.frequency_bands.size());
+        for (size_t i = 0; i < cfg.frequency_bands.size(); i++) {
+            Napi::Array band = Napi::Array::New(env, 2);
+            band.Set(static_cast<uint32_t>(0), Napi::Number::New(env, cfg.frequency_bands[i].first));
+            band.Set(static_cast<uint32_t>(1), Napi::Number::New(env, cfg.frequency_bands[i].second));
+            bands.Set(static_cast<uint32_t>(i), band);
+        }
+        config.Set("frequencyBands", bands);
+    }
+    
+    return config;
 }

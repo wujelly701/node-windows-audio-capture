@@ -71,6 +71,108 @@ bool AudioClient::Initialize(const AudioActivationParams& params) {
     return true;
 }
 
+// v2.9.0: 通过设备 ID 初始化（支持麦克风）
+bool AudioClient::InitializeWithDeviceId(const std::string& deviceId, bool isLoopback) {
+    HRESULT hr;
+    
+    DEBUG_LOGF("[AudioClient] InitializeWithDeviceId: deviceId=%s, isLoopback=%d\n", 
+               deviceId.c_str(), isLoopback);
+    
+    // 获取设备枚举器
+    Microsoft::WRL::ComPtr<IMMDeviceEnumerator> enumerator;
+    hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS(&enumerator));
+    if (FAILED(hr)) {
+        DEBUG_LOGF("[AudioClient] Failed to create device enumerator: 0x%08X\n", hr);
+        return false;
+    }
+
+    // 将 std::string 转换为 LPWSTR
+    int size = MultiByteToWideChar(CP_UTF8, 0, deviceId.c_str(), -1, nullptr, 0);
+    if (size <= 0) {
+        DEBUG_LOG("[AudioClient] Failed to convert device ID to wide string\n");
+        return false;
+    }
+    
+    std::vector<wchar_t> deviceIdWstr(size);
+    MultiByteToWideChar(CP_UTF8, 0, deviceId.c_str(), -1, deviceIdWstr.data(), size);
+
+    // 通过设备 ID 获取设备
+    hr = enumerator->GetDevice(deviceIdWstr.data(), &device_);
+    if (FAILED(hr)) {
+        DEBUG_LOGF("[AudioClient] Failed to get device by ID: 0x%08X\n", hr);
+        return false;
+    }
+    
+    DEBUG_LOG("[AudioClient] Device acquired successfully\n");
+
+    // 激活 IAudioClient
+    hr = device_->Activate(__uuidof(IAudioClient), CLSCTX_ALL, nullptr, (void**)&audioClient_);
+    if (FAILED(hr)) {
+        DEBUG_LOGF("[AudioClient] Failed to activate IAudioClient: 0x%08X\n", hr);
+        return false;
+    }
+    
+    DEBUG_LOG("[AudioClient] IAudioClient activated\n");
+
+    // 获取设备默认格式
+    WAVEFORMATEX* pFormat = nullptr;
+    hr = audioClient_->GetMixFormat(&pFormat);
+    if (FAILED(hr)) {
+        DEBUG_LOGF("[AudioClient] Failed to get mix format: 0x%08X\n", hr);
+        return false;
+    }
+    
+    DEBUG_LOGF("[AudioClient] Mix format: %d Hz, %d channels, %d bits\n",
+               pFormat->nSamplesPerSec, pFormat->nChannels, pFormat->wBitsPerSample);
+
+    // 构建流标志
+    DWORD streamFlags = AUDCLNT_STREAMFLAGS_EVENTCALLBACK;
+    
+    if (isLoopback) {
+        // Loopback 模式：捕获输出设备的音频
+        streamFlags |= AUDCLNT_STREAMFLAGS_LOOPBACK;
+        DEBUG_LOG("[AudioClient] Using LOOPBACK mode (capture output device audio)\n");
+    } else {
+        // 直接捕获模式：捕获输入设备（麦克风）的音频
+        DEBUG_LOG("[AudioClient] Using DIRECT CAPTURE mode (microphone)\n");
+    }
+
+    // 初始化音频客户端
+    hr = audioClient_->Initialize(
+        AUDCLNT_SHAREMODE_SHARED,
+        streamFlags,
+        10000000,  // 1 秒缓冲区 (100ns 单位)
+        0,
+        pFormat,
+        nullptr
+    );
+    
+    CoTaskMemFree(pFormat);
+    
+    if (FAILED(hr)) {
+        DEBUG_LOGF("[AudioClient] Failed to initialize audio client: 0x%08X\n", hr);
+        return false;
+    }
+    
+    DEBUG_LOG("[AudioClient] Audio client initialized\n");
+
+    // 获取 IAudioCaptureClient 接口
+    Microsoft::WRL::ComPtr<IAudioCaptureClient> captureClient;
+    hr = audioClient_->GetService(__uuidof(IAudioCaptureClient), (void**)&captureClient);
+    if (FAILED(hr)) {
+        DEBUG_LOGF("[AudioClient] Failed to get capture client: 0x%08X\n", hr);
+        return false;
+    }
+    
+    DEBUG_LOG("[AudioClient] Capture client acquired\n");
+
+    captureClient_ = captureClient;
+    initialized_ = true;
+    
+    DEBUG_LOG("[AudioClient] InitializeWithDeviceId completed successfully\n");
+    return true;
+}
+
 Microsoft::WRL::ComPtr<IAudioClient> AudioClient::GetAudioClient() const {
     return audioClient_;
 }

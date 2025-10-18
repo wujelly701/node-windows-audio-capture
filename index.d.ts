@@ -204,6 +204,211 @@ export interface AudioStatsOptions {
 }
 
 /**
+ * v2.11.0: 频谱分析配置选项
+ * @since 2.11.0
+ */
+export interface SpectrumAnalyzerOptions {
+    /**
+     * FFT 大小（必须是 2 的幂）
+     * 注意：必须小于音频缓冲区的样本数
+     * @default 2048
+     * @range 256 - 8192
+     */
+    fftSize?: number;
+    
+    /**
+     * 频谱更新间隔（毫秒）
+     * @default 100
+     * @range 10 - 1000
+     */
+    interval?: number;
+    
+    /**
+     * 频谱平滑因子（0 = 无平滑，1 = 最大平滑）
+     * @default 0.8
+     * @range 0.0 - 1.0
+     */
+    smoothing?: number;
+    
+    /**
+     * 自定义频段配置
+     * 如果不指定，使用默认的 7 频段均衡器配置
+     */
+    frequencyBands?: FrequencyBandConfig[];
+    
+    /**
+     * 语音检测配置
+     */
+    voiceDetection?: VoiceDetectionConfig;
+}
+
+/**
+ * v2.11.0: 频段配置
+ * @since 2.11.0
+ */
+export interface FrequencyBandConfig {
+    /**
+     * 最小频率（Hz）
+     */
+    minFreq: number;
+    
+    /**
+     * 最大频率（Hz）
+     */
+    maxFreq: number;
+    
+    /**
+     * 频段名称（可选）
+     */
+    name?: string;
+}
+
+/**
+ * v2.11.0: 语音检测配置
+ * @since 2.11.0
+ */
+export interface VoiceDetectionConfig {
+    /**
+     * 语音检测阈值（0-1）
+     * 当语音概率超过此值时，isVoice 为 true
+     * @default 0.3
+     * @range 0.0 - 1.0
+     */
+    threshold?: number;
+    
+    /**
+     * 语音频率范围最小值（Hz）
+     * 人类语音通常在 300-3400Hz
+     * @default 300
+     */
+    minFreq?: number;
+    
+    /**
+     * 语音频率范围最大值（Hz）
+     * @default 3400
+     */
+    maxFreq?: number;
+}
+
+/**
+ * v2.11.0: 频段分析结果
+ * @since 2.11.0
+ */
+export interface FrequencyBand {
+    /**
+     * 最小频率（Hz）
+     */
+    minFreq: number;
+    
+    /**
+     * 最大频率（Hz）
+     */
+    maxFreq: number;
+    
+    /**
+     * 频段能量（线性）
+     */
+    energy: number;
+    
+    /**
+     * 频段能量（分贝）
+     */
+    db: number;
+    
+    /**
+     * 频段名称
+     */
+    name: string;
+}
+
+/**
+ * v2.11.0: 频谱分析结果
+ * @since 2.11.0
+ */
+export interface SpectrumData {
+    /**
+     * FFT 幅度谱（Float32Array）
+     * 长度为 fftSize / 2
+     */
+    magnitudes: Float32Array;
+    
+    /**
+     * 频段分析结果
+     */
+    bands: FrequencyBand[];
+    
+    /**
+     * 语音概率（0-1）
+     * 表示当前音频中语音成分的占比
+     */
+    voiceProbability: number;
+    
+    /**
+     * 频谱质心（Hz）
+     * 表示频谱能量的"重心"位置
+     */
+    spectralCentroid: number;
+    
+    /**
+     * 主频率（Hz）
+     * 能量最大的频率分量
+     */
+    dominantFrequency: number;
+    
+    /**
+     * 是否检测到语音
+     * 当 voiceProbability > threshold 时为 true
+     */
+    isVoice: boolean;
+    
+    /**
+     * 时间戳（毫秒）
+     */
+    timestamp: number;
+}
+
+/**
+ * v2.11.0: 频谱分析器配置信息（只读）
+ * @since 2.11.0
+ */
+export interface SpectrumConfig {
+    /**
+     * 是否已启用
+     */
+    enabled: boolean;
+    
+    /**
+     * FFT 大小
+     */
+    fftSize: number;
+    
+    /**
+     * 采样率（Hz）
+     */
+    sampleRate: number;
+    
+    /**
+     * 更新间隔（毫秒）
+     */
+    interval: number;
+    
+    /**
+     * 平滑因子
+     */
+    smoothing: number;
+    
+    /**
+     * 频段配置（[minFreq, maxFreq][]）
+     */
+    frequencyBands: [number, number][];
+    
+    /**
+     * 语音检测配置
+     */
+    voiceDetection: VoiceDetectionConfig;
+}
+
+/**
  * v2.3: 音频设备详细信息
  * @since 2.3.0
  */
@@ -877,6 +1082,102 @@ export declare class AudioCapture extends EventEmitter {
      */
     calculateStats(buffer: Buffer): AudioStats;
     
+    // ==================== v2.11: Spectrum Analyzer Methods ====================
+    
+    /**
+     * v2.11.0: 启用原生 C++ FFT 频谱分析
+     * 
+     * 使用 kiss_fft 库进行实时频谱分析，支持：
+     * - 快速傅里叶变换（FFT）
+     * - 多频段能量分析
+     * - 语音检测（300-3400Hz）
+     * - 频谱质心和主频率计算
+     * 
+     * @param options - 频谱分析配置选项
+     * @returns 是否成功启用
+     * @throws {Error} 如果 AudioProcessor 未初始化或配置无效
+     * @since 2.11.0
+     * @example
+     * ```typescript
+     * capture.enableSpectrum({
+     *   fftSize: 512,        // FFT 大小（必须 < 音频缓冲区样本数）
+     *   interval: 100,       // 100ms 更新一次
+     *   smoothing: 0.8,      // 平滑因子
+     *   frequencyBands: [
+     *     { minFreq: 20, maxFreq: 250, name: 'Bass' },
+     *     { minFreq: 250, maxFreq: 2000, name: 'Midrange' },
+     *     { minFreq: 2000, maxFreq: 20000, name: 'Treble' }
+     *   ],
+     *   voiceDetection: {
+     *     threshold: 0.3,    // 语音检测阈值
+     *     minFreq: 300,
+     *     maxFreq: 3400
+     *   }
+     * });
+     * 
+     * capture.on('spectrum', (data) => {
+     *   console.log('Voice probability:', data.voiceProbability);
+     *   console.log('Dominant frequency:', data.dominantFrequency);
+     * });
+     * ```
+     */
+    enableSpectrum(options?: SpectrumAnalyzerOptions): boolean;
+    
+    /**
+     * v2.11.0: 禁用频谱分析
+     * 停止 FFT 计算并释放相关资源
+     * @returns 是否成功禁用
+     * @since 2.11.0
+     */
+    disableSpectrum(): boolean;
+    
+    /**
+     * v2.11.0: 检查频谱分析是否已启用
+     * @returns 频谱分析是否启用
+     * @since 2.11.0
+     */
+    isSpectrumEnabled(): boolean;
+    
+    /**
+     * v2.11.0: 动态更新频谱分析配置
+     * 可以在运行时更改平滑因子、更新间隔、语音检测参数等
+     * 注意：无法更改 FFT 大小和频段配置，需要先禁用后重新启用
+     * @param config - 要更新的配置项
+     * @returns 是否成功更新
+     * @throws {Error} 如果频谱分析未启用或配置无效
+     * @since 2.11.0
+     * @example
+     * ```typescript
+     * // 调整平滑度
+     * capture.setSpectrumConfig({ smoothing: 0.9 });
+     * 
+     * // 改变更新频率
+     * capture.setSpectrumConfig({ interval: 50 });
+     * 
+     * // 调整语音检测灵敏度
+     * capture.setSpectrumConfig({
+     *   voiceDetection: { threshold: 0.4 }
+     * });
+     * ```
+     */
+    setSpectrumConfig(config: Partial<SpectrumAnalyzerOptions>): boolean;
+    
+    /**
+     * v2.11.0: 获取当前频谱分析配置
+     * @returns 当前配置对象，如果未启用则返回 null
+     * @since 2.11.0
+     * @example
+     * ```typescript
+     * const config = capture.getSpectrumConfig();
+     * if (config) {
+     *   console.log('FFT Size:', config.fftSize);
+     *   console.log('Sample Rate:', config.sampleRate);
+     *   console.log('Voice Detection:', config.voiceDetection);
+     * }
+     * ```
+     */
+    getSpectrumConfig(): SpectrumConfig | null;
+    
     /**
      * 音频数据事件
      * @event
@@ -890,6 +1191,31 @@ export declare class AudioCapture extends EventEmitter {
      * @since 2.10.0
      */
     on(event: 'stats', listener: (stats: AudioStats) => void): this;
+    
+    /**
+     * v2.11.0: 频谱分析事件
+     * 当启用 enableSpectrum() 后，会定期触发此事件
+     * @event
+     * @since 2.11.0
+     * @example
+     * ```typescript
+     * capture.on('spectrum', (data) => {
+     *   // 检测语音
+     *   if (data.isVoice) {
+     *     console.log('Voice detected!', data.voiceProbability);
+     *   }
+     *   
+     *   // 显示频段能量
+     *   data.bands.forEach(band => {
+     *     console.log(`${band.name}: ${band.db.toFixed(1)} dB`);
+     *   });
+     *   
+     *   // 显示主频率
+     *   console.log('Dominant frequency:', data.dominantFrequency, 'Hz');
+     * });
+     * ```
+     */
+    on(event: 'spectrum', listener: (data: SpectrumData) => void): this;
     
     /**
      * 错误事件
@@ -924,10 +1250,14 @@ export declare class AudioCapture extends EventEmitter {
     // EventEmitter 重载
     on(event: string | symbol, listener: (...args: any[]) => void): this;
     once(event: 'data', listener: (data: AudioDataEvent) => void): this;
+    once(event: 'stats', listener: (stats: AudioStats) => void): this;
+    once(event: 'spectrum', listener: (data: SpectrumData) => void): this;
     once(event: 'error', listener: (error: Error) => void): this;
     once(event: 'started' | 'stopped' | 'paused' | 'resumed', listener: () => void): this;
     once(event: string | symbol, listener: (...args: any[]) => void): this;
     emit(event: 'data', data: AudioDataEvent): boolean;
+    emit(event: 'stats', stats: AudioStats): boolean;
+    emit(event: 'spectrum', data: SpectrumData): boolean;
     emit(event: 'error', error: Error): boolean;
     emit(event: 'started' | 'stopped' | 'paused' | 'resumed'): boolean;
     emit(event: string | symbol, ...args: any[]): boolean;

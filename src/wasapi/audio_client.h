@@ -18,6 +18,9 @@ public:
     // 初始化音频客户端
     bool Initialize(const AudioActivationParams& params);
     
+    // v2.9.0: 通过设备 ID 初始化（支持麦克风）
+    bool InitializeWithDeviceId(const std::string& deviceId, bool isLoopback = true);
+    
     // v2.0: 初始化并启用进程过滤
     bool InitializeWithProcessFilter(DWORD processId);
 

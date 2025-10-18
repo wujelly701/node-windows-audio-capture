@@ -27,10 +27,12 @@
   ],
   "scripts": {
     "install": "node-gyp-build",
+    "postinstall": "node scripts/check-electron.js",
     "build": "node-gyp rebuild",
     "configure": "node-gyp configure",
     "clean": "node-gyp clean",
     "prebuild": "prebuildify --napi --strip",
+    "electron-rebuild": "electron-rebuild -f -w node-windows-audio-capture",
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:verbose": "jest --verbose",

@@ -1,6 +1,6 @@
 {
   "name": "node-windows-audio-capture",
-  "version": "2.11.0",
+  "version": "2.11.1",
   "description": "Production-ready Node.js Windows audio capture addon with native C++ FFT spectrum analyzer, microphone support, AGC, 3-Band EQ, RNNoise AI denoising, voice detection, real-time audio statistics (Peak/RMS/dB) and adaptive buffer pool (WASAPI, EventEmitter-based, N-API)",
   "main": "index.js",
   "types": "index.d.ts",

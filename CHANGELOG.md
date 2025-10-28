@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.1] - 2025-10-28
+
+### 🐛 Fixed
+
+**Critical Crash on Repeated Audio Capture Start/Stop**
+- **Issue**: Application crashed when starting audio capture a second time (e.g., audio preview → stop → restart)
+- **Root Cause**: COM resources (AudioClient, CaptureClient, Device) were not properly cleaned up before re-initialization
+  - `Stop()` method released COM objects
+  - BUT `InitializeWithDeviceId()` didn't check for existing resources before re-initializing
+  - Resulted in WASAPI resource leakage and access violation crash
+- **Fix**: Added comprehensive resource cleanup check in `InitializeWithDeviceId()`
+  - Detects existing resources (`audioClient_`, `captureClient_`, `device_`, `sessionManager_`)
+  - Properly stops audio stream and releases all COM objects before re-initialization
+  - Ensures clean state for every initialization attempt
+- **Impact**: 
+  - ✅ Fixed crash in realtime-translator-all application
+  - ✅ Enables reliable audio preview functionality
+  - ✅ Supports unlimited start/stop cycles without memory leaks
+- **Test**: Added `test-repeat-start-stop.js` to verify fix
+
 ## [2.11.0] - 2025-10-18
 
 ### 🎵 Major Features - Native C++ FFT Spectrum Analyzer

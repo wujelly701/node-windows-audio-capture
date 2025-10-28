@@ -78,6 +78,41 @@ bool AudioClient::InitializeWithDeviceId(const std::string& deviceId, bool isLoo
     DEBUG_LOGF("[AudioClient] InitializeWithDeviceId: deviceId=%s, isLoopback=%d\n", 
                deviceId.c_str(), isLoopback);
     
+    // v2.11.1: 在重新初始化前，确保释放所有旧资源，防止重复初始化崩溃
+    if (initialized_ || audioClient_ || captureClient_ || device_) {
+        DEBUG_LOG("[AudioClient] Cleaning up existing resources before re-initialization...\n");
+        
+        // 如果音频流正在运行，先停止
+        if (audioClient_) {
+            audioClient_->Stop();
+        }
+        
+        // 释放所有 COM 对象
+        if (captureClient_) {
+            captureClient_.Reset();
+            captureClient_ = nullptr;
+        }
+        
+        if (audioClient_) {
+            audioClient_.Reset();
+            audioClient_ = nullptr;
+        }
+        
+        if (device_) {
+            device_.Reset();
+            device_ = nullptr;
+        }
+        
+        // 清理会话管理器
+        if (sessionManager_) {
+            sessionManager_->RestoreMuteStates();
+            sessionManager_.reset();
+        }
+        
+        initialized_ = false;
+        DEBUG_LOG("[AudioClient] Existing resources cleaned up\n");
+    }
+    
     // 获取设备枚举器
     Microsoft::WRL::ComPtr<IMMDeviceEnumerator> enumerator;
     hr = CoCreateInstance(__uuidof(MMDeviceEnumerator), nullptr, CLSCTX_ALL, IID_PPV_ARGS(&enumerator));
@@ -224,6 +259,36 @@ bool AudioClient::Stop() {
     }
     
     HRESULT hr = audioClient_->Stop();
+    
+    // v2.11.1: 完全释放 COM 资源，防止重复初始化时崩溃
+    // 释放捕获客户端
+    if (captureClient_) {
+        captureClient_.Reset();
+        captureClient_ = nullptr;
+    }
+    
+    // 释放音频客户端
+    if (audioClient_) {
+        audioClient_.Reset();
+        audioClient_ = nullptr;
+    }
+    
+    // 释放设备
+    if (device_) {
+        device_.Reset();
+        device_ = nullptr;
+    }
+    
+    // 重置初始化标志
+    initialized_ = false;
+    
+    // 清理会话管理器
+    if (sessionManager_) {
+        sessionManager_.reset();
+    }
+    
+    DEBUG_LOG("[AudioClient] All resources released successfully\n");
+    
     return SUCCEEDED(hr);
 }
 
